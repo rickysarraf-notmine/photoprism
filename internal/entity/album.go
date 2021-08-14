@@ -244,6 +244,49 @@ func NewMonthAlbum(albumTitle, albumSlug string, year, month int) *Album {
 	return result
 }
 
+func FindLabelAlbums() (result Albums) {
+	// Both "label" and "country / year" album have the same album type,
+	// so to distinguish between the two we have few options:
+	// - "label" albums do not have a year
+	// - "label" albums do not have a country
+	// - "label" albums should contain the "label:" string as filter
+	if err := UnscopedDb().
+		Where("album_type = ?", AlbumMoment).
+		Where("album_year IS NULL").
+		Where("deleted_at IS NULL").
+		Find(&result).Error; err != nil {
+
+		log.Errorf("album: %s (not found)", err)
+		return nil
+	}
+
+	return result
+}
+
+func FindCountriesByYearAlbums() (result Albums) {
+	if err := UnscopedDb().
+		Where("album_type = ?", AlbumMoment).
+		Where("album_year IS NOT NULL").
+		Where("deleted_at IS NULL").
+		Find(&result).Error; err != nil {
+
+		log.Errorf("album: %s (not found)", err)
+		return nil
+	}
+
+	return result
+}
+
+// FindAlbumByType finds matching albums or returns nil.
+func FindAlbumsByType(albumType string) (result Albums) {
+	if err := UnscopedDb().Where("album_type = ? AND deleted_at IS NULL", albumType).Find(&result).Error; err != nil {
+		log.Errorf("album: %s (not found)", err)
+		return nil
+	}
+
+	return result
+}
+
 // FindAlbumBySlug finds a matching album or returns nil.
 func FindAlbumBySlug(albumSlug, albumType string) *Album {
 	result := Album{}
