@@ -13,6 +13,7 @@ const (
 	MimeTypeBitmap = "image/bmp"
 	MimeTypeTiff   = "image/tiff"
 	MimeTypeHEIF   = "image/heif"
+	MimeTypeMP4    = "video/mp4"
 )
 
 // MimeType returns the mime type of a file, empty string if unknown.

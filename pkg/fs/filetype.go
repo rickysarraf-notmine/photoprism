@@ -54,6 +54,7 @@ const (
 	AvcExt      = ".avc"
 	FujiRawExt  = ".raf"
 	CanonCr3Ext = ".cr3"
+	Mp4Ext      = ".mp4"
 )
 
 // FileExt contains the filename extensions of file formats known to PhotoPrism.
