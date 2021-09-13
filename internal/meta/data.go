@@ -50,7 +50,7 @@ type Data struct {
 	Rotation          int              `meta:"Rotation"`
 	MotionPhoto       bool             `meta:"MotionPhoto"`
 	Directory         []DirectoryEntry `meta:"Directory"`
-	EmbeddedVideoType string           `metda:"EmbeddedVideoType"`
+	EmbeddedVideoType string           `meta:"EmbeddedVideoType"`
 	MicroVideo        bool             `meta:"MicroVideo"`
 	MicroVideoVersion int              `meta:"MicroVideoVersion"`
 	MicroVideoOffset  int              `meta:"MicroVideoOffset"`

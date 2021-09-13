@@ -103,8 +103,6 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 	} else if f.MetaData().EmbeddedVideoType == MotionPhotoSamsung {
 		log.Infof("mp: detected that %s is a Samsung motion photo", txt.Quote(fileName))
 
-		// TODO untested
-		// exiftool -b -EmbeddedVideoFile file.jpg >video.mp4
 		cmd := exec.Command(conf.ExifToolBin(), "-b", "-EmbeddedVideoFile", f.FileName())
 
 		// Fetch command output.
