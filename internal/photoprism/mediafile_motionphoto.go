@@ -23,6 +23,9 @@ func (m *MediaFile) IsMotionPhoto() bool {
 	if m.MetaData().MotionPhoto {
 		// Google MotionPhoto v1
 		return true
+	} else if m.MetaData().MicroVideo {
+		// Google MotionPhoto legacy
+		return true
 	} else if m.MetaData().EmbeddedVideoType == MotionPhotoSamsung {
 		// Samsung MotionPhoto
 		return true
@@ -75,6 +78,19 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 				offset = v.Length
 			}
 		}
+
+		data, err := ioutil.ReadFile(f.FileName())
+		if err != nil {
+			return nil, err
+		}
+
+		if err := ioutil.WriteFile(mpName, data[len(data)-offset:], os.ModePerm); err != nil {
+			return nil, err
+		}
+	} else if f.MetaData().MicroVideo {
+		log.Infof("mp: detected that %s is a Google legacy motion photo", txt.Quote(fileName))
+
+		offset := f.MetaData().MicroVideoOffset
 
 		data, err := ioutil.ReadFile(f.FileName())
 		if err != nil {

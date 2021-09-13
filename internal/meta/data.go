@@ -51,6 +51,9 @@ type Data struct {
 	MotionPhoto       bool             `meta:"MotionPhoto"`
 	Directory         []DirectoryEntry `meta:"Directory"`
 	EmbeddedVideoType string           `metda:"EmbeddedVideoType"`
+	MicroVideo        bool             `meta:"MicroVideo"`
+	MicroVideoVersion int              `meta:"MicroVideoVersion"`
+	MicroVideoOffset  int              `meta:"MicroVideoOffset"`
 	Views             int              `meta:"-"`
 	Albums            []string         `meta:"-"`
 	Error             error            `meta:"-"`
