@@ -39,11 +39,11 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 	conf := Config()
 
 	if f == nil {
-		return nil, fmt.Errorf("mp: file is nil - you might have found a bug")
+		return nil, fmt.Errorf("file is nil - you might have found a bug")
 	}
 
 	if !f.Exists() {
-		return nil, fmt.Errorf("mp: %s not found", f.RelName(conf.OriginalsPath()))
+		return nil, fmt.Errorf("file does not exist")
 	}
 
 	mpName := fs.FileName(fs.StripExt(f.FileName()), conf.SidecarPath(), conf.OriginalsPath(), fs.Mp4Ext)
@@ -101,6 +101,8 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 			return nil, err
 		}
 	} else if f.MetaData().EmbeddedVideoType == MotionPhotoSamsung {
+		// Some sample Samsung motion photos also have the legacy Google metadata (micro video),
+		// so check for the Samssung metadata last, as it is more restrictive (requiresss exif tool).
 		log.Infof("mp: detected that %s is a Samsung motion photo", txt.Quote(fileName))
 
 		if conf.DisableExifTool() {
@@ -132,7 +134,7 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 
 	// Check if file exists.
 	if !fs.FileExists(mpName) {
-		return nil, fmt.Errorf("mp: failed creating motion photo video for %s", filepath.Base(mpName))
+		return nil, fmt.Errorf("motion photo video was not created")
 	}
 
 	return NewMediaFile(mpName)
