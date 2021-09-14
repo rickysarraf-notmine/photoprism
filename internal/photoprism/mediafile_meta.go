@@ -66,7 +66,7 @@ func (m *MediaFile) ReadExifToolJson() error {
 	return m.metaData.JSON(jsonName, "")
 }
 
-// MetaData returns exif meta data of a media file.
+// MetaData returns exif and xmp meta data of a media file.
 func (m *MediaFile) MetaData() (result meta.Data) {
 	m.metaDataOnce.Do(func() {
 		var err error
@@ -75,6 +75,11 @@ func (m *MediaFile) MetaData() (result meta.Data) {
 			err = m.metaData.Exif(m.FileName(), m.FileType())
 		} else {
 			err = fmt.Errorf("exif not supported")
+		}
+
+		xmpErr := m.metaData.XMP(m.FileName(), m.FileType())
+		if xmpErr != nil {
+			log.Debug(xmpErr)
 		}
 
 		// Parse regular JSON sidecar files ("img_1234.json")

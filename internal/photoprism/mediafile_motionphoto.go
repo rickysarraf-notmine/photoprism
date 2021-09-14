@@ -54,8 +54,8 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 		return mediaFile, nil
 	}
 
-	if conf.DisableExifTool() {
-		return nil, fmt.Errorf("mp: disabled in read only mode (%s)", f.RelName(conf.OriginalsPath()))
+	if !conf.SidecarWritable() {
+		return nil, fmt.Errorf("sidecar location is not writable")
 	}
 
 	fileName := f.RelName(conf.OriginalsPath())
@@ -102,6 +102,10 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 		}
 	} else if f.MetaData().EmbeddedVideoType == MotionPhotoSamsung {
 		log.Infof("mp: detected that %s is a Samsung motion photo", txt.Quote(fileName))
+
+		if conf.DisableExifTool() {
+			return nil, fmt.Errorf("exif tool is disabled")
+		}
 
 		cmd := exec.Command(conf.ExifToolBin(), "-b", "-EmbeddedVideoFile", f.FileName())
 
