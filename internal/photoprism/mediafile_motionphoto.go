@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/alfg/mp4"
 	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/txt"
@@ -99,7 +100,27 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 		startIndex := len(data) - offset
 
 		if startIndex < 0 {
-			return nil, fmt.Errorf("micro video offset %d is bigger than the file size %d", offset, len(data))
+			log.Warnf("mp: implausble offset %d in %s, will try to recover the embedded motion photo anyway", offset, txt.Quote(fileName))
+
+			// The metadata is obviously incorrect, so let's make a last ditch effort to find whether
+			// there is an mp4 file embedded somewhere in the file.
+			for res := range fs.MimeTypeSearch(data) {
+				if res.MimeType == fs.MimeTypeMP4 {
+					if mp4, err := mp4.OpenFromBytes(data[res.Position:]); err == nil {
+						if mp4.Ftyp != nil && mp4.Ftyp.Name == "ftyp" && mp4.Moov != nil && mp4.Moov.Name == "moov" {
+							log.Infof("mp: found an mp4 at index %d in %s", res.Position, txt.Quote(fileName))
+
+							startIndex = res.Position
+
+							break
+						}
+					}
+				}
+			}
+
+			if startIndex < 0 {
+				return nil, fmt.Errorf("micro video offset %d is bigger than the file size %d and no embedded mp4 file could be found", offset, len(data))
+			}
 		}
 
 		if err := ioutil.WriteFile(mpName, data[startIndex:], os.ModePerm); err != nil {
