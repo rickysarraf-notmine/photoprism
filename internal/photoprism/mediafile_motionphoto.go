@@ -90,14 +90,19 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 	} else if f.MetaData().MicroVideo {
 		log.Infof("mp: detected that %s is a Google legacy motion photo", txt.Quote(fileName))
 
-		offset := f.MetaData().MicroVideoOffset
-
 		data, err := ioutil.ReadFile(f.FileName())
 		if err != nil {
 			return nil, err
 		}
 
-		if err := ioutil.WriteFile(mpName, data[len(data)-offset:], os.ModePerm); err != nil {
+		offset := f.MetaData().MicroVideoOffset
+		startIndex := len(data) - offset
+
+		if startIndex < 0 {
+			return nil, fmt.Errorf("micro video offset %d is bigger than the file size %d", offset, len(data))
+		}
+
+		if err := ioutil.WriteFile(mpName, data[startIndex:], os.ModePerm); err != nil {
 			return nil, err
 		}
 	} else if f.MetaData().EmbeddedVideoType == MotionPhotoSamsung {
