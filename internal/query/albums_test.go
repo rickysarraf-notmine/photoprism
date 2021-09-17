@@ -208,10 +208,23 @@ func TestAlbumSearch(t *testing.T) {
 }
 
 func TestUpdateAlbumDates(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		if err := UpdateAlbumDates(); err != nil {
+	t.Run("success with mode first", func(t *testing.T) {
+		if err := UpdateAlbumDates(entity.AlbumDateModeFirst); err != nil {
 			t.Fatal(err)
 		}
+	})
+	t.Run("success with mode last", func(t *testing.T) {
+		if err := UpdateAlbumDates(entity.AlbumDateModeLast); err != nil {
+			t.Fatal(err)
+		}
+	})
+	t.Run("success with mode average", func(t *testing.T) {
+		if err := UpdateAlbumDates(entity.AlbumDateModeAverage); err != nil {
+			t.Fatal(err)
+		}
+	})
+	t.Run("fail with invalid mode", func(t *testing.T) {
+		assert.Error(t, UpdateAlbumDates("invalid"))
 	})
 }
 

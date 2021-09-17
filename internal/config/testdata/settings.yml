@@ -5,6 +5,8 @@ UI:
   Language: de
 Templates:
   Default: index.tmpl
+Albums:
+  Date: last
 Maps:
   Animate: 0
   Style: streets

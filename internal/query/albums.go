@@ -197,16 +197,32 @@ func AlbumSearch(f form.AlbumSearch) (results AlbumResults, err error) {
 }
 
 // UpdateAlbumDates updates album year, month and day based on indexed photo metadata.
-func UpdateAlbumDates() error {
+func UpdateAlbumDates(mode entity.AlbumDateMode) error {
+	var f string
+
+	switch mode {
+	case entity.AlbumDateModeFirst:
+		f = "MIN(%s)"
+		break
+	case entity.AlbumDateModeLast:
+		f = "MAX(%s)"
+		break
+	case entity.AlbumDateModeAverage:
+		f = "FROM_UNIXTIME(AVG(UNIX_TIMESTAMP(%s)))"
+		break
+	default:
+		return fmt.Errorf("invalid album date mode %s", mode)
+	}
+
 	switch DbDialect() {
 	case MySQL:
-		return UnscopedDb().Exec(`UPDATE albums
+		return UnscopedDb().Exec(fmt.Sprintf(`UPDATE albums
 		INNER JOIN
-			(SELECT photo_path, MAX(taken_at_local) AS taken_max
+			(SELECT photo_path, %s AS taken_date
 			 FROM photos WHERE taken_src = 'meta' AND photos.photo_quality >= 3 AND photos.deleted_at IS NULL
 			 GROUP BY photo_path) AS p ON albums.album_path = p.photo_path
-		SET albums.album_year = YEAR(taken_max), albums.album_month = MONTH(taken_max), albums.album_day = DAY(taken_max)
-		WHERE albums.album_type = 'folder' AND albums.album_path IS NOT NULL AND p.taken_max IS NOT NULL`).Error
+		SET albums.album_year = YEAR(taken_date), albums.album_month = MONTH(taken_date), albums.album_day = DAY(taken_date)
+		WHERE albums.album_type = 'folder' AND albums.album_path IS NOT NULL AND p.taken_date IS NOT NULL`, fmt.Sprintf(f, "taken_at_local"))).Error
 	default:
 		return nil
 	}
