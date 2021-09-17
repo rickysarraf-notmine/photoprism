@@ -241,6 +241,22 @@ export const Themes = () => [
     disabled: false,
   },
 ];
+
+export const AlbumsDateMode = () => [
+  {
+    text: $gettext("Last"),
+    value: "last",
+  },
+  {
+    text: $gettext("First"),
+    value: "first",
+  },
+  {
+    text: $gettext("Average"),
+    value: "average",
+  },
+];
+
 export const MapsAnimate = () => [
   {
     text: $gettext("None"),
