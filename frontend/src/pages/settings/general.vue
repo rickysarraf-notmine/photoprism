@@ -314,6 +314,32 @@
           </v-layout>
         </v-card-actions>
       </v-card>
+
+      <v-card flat tile class="mt-0 px-1 application">
+        <v-card-title primary-title class="pb-2">
+          <h3 class="body-2 mb-0">
+            <translate key="Albums">Albums</translate>
+          </h3>
+        </v-card-title>
+
+        <v-card-actions>
+          <v-layout wrap align-top>
+            <v-flex xs12 sm6 class="px-2 pb-2">
+              <v-select
+                  v-model="settings.albums.date"
+                  :disabled="busy"
+                  :items="options.AlbumsDateMode()"
+                  :label="$gettext('Date Mode')"
+                  color="secondary-dark"
+                  background-color="secondary-light"
+                  hide-details
+                  box class="input-style"
+                  @change="onChange"
+              ></v-select>
+            </v-flex>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
     </v-form>
 
     <p-about-footer></p-about-footer>

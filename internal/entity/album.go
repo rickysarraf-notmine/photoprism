@@ -24,6 +24,19 @@ const (
 	AlbumState   = "state"
 )
 
+const (
+	AlbumDateModeLast    = "last"
+	AlbumDateModeFirst   = "first"
+	AlbumDateModeAverage = "average"
+)
+
+// AlbumDateMode determines how the album date should be computed.
+//
+// "first" will use the date of the first photo in the album as the album date.
+// "last" will use the date of the last photo in the album as the album date.
+// "average" will calculate the average of all photos in the album as the album date.
+type AlbumDateMode string
+
 type Albums []Album
 
 // Album represents a photo album
