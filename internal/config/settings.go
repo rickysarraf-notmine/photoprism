@@ -29,6 +29,7 @@ type TemplateSettings struct {
 // FoldersSettings represents folder-related settings.
 type FoldersSettings struct {
 	DateMode  string `json:"datemode" yaml:"DateMode"`
+	SortOrder string `json:"sortorder" yaml:"SortOrder"`
 }
 
 // MapsSettings represents maps settings (for places).
@@ -119,6 +120,7 @@ func NewSettings() *Settings {
 		},
 		Folders: FoldersSettings{
 			DateMode:  entity.DateModeLast,
+			SortOrder: entity.SortOrderAdded,
 		},
 		Maps: MapsSettings{
 			Animate: 0,
