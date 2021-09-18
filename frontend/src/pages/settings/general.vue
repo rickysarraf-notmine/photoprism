@@ -318,7 +318,7 @@
       <v-card flat tile class="mt-0 px-1 application">
         <v-card-title primary-title class="pb-2">
           <h3 class="body-2 mb-0">
-            <translate key="Albums">Albums</translate>
+            <translate key="Folders">Folders</translate>
           </h3>
         </v-card-title>
 
@@ -326,10 +326,24 @@
           <v-layout wrap align-top>
             <v-flex xs12 sm6 class="px-2 pb-2">
               <v-select
-                  v-model="settings.albums.date"
+                  v-model="settings.folders.datemode"
                   :disabled="busy"
-                  :items="options.AlbumsDateMode()"
+                  :items="options.FoldersDateMode()"
                   :label="$gettext('Date Mode')"
+                  color="secondary-dark"
+                  background-color="secondary-light"
+                  hide-details
+                  box class="input-style"
+                  @change="onChange"
+              ></v-select>
+            </v-flex>
+
+            <v-flex xs12 sm6 class="px-2 pb-2">
+              <v-select
+                  v-model="settings.folders.sortorder"
+                  :disabled="busy"
+                  :items="options.FoldersSortOrder()"
+                  :label="$gettext('Default Sort Order')"
                   color="secondary-dark"
                   background-color="secondary-light"
                   hide-details

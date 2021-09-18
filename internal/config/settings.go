@@ -26,9 +26,10 @@ type TemplateSettings struct {
 	Default string `json:"default" yaml:"Default"`
 }
 
-// AlbumsSettings represents album-related settings.
-type AlbumsSettings struct {
-	DateMode entity.AlbumDateMode `json:"date" yaml:"Date"`
+// FoldersSettings represents folder-related settings.
+type FoldersSettings struct {
+	DateMode  string `json:"datemode" yaml:"DateMode"`
+	SortOrder string `json:"sortorder" yaml:"SortOrder"`
 }
 
 // MapsSettings represents maps settings (for places).
@@ -95,7 +96,7 @@ type DownloadSettings struct {
 type Settings struct {
 	UI        UISettings       `json:"ui" yaml:"UI"`
 	Templates TemplateSettings `json:"templates" yaml:"Templates"`
-	Albums    AlbumsSettings   `json:"albums" yaml:"Albums"`
+	Folders   FoldersSettings  `json:"folders" yaml:"Folders"`
 	Maps      MapsSettings     `json:"maps" yaml:"Maps"`
 	Features  FeatureSettings  `json:"features" yaml:"Features"`
 	Import    ImportSettings   `json:"import" yaml:"Import"`
@@ -117,8 +118,9 @@ func NewSettings() *Settings {
 		Templates: TemplateSettings{
 			Default: "index.tmpl",
 		},
-		Albums: AlbumsSettings{
-			DateMode: entity.AlbumDateModeLast,
+		Folders: FoldersSettings{
+			DateMode:  entity.DateModeLast,
+			SortOrder: entity.SortOrderAdded,
 		},
 		Maps: MapsSettings{
 			Animate: 0,

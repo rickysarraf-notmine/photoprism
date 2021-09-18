@@ -242,7 +242,7 @@ export const Themes = () => [
   },
 ];
 
-export const AlbumsDateMode = () => [
+export const FoldersDateMode = () => [
   {
     text: $gettext("Last"),
     value: "last",
@@ -255,6 +255,42 @@ export const AlbumsDateMode = () => [
     text: $gettext("Average"),
     value: "average",
   },
+];
+
+export const FoldersSortOrder = () => [
+  {
+    text: $gettext("Added"),
+    value: "added",
+  },
+  {
+    text: $gettext("Newest"),
+    value: "newest",
+  },
+  {
+    text: $gettext("Oldest"),
+    value: "oldest",
+  },
+  {
+    text: $gettext("Name"),
+    value: "name",
+  },
+  {
+    text: $gettext("Similar"),
+    value: "similar",
+  },
+  {
+    text: $gettext("Relevance"),
+    value: "relevance",
+  },
+  {
+    text: $gettext("Edited"),
+    value: "edited",
+  },
+  {
+    text: $gettext("Random"),
+    value: "random",
+  },
+
 ];
 
 export const MapsAnimate = () => [

@@ -81,7 +81,7 @@ func (w *Moments) Start() (err error) {
 				} else {
 					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
 				}
-			} else if a := entity.NewFolderAlbum(mom.Title(), mom.Path, f.Serialize()); a != nil {
+			} else if a := entity.NewFolderAlbum(mom.Title(), mom.Path, f.Serialize(), conf.Settings().Folders.SortOrder); a != nil {
 				a.AlbumYear = mom.FolderYear
 				a.AlbumMonth = mom.FolderMonth
 				a.AlbumDay = mom.FolderDay
@@ -256,7 +256,7 @@ func (w *Moments) Start() (err error) {
 		log.Errorf("moments: %s (update folder dates)", err.Error())
 	}
 
-	if err := query.UpdateAlbumDates(w.conf.Settings().Albums.DateMode); err != nil {
+	if err := query.UpdateAlbumDates(w.conf.Settings().Folders.DateMode); err != nil {
 		log.Errorf("moments: %s (update album dates)", err.Error())
 	}
 

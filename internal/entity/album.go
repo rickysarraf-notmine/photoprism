@@ -24,19 +24,6 @@ const (
 	AlbumState   = "state"
 )
 
-const (
-	AlbumDateModeLast    = "last"
-	AlbumDateModeFirst   = "first"
-	AlbumDateModeAverage = "average"
-)
-
-// AlbumDateMode determines how the album date should be computed.
-//
-// "first" will use the date of the first photo in the album as the album date.
-// "last" will use the date of the last photo in the album as the album date.
-// "average" will calculate the average of all photos in the album as the album date.
-type AlbumDateMode string
-
 type Albums []Album
 
 // Album represents a photo album
@@ -141,7 +128,7 @@ func NewAlbum(albumTitle, albumType string) *Album {
 }
 
 // NewFolderAlbum creates a new folder album.
-func NewFolderAlbum(albumTitle, albumPath, albumFilter string) *Album {
+func NewFolderAlbum(albumTitle, albumPath, albumFilter string, albumSortOrder string) *Album {
 	albumSlug := slug.Make(albumPath)
 
 	if albumTitle == "" || albumSlug == "" || albumPath == "" || albumFilter == "" {
@@ -151,7 +138,7 @@ func NewFolderAlbum(albumTitle, albumPath, albumFilter string) *Album {
 	now := TimeStamp()
 
 	result := &Album{
-		AlbumOrder:  SortOrderAdded,
+		AlbumOrder:  albumSortOrder,
 		AlbumType:   AlbumFolder,
 		AlbumTitle:  albumTitle,
 		AlbumSlug:   albumSlug,
