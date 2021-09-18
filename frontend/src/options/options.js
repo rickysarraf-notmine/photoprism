@@ -242,7 +242,7 @@ export const Themes = () => [
   },
 ];
 
-export const AlbumsDateMode = () => [
+export const FoldersDateMode = () => [
   {
     text: $gettext("Last"),
     value: "last",

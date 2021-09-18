@@ -197,17 +197,17 @@ func AlbumSearch(f form.AlbumSearch) (results AlbumResults, err error) {
 }
 
 // UpdateAlbumDates updates album year, month and day based on indexed photo metadata.
-func UpdateAlbumDates(mode entity.AlbumDateMode) error {
+func UpdateAlbumDates(mode string) error {
 	var f string
 
 	switch mode {
-	case entity.AlbumDateModeFirst:
+	case entity.DateModeFirst:
 		f = "MIN(%s)"
 		break
-	case entity.AlbumDateModeLast:
+	case entity.DateModeLast:
 		f = "MAX(%s)"
 		break
-	case entity.AlbumDateModeAverage:
+	case entity.DateModeAverage:
 		f = "FROM_UNIXTIME(AVG(UNIX_TIMESTAMP(%s)))"
 		break
 	default:
