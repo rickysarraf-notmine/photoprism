@@ -1,4 +1,4 @@
-package query
+package search
 
 import (
 	"fmt"
@@ -10,8 +10,8 @@ import (
 	"github.com/ulule/deepcopier"
 )
 
-// PhotoResult contains found photos and their main file plus other meta data.
-type PhotoResult struct {
+// Photo represents a photo search result.
+type Photo struct {
 	ID               uint          `json:"-"`
 	CompositeID      string        `json:"ID"`
 	UUID             string        `json:"DocumentID,omitempty"`
@@ -98,7 +98,7 @@ type PhotoResult struct {
 	Files []entity.File `json:"Files"`
 }
 
-type PhotoResults []PhotoResult
+type PhotoResults []Photo
 
 // UIDs returns a slice of photo UIDs.
 func (m PhotoResults) UIDs() []string {
@@ -113,7 +113,7 @@ func (m PhotoResults) UIDs() []string {
 
 func (m PhotoResults) Merged() (PhotoResults, int, error) {
 	count := len(m)
-	merged := make([]PhotoResult, 0, count)
+	merged := make([]Photo, 0, count)
 
 	var lastId uint
 	var i int
@@ -126,6 +126,7 @@ func (m PhotoResults) Merged() (PhotoResults, int, error) {
 		}
 
 		file.ID = res.FileID
+		res.CompositeID = fmt.Sprintf("%d-%d", res.ID, res.FileID)
 
 		if lastId == res.ID && i > 0 {
 			merged[i-1].Files = append(merged[i-1].Files, file)
@@ -133,7 +134,6 @@ func (m PhotoResults) Merged() (PhotoResults, int, error) {
 			continue
 		}
 
-		res.CompositeID = fmt.Sprintf("%d-%d", res.ID, res.FileID)
 		res.Files = append(res.Files, file)
 
 		merged = append(merged, res)
@@ -146,7 +146,7 @@ func (m PhotoResults) Merged() (PhotoResults, int, error) {
 }
 
 // ShareBase returns a meaningful file name for sharing.
-func (m *PhotoResult) ShareBase(seq int) string {
+func (m *Photo) ShareBase(seq int) string {
 	var name string
 
 	if m.PhotoTitle != "" {

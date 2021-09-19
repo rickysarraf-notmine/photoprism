@@ -38,8 +38,8 @@ export class Subject extends RestModel {
   getDefaults() {
     return {
       UID: "",
-      Thumb: "",
-      ThumbSrc: "",
+      MarkerUID: "",
+      MarkerSrc: "",
       Type: "",
       Src: "",
       Slug: "",
@@ -50,7 +50,9 @@ export class Subject extends RestModel {
       Favorite: false,
       Private: false,
       Excluded: false,
-      Files: 0,
+      FileCount: 0,
+      FileHash: "",
+      CropArea: "",
       Metadata: {},
       CreatedAt: "",
       UpdatedAt: "",
@@ -82,10 +84,20 @@ export class Subject extends RestModel {
   }
 
   thumbnailUrl(size) {
-    if (this.Thumb) {
-      return `${config.contentUri}/t/${this.Thumb}/${config.previewToken()}/${size}`;
-    } else {
+    if (!this.FileHash) {
       return `${config.contentUri}/svg/portrait`;
+    }
+
+    if (!size) {
+      size = "tile_160";
+    }
+
+    if (this.CropArea && (size === "tile_160" || size === "tile_320")) {
+      return `${config.contentUri}/t/${this.FileHash}/${config.previewToken()}/${size}/${
+        this.CropArea
+      }`;
+    } else {
+      return `${config.contentUri}/t/${this.FileHash}/${config.previewToken()}/${size}`;
     }
   }
 

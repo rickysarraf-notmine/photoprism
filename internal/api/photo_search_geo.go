@@ -5,18 +5,20 @@ import (
 
 	"github.com/photoprism/photoprism/internal/acl"
 	"github.com/photoprism/photoprism/internal/entity"
-	"github.com/photoprism/photoprism/internal/query"
+	"github.com/photoprism/photoprism/internal/form"
+	"github.com/photoprism/photoprism/internal/search"
 	"github.com/photoprism/photoprism/pkg/txt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/photoprism/photoprism/internal/form"
 
 	geojson "github.com/paulmach/go.geojson"
 )
 
+// SearchPhotosGeo performs a geo search with reduced metadata details for improved performance.
+//
 // GET /api/v1/geo
-func GetGeo(router *gin.RouterGroup) {
+func SearchPhotosGeo(router *gin.RouterGroup) {
 	router.GET("/geo", func(c *gin.Context) {
 		s := Auth(SessionID(c), acl.ResourcePhotos, acl.ActionSearch)
 
@@ -34,10 +36,11 @@ func GetGeo(router *gin.RouterGroup) {
 			return
 		}
 
-		photos, err := query.Geo(f)
+		photos, err := search.PhotosGeo(f)
 
 		if err != nil {
-			c.AbortWithStatusJSON(400, gin.H{"error": txt.UcFirst(err.Error())})
+			log.Warnf("search: %s", err)
+			AbortBadRequest(c)
 			return
 		}
 
