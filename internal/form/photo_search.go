@@ -48,8 +48,8 @@ type PhotoSearch struct {
 	Country   string    `form:"country"`  // Moments
 	State     string    `form:"state"`    // Moments
 	Year      int       `form:"year"`     // Moments
-	Month     int       `form:"month"`    // Moments
-	Day       int       `form:"day"`      // Moments
+	Month     int       `form:"month"`    // Moments, Discover
+	Day       int       `form:"day"`      // Moments, Discover
 	Face      string    `form:"face"`     // UIDs
 	Subject   string    `form:"subject"`  // UIDs
 	Subjects  string    `form:"subjects"` // Text

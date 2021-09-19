@@ -71,4 +71,13 @@ const (
 	SortOrderSimilar   = "similar"
 	SortOrderRelevance = "relevance"
 	SortOrderEdited    = "edited"
+	SortOrderRandom    = "random"
+)
+
+// Date Modes
+
+const (
+	DateModeLast    = "last"
+	DateModeFirst   = "first"
+	DateModeAverage = "average"
 )
