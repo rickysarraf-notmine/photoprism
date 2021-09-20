@@ -127,34 +127,39 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 			return nil, err
 		}
 	} else if f.MetaData().EmbeddedVideoType == MotionPhotoSamsung {
-		// Some sample Samsung motion photos also have the legacy Google metadata (micro video),
-		// so check for the Samssung metadata last, as it is more restrictive (requiresss exif tool).
 		log.Infof("mp: detected that %s is a Samsung motion photo", txt.Quote(fileName))
 
 		if conf.DisableExifTool() {
-			return nil, fmt.Errorf("exif tool is disabled")
-		}
-
-		cmd := exec.Command(conf.ExifToolBin(), "-b", "-EmbeddedVideoFile", f.FileName())
-
-		// Fetch command output.
-		var out bytes.Buffer
-		var stderr bytes.Buffer
-		cmd.Stdout = &out
-		cmd.Stderr = &stderr
-
-		// Run convert command.
-		if err := cmd.Run(); err != nil {
-			if stderr.String() != "" {
-				return nil, errors.New(stderr.String())
-			} else {
+			data, err := f.EmbeddedVideoData()
+			if err != nil {
 				return nil, err
 			}
-		}
 
-		// Write output to file.
-		if err := ioutil.WriteFile(mpName, []byte(out.String()), os.ModePerm); err != nil {
-			return nil, err
+			if err := ioutil.WriteFile(mpName, data, os.ModePerm); err != nil {
+				return nil, err
+			}
+		} else {
+			cmd := exec.Command(conf.ExifToolBin(), "-b", "-EmbeddedVideoFile", f.FileName())
+
+			// Fetch command output.
+			var out bytes.Buffer
+			var stderr bytes.Buffer
+			cmd.Stdout = &out
+			cmd.Stderr = &stderr
+
+			// Run convert command.
+			if err := cmd.Run(); err != nil {
+				if stderr.String() != "" {
+					return nil, errors.New(stderr.String())
+				} else {
+					return nil, err
+				}
+			}
+
+			// Write output to file.
+			if err := ioutil.WriteFile(mpName, []byte(out.String()), os.ModePerm); err != nil {
+				return nil, err
+			}
 		}
 	}
 

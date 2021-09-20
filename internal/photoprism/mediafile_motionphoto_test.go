@@ -48,3 +48,59 @@ func TestMediaFile_IsMotionPhoto(t *testing.T) {
 		assert.Len(t, mediaFile.MetaData().Directory, 2)
 	})
 }
+
+func TestMediaFile_EmbeddedVideoData(t *testing.T) {
+	t.Run("samsung-and-legacy-google-motion-photo", func(t *testing.T) {
+		conf := config.TestConfig()
+
+		mediaFile, err := NewMediaFile(conf.ExamplesPath() + "/samsung_motion_photo.jpg")
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		data, err := mediaFile.EmbeddedVideoData()
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.NotEmpty(t, data)
+	})
+
+	t.Run("samsung-motion-photo", func(t *testing.T) {
+		conf := config.TestConfig()
+
+		mediaFile, err := NewMediaFile(conf.ExamplesPath() + "/1216505.jpg")
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		data, err := mediaFile.EmbeddedVideoData()
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.NotEmpty(t, data)
+	})
+
+	t.Run("google-motion-photo", func(t *testing.T) {
+		conf := config.TestConfig()
+
+		mediaFile, err := NewMediaFile(conf.ExamplesPath() + "/PXL_20210506_083558892.MP.jpg")
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		data, err := mediaFile.EmbeddedVideoData()
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Nil(t, data)
+	})
+}
