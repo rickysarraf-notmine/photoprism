@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -80,50 +81,20 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 			}
 		}
 
-		data, err := ioutil.ReadFile(f.FileName())
-		if err != nil {
-			return nil, err
+		if offset == 0 {
+			log.Warnf("mp: mp4 offset in motion photo directory entry is 0 in %s, resetting offset in an attempt to recover", txt.Quote(fileName))
+			offset = math.MaxInt64
 		}
 
-		if err := ioutil.WriteFile(mpName, data[len(data)-offset:], os.ModePerm); err != nil {
+		if err := f.extractGoogleMotionPhotoVideo(offset, mpName, fileName); err != nil {
 			return nil, err
 		}
 	} else if f.MetaData().MicroVideo {
 		log.Infof("mp: detected that %s is a Google legacy motion photo", txt.Quote(fileName))
 
-		data, err := ioutil.ReadFile(f.FileName())
-		if err != nil {
-			return nil, err
-		}
-
 		offset := f.MetaData().MicroVideoOffset
-		startIndex := len(data) - offset
 
-		if startIndex < 0 {
-			log.Warnf("mp: implausble offset %d in %s, will try to recover the embedded motion photo anyway", offset, txt.Quote(fileName))
-
-			// The metadata is obviously incorrect, so let's make a last ditch effort to find whether
-			// there is an mp4 file embedded somewhere in the file.
-			for res := range fs.MimeTypeSearch(data) {
-				if res.MimeType == fs.MimeTypeMP4 {
-					if mp4, err := mp4.OpenFromBytes(data[res.Position:]); err == nil {
-						if mp4.Ftyp != nil && mp4.Ftyp.Name == "ftyp" && mp4.Moov != nil && mp4.Moov.Name == "moov" {
-							log.Infof("mp: found an mp4 at index %d in %s", res.Position, txt.Quote(fileName))
-
-							startIndex = res.Position
-
-							break
-						}
-					}
-				}
-			}
-
-			if startIndex < 0 {
-				return nil, fmt.Errorf("micro video offset %d is bigger than the file size %d and no embedded mp4 file could be found", offset, len(data))
-			}
-		}
-
-		if err := ioutil.WriteFile(mpName, data[startIndex:], os.ModePerm); err != nil {
+		if err := f.extractGoogleMotionPhotoVideo(offset, mpName, fileName); err != nil {
 			return nil, err
 		}
 	} else if f.MetaData().EmbeddedVideoType == MotionPhotoSamsung {
@@ -169,4 +140,43 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 	}
 
 	return NewMediaFile(mpName)
+}
+
+func (f *MediaFile) extractGoogleMotionPhotoVideo(offset int, mpName string, fileName string) error {
+	data, err := ioutil.ReadFile(f.FileName())
+	if err != nil {
+		return err
+	}
+
+	startIndex := len(data) - offset
+
+	if startIndex < 0 {
+		log.Warnf("mp: implausible offset %d in %s, will try to recover the embedded motion photo anyway", offset, txt.Quote(fileName))
+
+		// The metadata is obviously incorrect, so let's make a last ditch effort to find whether
+		// there is an mp4 file embedded somewhere in the file.
+		for res := range fs.MimeTypeSearch(data) {
+			if res.MimeType == fs.MimeTypeMP4 {
+				log.Warnf("!!!! found %s at %d", res.MimeType, res.Position)
+
+				if mp4, err := mp4.OpenFromBytes(data[res.Position:]); err == nil {
+					if mp4.Ftyp != nil && mp4.Ftyp.Name == "ftyp" && mp4.Mdat != nil && mp4.Mdat.Name == "mdat" {
+						log.Infof("mp: found an mp4 at index %d in %s", res.Position, txt.Quote(fileName))
+
+						startIndex = res.Position
+					}
+				}
+			}
+		}
+
+		if startIndex < 0 {
+			return fmt.Errorf("motion photo offset %d is bigger than the file size %d and no embedded mp4 file could be found", offset, len(data))
+		}
+	}
+
+	if err := ioutil.WriteFile(mpName, data[startIndex:], os.ModePerm); err != nil {
+		return err
+	}
+
+	return nil
 }
