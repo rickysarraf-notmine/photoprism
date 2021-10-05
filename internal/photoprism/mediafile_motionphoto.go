@@ -157,8 +157,6 @@ func (f *MediaFile) extractGoogleMotionPhotoVideo(offset int, mpName string, fil
 		// there is an mp4 file embedded somewhere in the file.
 		for res := range fs.MimeTypeSearch(data) {
 			if res.MimeType == fs.MimeTypeMP4 {
-				log.Warnf("!!!! found %s at %d", res.MimeType, res.Position)
-
 				if mp4, err := mp4.OpenFromBytes(data[res.Position:]); err == nil {
 					if mp4.Ftyp != nil && mp4.Ftyp.Name == "ftyp" && mp4.Mdat != nil && mp4.Mdat.Name == "mdat" {
 						log.Infof("mp: found an mp4 at index %d in %s", res.Position, txt.Quote(fileName))
