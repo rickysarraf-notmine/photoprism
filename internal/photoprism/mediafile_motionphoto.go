@@ -63,7 +63,7 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 	fileName := f.RelName(conf.OriginalsPath())
 	log.Infof("mp: extracting mp4 from motion photo %s", txt.Quote(fileName))
 
-	event.Publish("index.converting", event.Data{
+	event.Publish("index.motionphotos", event.Data{
 		"fileType": f.FileType(),
 		"fileName": fileName,
 		"baseName": filepath.Base(fileName),
