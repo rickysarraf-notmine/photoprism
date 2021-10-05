@@ -48,6 +48,7 @@ type Data struct {
 	Height            int              `meta:"PixelYDimension,ImageHeight,ImageLength,ExifImageHeight,SourceImageHeight"`
 	Orientation       int              `meta:"-"`
 	Rotation          int              `meta:"Rotation"`
+	IsPhotosphere     bool             `meta:"IsPhotosphere"`
 	MotionPhoto       bool             `meta:"MotionPhoto"`
 	Directory         []DirectoryEntry `meta:"Directory"`
 	EmbeddedVideoType string           `meta:"EmbeddedVideoType"`
