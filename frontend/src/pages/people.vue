@@ -8,8 +8,8 @@
         slider-color="secondary-dark"
         :height="$vuetify.breakpoint.smAndDown ? 48 : 64"
     >
-      <v-tab v-for="(item, index) in tabs" :id="'tab-' + item.name" :key="index" :class="item.class" ripple
-             @click="changePath(item.path)">
+      <v-tab v-for="(item, index) in tabs" :id="'tab-' + item.name" :key="index" :class="item.class"
+             ripple @click="changePath(item.path)">
         <v-icon v-if="$vuetify.breakpoint.smAndDown" :title="item.label">{{ item.icon }}</v-icon>
         <template v-else>
           <v-icon :size="18" :left="!rtl" :right="rtl">{{ item.icon }}</v-icon> {{ item.label }}
@@ -18,7 +18,7 @@
 
       <v-tabs-items touchless>
         <v-tab-item v-for="(item, index) in tabs" :key="index" lazy>
-          <component :is="item.component" :static-filter="item.filter"></component>
+          <component :is="item.component" :static-filter="item.filter" :active="active === index"></component>
         </v-tab-item>
       </v-tabs-items>
     </v-tabs>
@@ -61,10 +61,6 @@ export default {
         'icon': 'person_add',
       },
     ];
-
-    if (config.count.people === 0) {
-      tabName = "people-faces";
-    }
 
     let active = 0;
 

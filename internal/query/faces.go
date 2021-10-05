@@ -3,15 +3,13 @@ package query
 import (
 	"fmt"
 
-	"github.com/photoprism/photoprism/internal/face"
-
-	"github.com/photoprism/photoprism/pkg/txt"
-
 	"github.com/photoprism/photoprism/internal/entity"
+	"github.com/photoprism/photoprism/internal/face"
+	"github.com/photoprism/photoprism/pkg/txt"
 )
 
 // Faces returns all (known / unmatched) faces from the index.
-func Faces(knownOnly, unmatched bool) (result entity.Faces, err error) {
+func Faces(knownOnly, unmatched, hidden bool) (result entity.Faces, err error) {
 	stmt := Db()
 
 	if unmatched {
@@ -22,14 +20,17 @@ func Faces(knownOnly, unmatched bool) (result entity.Faces, err error) {
 		stmt = stmt.Where("subj_uid <> ''")
 	}
 
-	err = stmt.Order("subj_uid, samples DESC").Find(&result).Error
+	err = stmt.Where("face_hidden = ?", hidden).
+		Order("subj_uid, samples DESC").
+		Find(&result).Error
 
 	return result, err
 }
 
 // ManuallyAddedFaces returns all manually added face clusters.
-func ManuallyAddedFaces() (result entity.Faces, err error) {
+func ManuallyAddedFaces(hidden bool) (result entity.Faces, err error) {
 	err = Db().
+		Where("face_hidden = ?", hidden).
 		Where("face_src = ?", entity.SrcManual).
 		Where("subj_uid <> ''").Order("subj_uid, samples DESC").
 		Find(&result).Error
@@ -39,7 +40,7 @@ func ManuallyAddedFaces() (result entity.Faces, err error) {
 
 // MatchFaceMarkers matches markers with known faces.
 func MatchFaceMarkers() (affected int64, err error) {
-	faces, err := Faces(true, false)
+	faces, err := Faces(true, false, false)
 
 	if err != nil {
 		return affected, err
@@ -47,10 +48,11 @@ func MatchFaceMarkers() (affected int64, err error) {
 
 	for _, f := range faces {
 		if res := Db().Model(&entity.Marker{}).
+			Where("marker_invalid = 0").
 			Where("face_id = ?", f.ID).
 			Where("subj_src = ?", entity.SrcAuto).
 			Where("subj_uid <> ?", f.SubjUID).
-			Updates(entity.Values{"SubjUID": f.SubjUID, "MarkerReview": false}); res.Error != nil {
+			UpdateColumns(entity.Values{"subj_uid": f.SubjUID, "marker_review": false}); res.Error != nil {
 			return affected, err
 		} else if res.RowsAffected > 0 {
 			affected += res.RowsAffected
@@ -62,9 +64,8 @@ func MatchFaceMarkers() (affected int64, err error) {
 
 // RemoveAnonymousFaceClusters removes anonymous faces from the index.
 func RemoveAnonymousFaceClusters() (removed int64, err error) {
-	res := UnscopedDb().Delete(
-		entity.Face{},
-		"face_src = ? AND subj_uid = ''", entity.SrcAuto)
+	res := UnscopedDb().
+		Delete(entity.Face{}, "subj_uid = '' AND face_src = ?", entity.SrcAuto)
 
 	return res.RowsAffected, res.Error
 }
@@ -163,7 +164,7 @@ func MergeFaces(merge entity.Faces) (merged *entity.Face, err error) {
 
 // ResolveFaceCollisions resolves collisions of different subject's faces.
 func ResolveFaceCollisions() (conflicts, resolved int, err error) {
-	faces, err := Faces(true, false)
+	faces, err := Faces(true, false, false)
 
 	if err != nil {
 		return conflicts, resolved, err
@@ -171,14 +172,14 @@ func ResolveFaceCollisions() (conflicts, resolved int, err error) {
 
 	for _, f1 := range faces {
 		for _, f2 := range faces {
-			if matched, dist := f1.Match(entity.Embeddings{f2.Embedding()}); matched {
+			if matched, dist := f1.Match(face.Embeddings{f2.Embedding()}); matched {
 				if f1.SubjUID == f2.SubjUID {
 					continue
 				}
 
 				conflicts++
 
-				r := f1.SampleRadius + face.MatchRadius
+				r := f1.SampleRadius + face.MatchDist
 
 				log.Infof("face %s: conflict at dist %f, Ø %f from %d samples, collision Ø %f", f1.ID, dist, r, f1.Samples, f1.CollisionRadius)
 
@@ -194,7 +195,7 @@ func ResolveFaceCollisions() (conflicts, resolved int, err error) {
 					log.Debugf("face %s: no subject (%s)", f2.ID, entity.SrcString(f2.FaceSrc))
 				}
 
-				if ok, err := f1.ResolveCollision(entity.Embeddings{f2.Embedding()}); err != nil {
+				if ok, err := f1.ResolveCollision(face.Embeddings{f2.Embedding()}); err != nil {
 					log.Errorf("face %s: %s", f1.ID, err)
 				} else if ok {
 					log.Infof("face %s: collision has been resolved", f1.ID)
@@ -207,4 +208,50 @@ func ResolveFaceCollisions() (conflicts, resolved int, err error) {
 	}
 
 	return conflicts, resolved, nil
+}
+
+// RemovePeopleAndFaces permanently deletes all people, faces, and face markers.
+func RemovePeopleAndFaces() (err error) {
+	// Delete people.
+	if err = UnscopedDb().Delete(entity.Subject{}, "subj_type = ?", entity.SubjPerson).Error; err != nil {
+		return err
+	}
+
+	// Delete all faces.
+	if err = UnscopedDb().Delete(entity.Face{}).Error; err != nil {
+		return err
+	}
+
+	// Delete face markers.
+	if err = UnscopedDb().Delete(entity.Marker{}, "marker_type = ?", entity.MarkerFace).Error; err != nil {
+		return err
+	}
+
+	// Reset face counters.
+	if err = UnscopedDb().Model(entity.Photo{}).
+		UpdateColumn("photo_faces", 0).Error; err != nil {
+		return err
+	}
+
+	// Reset people label.
+	if label, err := LabelBySlug("people"); err != nil {
+		return err
+	} else if err = UnscopedDb().
+		Delete(entity.PhotoLabel{}, "label_id = ?", label.ID).Error; err != nil {
+		return err
+	} else if err = label.Update("PhotoCount", 0); err != nil {
+		return err
+	}
+
+	// Reset portrait label.
+	if label, err := LabelBySlug("portrait"); err != nil {
+		return err
+	} else if err = UnscopedDb().
+		Delete(entity.PhotoLabel{}, "label_id = ?", label.ID).Error; err != nil {
+		return err
+	} else if err = label.Update("PhotoCount", 0); err != nil {
+		return err
+	}
+
+	return nil
 }

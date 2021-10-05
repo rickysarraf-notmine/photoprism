@@ -2,16 +2,17 @@ package search
 
 import (
 	"fmt"
+	"path"
 	"strings"
 	"time"
 
-	"github.com/photoprism/photoprism/pkg/rnd"
-
-	"github.com/photoprism/photoprism/pkg/fs"
-
+	"github.com/dustin/go-humanize/english"
 	"github.com/jinzhu/gorm"
+
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/form"
+	"github.com/photoprism/photoprism/pkg/fs"
+	"github.com/photoprism/photoprism/pkg/rnd"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
@@ -20,7 +21,7 @@ func Photos(f form.PhotoSearch) (results PhotoResults, count int, err error) {
 	start := time.Now()
 
 	if err := f.ParseQueryString(); err != nil {
-		return results, 0, err
+		return PhotoResults{}, 0, err
 	}
 
 	s := UnscopedDb()
@@ -109,7 +110,7 @@ func Photos(f form.PhotoSearch) (results PhotoResults, count int, err error) {
 			return results, 0, result.Error
 		}
 
-		log.Infof("photos: found %d results for %s [%s]", len(results), f.SerializeAll(), time.Since(start))
+		log.Infof("photos: found %s for %s [%s]", english.Plural(len(results), "result", "results"), f.SerializeAll(), time.Since(start))
 
 		if f.Merged {
 			return results.Merged()
@@ -125,15 +126,15 @@ func Photos(f form.PhotoSearch) (results PhotoResults, count int, err error) {
 
 	if f.Label != "" {
 		if err := Db().Where(AnySlug("label_slug", f.Label, txt.Or)).Or(AnySlug("custom_slug", f.Label, txt.Or)).Find(&labels).Error; len(labels) == 0 || err != nil {
-			log.Errorf("search: labels %s not found", txt.Quote(f.Label))
-			return results, 0, fmt.Errorf("%s not found", txt.Quote(f.Label))
+			log.Debugf("search: label %s not found", txt.QuoteLower(f.Label))
+			return PhotoResults{}, 0, nil
 		} else {
 			for _, l := range labels {
 				labelIds = append(labelIds, l.ID)
 
 				Db().Where("category_id = ?", l.ID).Find(&categories)
 
-				log.Infof("search: label %s includes %d categories", txt.Quote(l.LabelName), len(categories))
+				log.Infof("search: label %s includes %d categories", txt.QuoteLower(l.LabelName), len(categories))
 
 				for _, category := range categories {
 					labelIds = append(labelIds, category.LabelID)
@@ -148,19 +149,12 @@ func Photos(f form.PhotoSearch) (results PhotoResults, count int, err error) {
 	// Clip to reasonable size and normalize operators.
 	f.Query = txt.NormalizeQuery(f.Query)
 
-	// Modify query if it contains subject names.
-	if f.Query != "" && f.Subject == "" {
-		if subj, names, remaining := SubjectUIDs(f.Query); len(subj) > 0 {
-			f.Subject = strings.Join(subj, txt.And)
-			log.Debugf("people: searching for %s", txt.Quote(txt.JoinNames(names, false)))
-			f.Query = remaining
-		}
-	}
-
 	// Set search filters based on search terms.
 	if terms := txt.SearchTerms(f.Query); f.Query != "" && len(terms) == 0 {
-		f.Name = fs.StripKnownExt(f.Query) + "*"
-		f.Query = ""
+		if f.Title == "" {
+			f.Title = fmt.Sprintf("%s*", strings.Trim(f.Query, "%*"))
+			f.Query = ""
+		}
 	} else if len(terms) > 0 {
 		switch {
 		case terms["faces"]:
@@ -199,7 +193,7 @@ func Photos(f form.PhotoSearch) (results PhotoResults, count int, err error) {
 		}
 	} else if f.Query != "" {
 		if err := Db().Where(AnySlug("custom_slug", f.Query, " ")).Find(&labels).Error; len(labels) == 0 || err != nil {
-			log.Debugf("search: label %s not found, using fuzzy search", txt.Quote(f.Query))
+			log.Debugf("search: label %s not found, using fuzzy search", txt.QuoteLower(f.Query))
 
 			for _, where := range LikeAnyKeyword("k.keyword", f.Query) {
 				s = s.Where("photos.id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
@@ -210,7 +204,7 @@ func Photos(f form.PhotoSearch) (results PhotoResults, count int, err error) {
 
 				Db().Where("category_id = ?", l.ID).Find(&categories)
 
-				log.Debugf("search: label %s includes %d categories", txt.Quote(l.LabelName), len(categories))
+				log.Debugf("search: label %s includes %d categories", txt.QuoteLower(l.LabelName), len(categories))
 
 				for _, category := range categories {
 					labelIds = append(labelIds, category.LabelID)
@@ -235,12 +229,21 @@ func Photos(f form.PhotoSearch) (results PhotoResults, count int, err error) {
 		}
 	}
 
-	// Filter for one or more faces?
-	if f.Face != "" {
+	// Filter for specific face clusters? Example: PLJ7A3G4MBGZJRMVDIUCBLC46IAP4N7O
+	if len(f.Face) >= 32 {
 		for _, f := range strings.Split(strings.ToUpper(f.Face), txt.And) {
 			s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 WHERE face_id IN (?))",
 				entity.Marker{}.TableName()), strings.Split(f, txt.Or))
 		}
+	} else if txt.New(f.Face) {
+		s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 AND m.marker_type = ? WHERE subj_uid IS NULL OR subj_uid = '')",
+			entity.Marker{}.TableName()), entity.MarkerFace)
+	} else if txt.No(f.Face) {
+		s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 AND m.marker_type = ? WHERE face_id IS NULL OR face_id = '')",
+			entity.Marker{}.TableName()), entity.MarkerFace)
+	} else if txt.Yes(f.Face) {
+		s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 AND m.marker_type = ? WHERE face_id IS NOT NULL AND face_id <> '')",
+			entity.Marker{}.TableName()), entity.MarkerFace)
 	}
 
 	// Filter for one or more subjects?
@@ -373,40 +376,44 @@ func Photos(f form.PhotoSearch) (results PhotoResults, count int, err error) {
 
 		if strings.HasSuffix(p, "/") {
 			s = s.Where("photos.photo_path = ?", p[:len(p)-1])
-		} else if strings.Contains(p, txt.Or) {
-			s = s.Where("photos.photo_path IN (?)", strings.Split(p, txt.Or))
 		} else {
-			s = s.Where("photos.photo_path LIKE ?", strings.ReplaceAll(p, "*", "%"))
+			where, values := OrLike("photos.photo_path", p)
+			s = s.Where(where, values...)
 		}
 	}
 
-	if strings.Contains(f.Name, txt.Or) {
-		s = s.Where("photos.photo_name IN (?)", strings.Split(f.Name, txt.Or))
-	} else if f.Name != "" {
-		s = s.Where("photos.photo_name LIKE ?", strings.ReplaceAll(fs.StripKnownExt(f.Name), "*", "%"))
+	// Filter by primary file name without path and extension.
+	if f.Name != "" {
+		where, names := OrLike("photos.photo_name", f.Name)
+
+		// Omit file path and known extensions.
+		for i := range names {
+			names[i] = fs.StripKnownExt(path.Base(names[i].(string)))
+		}
+
+		s = s.Where(where, names...)
 	}
 
-	if strings.Contains(f.Filename, txt.Or) {
-		s = s.Where("files.file_name IN (?)", strings.Split(f.Filename, txt.Or))
-	} else if f.Filename != "" {
-		s = s.Where("files.file_name LIKE ?", strings.ReplaceAll(f.Filename, "*", "%"))
+	// Filter by complete file names.
+	if f.Filename != "" {
+		where, values := OrLike("files.file_name", f.Filename)
+		s = s.Where(where, values...)
 	}
 
-	if strings.Contains(f.Original, txt.Or) {
-		s = s.Where("photos.original_name IN (?)", strings.Split(f.Original, txt.Or))
-	} else if f.Original != "" {
-		s = s.Where("photos.original_name LIKE ?", strings.ReplaceAll(f.Original, "*", "%"))
+	// Filter by original file name.
+	if f.Original != "" {
+		where, values := OrLike("photos.original_name", f.Original)
+		s = s.Where(where, values...)
 	}
 
-	if strings.Contains(f.Title, txt.Or) {
-		s = s.Where("photos.photo_title IN (?)", strings.Split(strings.ToLower(f.Title), txt.Or))
-	} else if f.Title != "" {
-		s = s.Where("photos.photo_title LIKE ?", strings.ReplaceAll(strings.ToLower(f.Title), "*", "%"))
+	// Filter by photo title.
+	if f.Title != "" {
+		where, values := OrLike("photos.photo_title", f.Title)
+		s = s.Where(where, values...)
 	}
 
-	if strings.Contains(f.Hash, txt.Or) {
-		s = s.Where("files.file_hash IN (?)", strings.Split(strings.ToLower(f.Hash), txt.Or))
-	} else if f.Hash != "" {
+	// Filter by file hash.
+	if f.Hash != "" {
 		s = s.Where("files.file_hash IN (?)", strings.Split(strings.ToLower(f.Hash), txt.Or))
 	}
 
@@ -489,7 +496,7 @@ func Photos(f form.PhotoSearch) (results PhotoResults, count int, err error) {
 		return results, 0, err
 	}
 
-	log.Infof("photos: found %d results for %s [%s]", len(results), f.SerializeAll(), time.Since(start))
+	log.Infof("photos: found %s for %s [%s]", english.Plural(len(results), "result", "results"), f.SerializeAll(), time.Since(start))
 
 	if f.Merged {
 		return results.Merged()

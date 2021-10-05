@@ -36,19 +36,19 @@
       <p-scroll-top></p-scroll-top>
 
       <v-container grid-list-xs fluid class="pa-2">
-        <v-card v-if="results.length === 0" class="no-results secondary-light lighten-1 ma-1" flat>
-          <v-card-title primary-title>
-            <div>
-              <h3 class="title ma-0 pa-0">
-                <translate>Couldn't find any people</translate>
-              </h3>
-              <p class="mt-4 mb-0 pa-0">
-                <translate>Try again using other filters or keywords.</translate>
-                <translate>Please reindex your library to find additional faces. Recognition starts after indexing has been completed.</translate>
-              </p>
-            </div>
-          </v-card-title>
-        </v-card>
+        <v-alert
+            :value="results.length === 0"
+            color="secondary-dark" icon="lightbulb_outline" class="no-results ma-2 opacity-70" outline
+        >
+          <h3 class="body-2 ma-0 pa-0">
+            <translate>No people found</translate>
+          </h3>
+          <p class="body-1 mt-2 mb-0 pa-0">
+            <translate>Try again using other filters or keywords.</translate>
+            <translate>You may rescan your library to find additional faces.</translate>
+            <translate>Recognition starts after indexing has been completed.</translate>
+          </p>
+        </v-alert>
         <v-layout row wrap class="search-results subject-results cards-view" :class="{'select-results': selection.length > 0}">
           <v-flex
               v-for="(model, index) in results"
@@ -132,11 +132,11 @@
                 </div>
 
                 <div class="caption mb-2">
-                  <button v-if="model.FileCount === 1">
+                  <button v-if="model.PhotoCount === 1">
                     <translate>Contains one entry.</translate>
                   </button>
-                  <button v-else-if="model.FileCount > 0">
-                    <translate :translate-params="{n: model.FileCount}">Contains %{n} entries.</translate>
+                  <button v-else-if="model.PhotoCount > 0">
+                    <translate :translate-params="{n: model.PhotoCount}">Contains %{n} entries.</translate>
                   </button>
                 </div>
               </v-card-text>
@@ -145,6 +145,8 @@
         </v-layout>
       </v-container>
     </v-container>
+    <p-people-merge-dialog lazy :show="merge.show" :subj1="merge.subj1" :subj2="merge.subj2" @cancel="onCancelMerge"
+                           @confirm="onMerge"></p-people-merge-dialog>
   </div>
 </template>
 
@@ -159,7 +161,8 @@ import {ClickLong, ClickShort, Input, InputInvalid} from "common/input";
 export default {
   name: 'PPageSubjects',
   props: {
-    staticFilter: Object
+    staticFilter: Object,
+    active: Boolean,
   },
   data() {
     const query = this.$route.query;
@@ -190,20 +193,27 @@ export default {
       titleRule: v => v.length <= this.$config.get("clip") || this.$gettext("Name too long"),
       input: new Input(),
       lastId: "",
+      merge: {
+        subj1: null,
+        subj2: null,
+        show: false,
+      }
     };
   },
   watch: {
     '$route'() {
+      // Tab inactive?
+      if (!this.active) {
+        // Ignore event.
+        return;
+      }
+
       const query = this.$route.query;
 
       this.filter.q = query["q"] ? query["q"] : "";
       this.filter.all = query["all"] ? query["all"] : "";
       this.filter.order = this.sortOrder();
       this.routeName = this.$route.name;
-
-      if (this.dirty) {
-        this.lastFilter = {};
-      }
 
       this.search();
     }
@@ -222,6 +232,39 @@ export default {
     }
   },
   methods: {
+    onSave(m) {
+      const existing = this.$config.getPerson(m.Name);
+
+      if(!existing) {
+        m.update();
+        return;
+      }
+
+      if (existing.UID === m.UID) {
+        // Name didn't change.
+        return;
+      }
+
+      this.merge.subj1 = m;
+      this.merge.subj2 = existing;
+      this.merge.show = true;
+    },
+    onCancelMerge() {
+      this.merge.subj1.Name = this.merge.subj1.originalValue("Name");
+      this.merge.show = false;
+      this.merge.subj1 = null;
+      this.merge.subj2 = null;
+    },
+    onMerge() {
+      this.merge.show = false;
+      this.$notify.blockUI();
+      this.merge.subj1.update().finally(() => {
+        this.merge.subj1 = null;
+        this.merge.subj2 = null;
+        this.$notify.unblockUI();
+        this.refresh();
+      });
+    },
     searchCount() {
       const offset = parseInt(window.localStorage.getItem("subjects_offset"));
 
@@ -319,9 +362,6 @@ export default {
         }
       }
     },
-    onSave(m) {
-      m.update();
-    },
     showAll() {
       this.filter.all = "true";
       this.updateQuery();
@@ -376,7 +416,9 @@ export default {
       this.lastId = "";
     },
     loadMore() {
-      if (this.scrollDisabled) return;
+      if (this.scrollDisabled || !this.active) {
+        return;
+      }
 
       this.scrollDisabled = true;
       this.listen = false;
@@ -459,11 +501,15 @@ export default {
       return params;
     },
     refresh() {
-      if (this.loading) return;
+      if (this.loading || !this.active) {
+        return;
+      }
+
       this.loading = true;
       this.page = 0;
       this.dirty = true;
       this.scrollDisabled = false;
+
       this.loadMore();
     },
     search() {
@@ -491,7 +537,13 @@ export default {
         this.scrollDisabled = (resp.count < resp.limit);
 
         if (this.scrollDisabled) {
-          this.$notify.info(this.$gettextInterpolate(this.$gettext("%{n} people found"), {n: this.results.length}));
+          if (!this.results.length) {
+            this.$notify.warn(this.$gettext("No people found"));
+          } else if (this.results.length === 1) {
+            this.$notify.info(this.$gettext("One person found"));
+          } else {
+            this.$notify.info(this.$gettextInterpolate(this.$gettext("%{n} people found"), {n: this.results.length}));
+          }
         } else {
           this.$notify.info(this.$gettext('More than 20 people found'));
 

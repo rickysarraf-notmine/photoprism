@@ -1,18 +1,18 @@
 <template>
   <div class="p-tab p-tab-photo-people">
     <v-container grid-list-xs fluid class="pa-2 p-faces">
-      <v-card v-if="markers.length === 0" class="no-results secondary-light lighten-1 ma-1" flat>
-        <v-card-title primary-title>
-          <div>
-            <h3 class="title ma-0 pa-0">
-              <translate>Couldn't find any people</translate>
-            </h3>
-            <p class="mt-4 mb-0 pa-0">
-              <translate>Please reindex your library to find additional faces. Recognition starts after indexing has been completed.</translate>
-            </p>
-          </div>
-        </v-card-title>
-      </v-card>
+      <v-alert
+          :value="markers.length === 0"
+          color="secondary-dark" icon="lightbulb_outline" class="no-results ma-2 opacity-70" outline
+      >
+        <h3 class="body-2 ma-0 pa-0">
+          <translate>No people found</translate>
+        </h3>
+        <p class="body-1 mt-2 mb-0 pa-0">
+          <translate>You may rescan your library to find additional faces.</translate>
+          <translate>Recognition starts after indexing has been completed.</translate>
+        </p>
+      </v-alert>
       <v-layout row wrap class="search-results face-results cards-view">
         <v-flex
             v-for="(marker, index) in markers"
@@ -53,6 +53,7 @@
                       v-model="marker.Name"
                       :rules="[textRule]"
                       :disabled="busy"
+                      :readonly="true"
                       browser-autocomplete="off"
                       class="input-name pa-0 ma-0"
                       hide-details
@@ -123,7 +124,7 @@ export default {
           return this.$gettext("Name");
         }
 
-        return v.length <= this.$config.get('clip') || this.$gettext("Text too long");
+        return v.length <= this.$config.get('clip') || this.$gettext("Name too long");
       },
     };
   },
@@ -132,7 +133,11 @@ export default {
     },
     onReject(marker) {
       this.busy = true;
-      marker.reject().finally(() => this.busy = false);
+      this.$notify.blockUI();
+      marker.reject().finally(() => {
+        this.$notify.unblockUI();
+        this.busy = false;
+      });
     },
     onApprove(marker) {
       this.busy = true;
@@ -140,11 +145,19 @@ export default {
     },
     onClearSubject(marker) {
       this.busy = true;
-      marker.clearSubject(marker).finally(() => this.busy = false);
+      this.$notify.blockUI();
+      marker.clearSubject(marker).finally(() => {
+        this.$notify.unblockUI();
+        this.busy = false;
+      });
     },
     onRename(marker) {
       this.busy = true;
-      marker.rename().finally(() => this.busy = false);
+      this.$notify.blockUI();
+      marker.rename().finally(() => {
+        this.$notify.unblockUI();
+        this.busy = false;
+      });
     },
   },
 };

@@ -87,7 +87,7 @@ func Detect(fileName string, findLandmarks bool, minSize int) (faces Faces, err 
 		shiftFactor:    0.1,
 		scaleFactor:    1.1,
 		iouThreshold:   0.2,
-		scoreThreshold: ScoreThreshold,
+		scoreThreshold: float32(ScoreThreshold),
 		perturb:        63,
 	}
 
@@ -144,9 +144,9 @@ func (d *Detector) Detect(fileName string) (faces []pigo.Detection, params pigo.
 	if cols < 20 || rows < 20 || cols < d.minSize || rows < d.minSize {
 		return faces, params, fmt.Errorf("image size %dx%d is too small", cols, rows)
 	} else if cols < rows {
-		maxSize = cols - 8
+		maxSize = cols - 4
 	} else {
-		maxSize = rows - 8
+		maxSize = rows - 4
 	}
 
 	imageParams := &pigo.ImageParams{
@@ -164,7 +164,7 @@ func (d *Detector) Detect(fileName string) (faces []pigo.Detection, params pigo.
 		ImageParams: *imageParams,
 	}
 
-	log.Debugf("faces: image size %dx%d, face size min %d, max %d", cols, rows, params.MinSize, params.MaxSize)
+	log.Tracef("faces: image size %dx%d, face size min %d, max %d", cols, rows, params.MinSize, params.MaxSize)
 
 	// Run the classifier over the obtained leaf nodes and return the Face results.
 	// The result contains quadruplets representing the row, column, scale and Face score.
@@ -185,7 +185,7 @@ func (d *Detector) Faces(det []pigo.Detection, params pigo.CascadeParams, findLa
 
 	for _, face := range det {
 		// Skip result if quality is too low.
-		if face.Q < ScaleScoreThreshold(face.Scale) {
+		if face.Q < QualityThreshold(face.Scale) {
 			continue
 		}
 

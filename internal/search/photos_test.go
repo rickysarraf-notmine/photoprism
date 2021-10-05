@@ -23,6 +23,19 @@ func TestPhotos(t *testing.T) {
 
 		assert.NoError(t, err)
 	})
+	t.Run("UnknownFaces", func(t *testing.T) {
+		var frm form.PhotoSearch
+
+		frm.Query = ""
+		frm.Face = "None"
+		frm.Count = 10
+		frm.Offset = 0
+
+		results, _, err := Photos(frm)
+
+		assert.NoError(t, err)
+		assert.LessOrEqual(t, 1, len(results))
+	})
 	t.Run("search all", func(t *testing.T) {
 		var frm form.PhotoSearch
 
@@ -88,10 +101,11 @@ func TestPhotos(t *testing.T) {
 		frm.Count = 10
 		frm.Offset = 0
 
-		photos, _, err := Photos(frm)
+		photos, count, err := Photos(frm)
 
-		assert.Equal(t, "dog not found", err.Error())
-		assert.Empty(t, photos)
+		assert.NoError(t, err)
+		assert.Equal(t, PhotoResults{}, photos)
+		assert.Equal(t, 0, count)
 	})
 	t.Run("label query landscape", func(t *testing.T) {
 		var frm form.PhotoSearch
@@ -114,14 +128,11 @@ func TestPhotos(t *testing.T) {
 		frm.Count = 10
 		frm.Offset = 0
 
-		photos, _, err := Photos(frm)
+		photos, count, err := Photos(frm)
 
-		assert.Error(t, err)
-		assert.Empty(t, photos)
-
-		if err != nil {
-			assert.Equal(t, err.Error(), "xxx not found")
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, PhotoResults{}, photos)
+		assert.Equal(t, 0, count)
 	})
 	t.Run("form.location true", func(t *testing.T) {
 		var frm form.PhotoSearch
@@ -868,8 +879,7 @@ func TestPhotos(t *testing.T) {
 	t.Run("Subject", func(t *testing.T) {
 		var frm form.PhotoSearch
 
-		frm.Query = "John"
-		frm.Subject = ""
+		frm.Subject = "jqu0xs11qekk9jx8"
 		frm.Count = 10
 		frm.Offset = 0
 
@@ -891,6 +901,21 @@ func TestPhotos(t *testing.T) {
 				assert.Equal(t, fix.PhotoName, r.PhotoName)
 			}
 		}
+	})
+	t.Run("NewFaces", func(t *testing.T) {
+		var frm form.PhotoSearch
+
+		frm.Face = "new"
+		frm.Count = 10
+		frm.Offset = 0
+
+		photos, _, err := Photos(frm)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.LessOrEqual(t, 1, len(photos))
 	})
 	t.Run("query: videos", func(t *testing.T) {
 		var frm form.PhotoSearch

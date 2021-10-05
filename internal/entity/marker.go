@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -12,15 +11,14 @@ import (
 	"github.com/photoprism/photoprism/internal/crop"
 	"github.com/photoprism/photoprism/internal/face"
 	"github.com/photoprism/photoprism/internal/form"
-	"github.com/photoprism/photoprism/pkg/clusters"
 	"github.com/photoprism/photoprism/pkg/rnd"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
 const (
 	MarkerUnknown = ""
-	MarkerFace    = "face"
-	MarkerLabel   = "label"
+	MarkerFace    = "face"  // MarkerType for faces (implemented).
+	MarkerLabel   = "label" // MarkerType for labels (todo).
 )
 
 // Marker represents an image marker point.
@@ -29,7 +27,7 @@ type Marker struct {
 	FileUID        string          `gorm:"type:VARBINARY(42);index;default:'';" json:"FileUID" yaml:"FileUID"`
 	MarkerType     string          `gorm:"type:VARBINARY(8);default:'';" json:"Type" yaml:"Type"`
 	MarkerSrc      string          `gorm:"type:VARBINARY(8);default:'';" json:"Src" yaml:"Src,omitempty"`
-	MarkerName     string          `gorm:"type:VARCHAR(255);" json:"Name" yaml:"Name,omitempty"`
+	MarkerName     string          `gorm:"type:VARCHAR(160);" json:"Name" yaml:"Name,omitempty"`
 	MarkerReview   bool            `json:"Review" yaml:"Review,omitempty"`
 	MarkerInvalid  bool            `json:"Invalid" yaml:"Invalid,omitempty"`
 	SubjUID        string          `gorm:"type:VARBINARY(42);index:idx_markers_subj_uid_src;" json:"SubjUID" yaml:"SubjUID,omitempty"`
@@ -39,7 +37,7 @@ type Marker struct {
 	FaceDist       float64         `gorm:"default:-1;" json:"FaceDist" yaml:"FaceDist,omitempty"`
 	face           *Face           `gorm:"foreignkey:FaceID;association_foreignkey:ID;association_autoupdate:false;association_autocreate:false;association_save_reference:false"`
 	EmbeddingsJSON json.RawMessage `gorm:"type:MEDIUMBLOB;" json:"-" yaml:"EmbeddingsJSON,omitempty"`
-	embeddings     Embeddings      `gorm:"-"`
+	embeddings     face.Embeddings `gorm:"-"`
 	LandmarksJSON  json.RawMessage `gorm:"type:MEDIUMBLOB;" json:"-" yaml:"LandmarksJSON,omitempty"`
 	X              float32         `gorm:"type:FLOAT;" json:"X" yaml:"X,omitempty"`
 	Y              float32         `gorm:"type:FLOAT;" json:"Y" yaml:"Y,omitempty"`
@@ -70,6 +68,11 @@ func (m *Marker) BeforeCreate(scope *gorm.Scope) error {
 
 // NewMarker creates a new entity.
 func NewMarker(file File, area crop.Area, subjUID, markerSrc, markerType string, size, score int) *Marker {
+	if file.FileHash == "" {
+		log.Errorf("marker: file hash is empty - you might have found a bug")
+		return nil
+	}
+
 	m := &Marker{
 		FileUID:       file.FileUID,
 		MarkerSrc:     markerSrc,
@@ -96,10 +99,21 @@ func NewMarker(file File, area crop.Area, subjUID, markerSrc, markerType string,
 func NewFaceMarker(f face.Face, file File, subjUID string) *Marker {
 	m := NewMarker(file, f.CropArea(), subjUID, SrcImage, MarkerFace, f.Size(), f.Score)
 
-	m.EmbeddingsJSON = f.EmbeddingsJSON()
+	// Failed creating new marker?
+	if m == nil {
+		return nil
+	}
+
+	m.SetEmbeddings(f.Embeddings)
 	m.LandmarksJSON = f.RelativeLandmarksJSON()
 
 	return m
+}
+
+// SetEmbeddings assigns new face emebddings to the marker.
+func (m *Marker) SetEmbeddings(e face.Embeddings) {
+	m.embeddings = e
+	m.EmbeddingsJSON = e.JSON()
 }
 
 // Updates multiple columns in the database.
@@ -110,6 +124,29 @@ func (m *Marker) Updates(values interface{}) error {
 // Update updates a column in the database.
 func (m *Marker) Update(attr string, value interface{}) error {
 	return UnscopedDb().Model(m).Update(attr, value).Error
+}
+
+// SetName changes the marker name.
+func (m *Marker) SetName(name, src string) (changed bool, err error) {
+	if src == SrcAuto || SrcPriority[src] < SrcPriority[m.SubjSrc] {
+		return false, nil
+	}
+
+	name = txt.NormalizeName(name)
+
+	if name == "" {
+		return false, nil
+	}
+
+	if m.MarkerName == name {
+		// Name didn't change.
+		return false, nil
+	}
+
+	m.SubjSrc = src
+	m.MarkerName = name
+
+	return true, m.SyncSubject(true)
 }
 
 // SaveForm updates the entity using form data and stores it in the database.
@@ -124,14 +161,9 @@ func (m *Marker) SaveForm(f form.Marker) (changed bool, err error) {
 		changed = true
 	}
 
-	if f.SubjSrc == SrcManual && strings.TrimSpace(f.MarkerName) != "" && f.MarkerName != m.MarkerName {
-		m.SubjSrc = SrcManual
-		m.MarkerName = txt.NormalizeName(f.MarkerName)
-
-		if err := m.SyncSubject(true); err != nil {
-			return changed, err
-		}
-
+	if nameChanged, err := m.SetName(f.MarkerName, f.SubjSrc); err != nil {
+		return changed, err
+	} else if nameChanged {
 		changed = true
 	}
 
@@ -215,7 +247,7 @@ func (m *Marker) SetFace(f *Face, dist float64) (updated bool, err error) {
 				continue
 			}
 
-			if d := clusters.EuclideanDistance(e, faceEmbedding); d < m.FaceDist || m.FaceDist < 0 {
+			if d := e.Distance(faceEmbedding); d < m.FaceDist || m.FaceDist < 0 {
 				m.FaceDist = d
 			}
 		}
@@ -285,7 +317,7 @@ func (m *Marker) SyncSubject(updateRelated bool) (err error) {
 	// Update related markers?
 	if m.FaceID == "" || m.SubjUID == "" {
 		// Do nothing.
-	} else if res := Db().Model(&Face{}).Where("id = ? AND subj_uid = ''", m.FaceID).Update("SubjUID", m.SubjUID); res.Error != nil {
+	} else if res := Db().Model(&Face{}).Where("id = ? AND subj_uid = ''", m.FaceID).UpdateColumn("subj_uid", m.SubjUID); res.Error != nil {
 		return fmt.Errorf("%s (update known face)", err)
 	} else if !updateRelated {
 		return nil
@@ -294,7 +326,7 @@ func (m *Marker) SyncSubject(updateRelated bool) (err error) {
 		Where("face_id = ?", m.FaceID).
 		Where("subj_src = ?", SrcAuto).
 		Where("subj_uid <> ?", m.SubjUID).
-		Updates(Values{"SubjUID": m.SubjUID, "SubjSrc": SrcAuto, "MarkerReview": false}).Error; err != nil {
+		UpdateColumns(Values{"subj_uid": m.SubjUID, "subj_src": SrcAuto, "marker_review": false}).Error; err != nil {
 		return fmt.Errorf("%s (update related markers)", err)
 	} else if res.RowsAffected > 0 && m.face != nil {
 		log.Debugf("marker: matched %s with %s", subj.SubjName, m.FaceID)
@@ -323,9 +355,9 @@ func (m *Marker) Create() error {
 }
 
 // Embeddings returns parsed marker embeddings.
-func (m *Marker) Embeddings() Embeddings {
+func (m *Marker) Embeddings() face.Embeddings {
 	if len(m.EmbeddingsJSON) == 0 {
-		return Embeddings{}
+		return face.Embeddings{}
 	} else if len(m.embeddings) > 0 {
 		return m.embeddings
 	} else if err := json.Unmarshal(m.EmbeddingsJSON, &m.embeddings); err != nil {
@@ -357,6 +389,7 @@ func (m *Marker) Subject() (subj *Subject) {
 	// Create subject?
 	if m.SubjSrc != SrcAuto && m.MarkerName != "" && m.SubjUID == "" {
 		if subj = NewSubject(m.MarkerName, SubjPerson, m.SubjSrc); subj == nil {
+			log.Errorf("marker: invalid subject %s", txt.Quote(m.MarkerName))
 			return nil
 		} else if subj = FirstOrCreateSubject(subj); subj == nil {
 			log.Debugf("marker: invalid subject %s", txt.Quote(m.MarkerName))
@@ -380,6 +413,16 @@ func (m *Marker) ClearSubject(src string) error {
 	if m.face == nil {
 		m.face = FindFace(m.FaceID)
 	}
+
+	defer func() {
+		// Find and (soft) delete unused subjects.
+		start := time.Now()
+		if count, err := DeleteOrphanPeople(); err != nil {
+			log.Errorf("marker: %s while removing unused subjects [%s]", err, time.Since(start))
+		} else if count > 0 {
+			log.Debugf("marker: removed %d people [%s]", count, time.Since(start))
+		}
+	}()
 
 	// Update index & resolve collisions.
 	if err := m.Updates(Values{"MarkerName": "", "FaceID": "", "FaceDist": -1.0, "SubjUID": "", "SubjSrc": src}); err != nil {
@@ -418,7 +461,7 @@ func (m *Marker) Face() (f *Face) {
 		if m.Size < face.ClusterMinSize || m.Score < face.ClusterMinScore {
 			log.Debugf("marker: skipped adding face due to low-quality (uid %s, size %d, score %d)", txt.Quote(m.MarkerUID), m.Size, m.Score)
 			return nil
-		} else if emb := m.Embeddings(); len(emb) == 0 {
+		} else if emb := m.Embeddings(); emb.Empty() {
 			log.Warnf("marker: %s has no embeddings", m.MarkerUID)
 			return nil
 		} else if f = NewFace(m.SubjUID, m.SubjSrc, emb); f == nil {
@@ -540,6 +583,49 @@ func (m *Marker) OverlapArea(marker Marker) (area float64) {
 // OverlapPercent calculates the overlap ratio of two markers in percent.
 func (m *Marker) OverlapPercent(marker Marker) int {
 	return int(math.Round(marker.SurfaceRatio(m.OverlapArea(marker)) * 100))
+}
+
+// Unsaved tests if the marker hasn't been saved yet.
+func (m *Marker) Unsaved() bool {
+	return m.MarkerUID == "" || m.CreatedAt.IsZero()
+}
+
+// ValidFace tests if the marker is a valid face.
+func (m *Marker) ValidFace() bool {
+	return m.MarkerType == MarkerFace && !m.MarkerInvalid
+}
+
+// DetectedFace tests if the marker is an automatically detected face.
+func (m *Marker) DetectedFace() bool {
+	return m.MarkerType == MarkerFace && m.MarkerSrc == SrcImage
+}
+
+// Uncertainty returns the detection uncertainty based on the score in percent.
+func (m *Marker) Uncertainty() int {
+	switch {
+	case m.Score > 300:
+		return 1
+	case m.Score > 200:
+		return 5
+	case m.Score > 100:
+		return 10
+	case m.Score > 80:
+		return 15
+	case m.Score > 65:
+		return 20
+	case m.Score > 50:
+		return 25
+	case m.Score > 40:
+		return 30
+	case m.Score > 30:
+		return 35
+	case m.Score > 20:
+		return 40
+	case m.Score > 10:
+		return 45
+	}
+
+	return 50
 }
 
 // FindMarker returns an existing row if exists.

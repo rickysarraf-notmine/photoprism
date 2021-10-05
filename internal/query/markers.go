@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/photoprism/photoprism/internal/entity"
+	"github.com/photoprism/photoprism/internal/face"
 )
 
 // MarkerByUID returns a Marker based on the UID.
@@ -74,7 +75,7 @@ func FaceMarkers(limit, offset int) (result entity.Markers, err error) {
 }
 
 // Embeddings returns existing face embeddings.
-func Embeddings(single, unclustered bool, size, score int) (result entity.Embeddings, err error) {
+func Embeddings(single, unclustered bool, size, score int) (result face.Embeddings, err error) {
 	var col []string
 
 	stmt := Db().
@@ -101,7 +102,7 @@ func Embeddings(single, unclustered bool, size, score int) (result entity.Embedd
 	}
 
 	for _, embeddingsJson := range col {
-		if embeddings := entity.UnmarshalEmbeddings(embeddingsJson); len(embeddings) > 0 {
+		if embeddings := face.UnmarshalEmbeddings(embeddingsJson); !embeddings.Empty() {
 			if single {
 				// Single embedding per face detected.
 				result = append(result, embeddings[0])
@@ -235,4 +236,18 @@ func CountMarkers(markerType string) (n int) {
 	}
 
 	return n
+}
+
+// RemoveOrphanMarkers removes markers without an existing file.
+func RemoveOrphanMarkers() (removed int64, err error) {
+	where := fmt.Sprintf("file_uid NOT IN (SELECT file_uid FROM %s)", entity.File{}.TableName())
+
+	if res := UnscopedDb().
+		Delete(&entity.Marker{}, where); res.Error != nil {
+		return removed, fmt.Errorf("markers: %s (purge orphans)", res.Error)
+	} else {
+		removed += res.RowsAffected
+	}
+
+	return removed, nil
 }

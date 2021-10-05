@@ -4,10 +4,13 @@ import (
 	"context"
 	"time"
 
+	"github.com/dustin/go-humanize/english"
+
+	"github.com/urfave/cli"
+
 	"github.com/photoprism/photoprism/internal/config"
 	"github.com/photoprism/photoprism/internal/photoprism"
 	"github.com/photoprism/photoprism/internal/service"
-	"github.com/urfave/cli"
 )
 
 // CleanUpCommand registers the cleanup command.
@@ -54,9 +57,7 @@ func cleanUpAction(ctx *cli.Context) error {
 	if thumbs, orphans, err := w.Start(opt); err != nil {
 		return err
 	} else {
-		elapsed := time.Since(start)
-
-		log.Infof("cleanup: removed %d index entries and %d orphan thumbnails in %s", orphans, thumbs, elapsed)
+		log.Infof("removed %s and %s in %s", english.Plural(orphans, "index entry", "index entries"), english.Plural(thumbs, "thumbnail", "thumbnails"), time.Since(start))
 	}
 
 	conf.Shutdown()
