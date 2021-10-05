@@ -136,12 +136,17 @@ class Viewer {
             ' <i aria-hidden="true" class="v-icon material-icons theme--dark" title="Play">play_circle_fill</i>';
         }
 
+        if (item.sphere) {
+          captionEl.children[0].innerHTML +=
+            ' <i aria-hidden="true" class="v-icon material-icons theme--dark" title="Show Photosphere">panorama_photosphere_select</i>';
+        }
+
         if (item.description) {
           captionEl.children[0].innerHTML +=
             '<br><span class="description">' + Util.encodeHTML(item.description) + "</span>";
         }
 
-        if (item.playable) {
+        if (item.playable || item.sphere) {
           captionEl.children[0].innerHTML =
             "<button>" + captionEl.children[0].innerHTML + "</button>";
         }
