@@ -40,8 +40,7 @@ export class Marker extends RestModel {
     return {
       UID: "",
       FileUID: "",
-      FileHash: "",
-      CropArea: "",
+      Thumb: "",
       Type: "",
       Src: "",
       Name: "",
@@ -53,8 +52,8 @@ export class Marker extends RestModel {
       H: 0.0,
       CropID: "",
       FaceID: "",
-      SubjectSrc: "",
-      SubjectUID: "",
+      SubjSrc: "",
+      SubjUID: "",
       Score: 0,
       Size: 0,
     };
@@ -87,10 +86,8 @@ export class Marker extends RestModel {
       size = "tile_160";
     }
 
-    if (this.FileHash && this.CropArea) {
-      return `${config.contentUri}/t/${this.FileHash}/${config.previewToken()}/${size}/${
-        this.CropArea
-      }`;
+    if (this.Thumb) {
+      return `${config.contentUri}/t/${this.Thumb}/${config.previewToken()}/${size}`;
     } else {
       return `${config.contentUri}/svg/portrait`;
     }
@@ -118,9 +115,9 @@ export class Marker extends RestModel {
       return Promise.resolve(this);
     }
 
-    this.SubjectSrc = src.Manual;
+    this.SubjSrc = src.Manual;
 
-    const payload = { SubjectSrc: this.SubjectSrc, Name: this.Name };
+    const payload = { SubjSrc: this.SubjSrc, Name: this.Name };
 
     return Api.put(this.getEntityResource(), payload).then((resp) =>
       Promise.resolve(this.setValues(resp.data))
@@ -134,7 +131,7 @@ export class Marker extends RestModel {
   }
 
   static batchSize() {
-    return 60;
+    return 48;
   }
 
   static getCollectionResource() {

@@ -34,12 +34,12 @@ import { DateTime } from "luxon";
 import { config } from "../session";
 import { $gettext } from "common/vm";
 
+const SubjPerson = "person";
+
 export class Subject extends RestModel {
   getDefaults() {
     return {
       UID: "",
-      Thumb: "",
-      ThumbSrc: "",
       Type: "",
       Src: "",
       Slug: "",
@@ -50,7 +50,10 @@ export class Subject extends RestModel {
       Favorite: false,
       Private: false,
       Excluded: false,
-      Files: 0,
+      FileCount: 0,
+      PhotoCount: 0,
+      Thumb: "",
+      ThumbSrc: "",
       Metadata: {},
       CreatedAt: "",
       UpdatedAt: "",
@@ -59,6 +62,10 @@ export class Subject extends RestModel {
   }
 
   route(view) {
+    if (this.Slug && (!this.Type || this.Type === SubjPerson)) {
+      return { name: view, query: { q: `person:${this.Slug}` } };
+    }
+
     return { name: view, query: { q: "subject:" + this.UID } };
   }
 
@@ -82,11 +89,15 @@ export class Subject extends RestModel {
   }
 
   thumbnailUrl(size) {
-    if (this.Thumb) {
-      return `${config.contentUri}/t/${this.Thumb}/${config.previewToken()}/${size}`;
-    } else {
+    if (!this.Thumb) {
       return `${config.contentUri}/svg/portrait`;
     }
+
+    if (!size) {
+      size = "tile_160";
+    }
+
+    return `${config.contentUri}/t/${this.Thumb}/${config.previewToken()}/${size}`;
   }
 
   getDateString() {

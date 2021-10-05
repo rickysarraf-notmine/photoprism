@@ -83,7 +83,7 @@
                   class="ma-0 pa-0 input-edit"
                   color="secondary-dark"
                   :label="$gettext('Edit')"
-                  :hint="$gettext('Change photo titles, locations and other metadata.')"
+                  :hint="$gettext('Change photo titles, locations, and other metadata.')"
                   prepend-icon="edit"
                   persistent-hint
                   @change="onChange"
@@ -101,7 +101,7 @@
                   :hint="$gettext('Permanently remove files to free up storage.')"
                   prepend-icon="delete"
                   persistent-hint
-                  @change="onChangeDelete"
+                  @change="onChange"
               >
               </v-checkbox>
             </v-flex>
@@ -143,7 +143,7 @@
                   class="ma-0 pa-0 input-private"
                   color="secondary-dark"
                   :label="$gettext('Private')"
-                  :hint="$gettext('Exclude content marked as private from search results, shared albums, labels and places.')"
+                  :hint="$gettext('Exclude content marked as private from search results, shared albums, labels, and places.')"
                   prepend-icon="lock"
                   persistent-hint
                   @change="onChange"
@@ -183,12 +183,27 @@
 
             <v-flex xs12 sm6 lg3 class="px-2 pb-2 pt-2">
               <v-checkbox
+                  v-model="settings.features.people"
+                  :disabled="busy"
+                  class="ma-0 pa-0 input-people"
+                  color="secondary-dark"
+                  :label="$gettext('People')"
+                  :hint="$gettext('Recognizes faces so that specific people can be found.')"
+                  prepend-icon="person"
+                  persistent-hint
+                  @change="onChange"
+              >
+              </v-checkbox>
+            </v-flex>
+
+            <v-flex xs12 sm6 lg3 class="px-2 pb-2 pt-2">
+              <v-checkbox
                   v-model="settings.features.moments"
                   :disabled="busy"
                   class="ma-0 pa-0 input-moments"
                   color="secondary-dark"
                   :label="$gettext('Moments')"
-                  :hint="$gettext('Let PhotoPrism create albums from past events.')"
+                  :hint="$gettext('Automatically creates albums of special moments, trips, and places.')"
                   prepend-icon="star"
                   persistent-hint
                   @change="onChange"
@@ -235,21 +250,6 @@
                   :label="$gettext('Logs')"
                   :hint="$gettext('Show server logs in Library.')"
                   prepend-icon="notes"
-                  persistent-hint
-                  @change="onChange"
-              >
-              </v-checkbox>
-            </v-flex>
-
-            <v-flex v-if="config.experimental" xs12 sm6 lg3 class="px-2 pb-2 pt-2">
-              <v-checkbox
-                  v-model="settings.features.people"
-                  :disabled="busy"
-                  class="ma-0 pa-0 input-people"
-                  color="secondary-dark"
-                  :label="$gettext('People')"
-                  :hint="$gettext('Detect faces and search for people in your pictures.')"
-                  prepend-icon="person"
                   persistent-hint
                   @change="onChange"
               >
@@ -308,6 +308,46 @@
                   background-color="secondary-light"
                   hide-details
                   box class="input-animate"
+                  @change="onChange"
+              ></v-select>
+            </v-flex>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
+
+      <v-card flat tile class="mt-0 px-1 application">
+        <v-card-title primary-title class="pb-2">
+          <h3 class="body-2 mb-0">
+            <translate key="Folders">Folders</translate>
+          </h3>
+        </v-card-title>
+
+        <v-card-actions>
+          <v-layout wrap align-top>
+            <v-flex xs12 sm6 class="px-2 pb-2">
+              <v-select
+                  v-model="settings.folders.datemode"
+                  :disabled="busy"
+                  :items="options.FoldersDateMode()"
+                  :label="$gettext('Date Mode')"
+                  color="secondary-dark"
+                  background-color="secondary-light"
+                  hide-details
+                  box class="input-style"
+                  @change="onChange"
+              ></v-select>
+            </v-flex>
+
+            <v-flex xs12 sm6 class="px-2 pb-2">
+              <v-select
+                  v-model="settings.folders.sortorder"
+                  :disabled="busy"
+                  :items="options.FoldersSortOrder()"
+                  :label="$gettext('Default Sort Order')"
+                  color="secondary-dark"
+                  background-color="secondary-light"
+                  hide-details
+                  box class="input-style"
                   @change="onChange"
               ></v-select>
             </v-flex>
@@ -380,19 +420,6 @@ export default {
       }
 
       this.currentTheme = newTheme;
-
-      this.onChange();
-    },
-    onChangeDelete(enabled) {
-      if(enabled && !this.$config.values.sponsor) {
-        this.dialog.sponsor = true;
-
-        this.$nextTick(() => {
-          this.settings.features.delete = false;
-        });
-
-        return false;
-      }
 
       this.onChange();
     },

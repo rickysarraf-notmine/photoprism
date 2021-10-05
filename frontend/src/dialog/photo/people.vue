@@ -1,18 +1,18 @@
 <template>
   <div class="p-tab p-tab-photo-people">
     <v-container grid-list-xs fluid class="pa-2 p-faces">
-      <v-card v-if="markers.length === 0" class="no-results secondary-light lighten-1 ma-1" flat>
-        <v-card-title primary-title>
-          <div>
-            <h3 class="title ma-0 pa-0">
-              <translate>Couldn't find any people</translate>
-            </h3>
-            <p class="mt-4 mb-0 pa-0">
-              <translate>To automatically detect faces, please re-index your library and wait until indexing has been completed.</translate>
-            </p>
-          </div>
-        </v-card-title>
-      </v-card>
+      <v-alert
+          :value="markers.length === 0"
+          color="secondary-dark" icon="lightbulb_outline" class="no-results ma-2 opacity-70" outline
+      >
+        <h3 class="body-2 ma-0 pa-0">
+          <translate>No people found</translate>
+        </h3>
+        <p class="body-1 mt-2 mb-0 pa-0">
+          <translate>You may rescan your library to find additional faces.</translate>
+          <translate>Recognition starts after indexing has been completed.</translate>
+        </p>
+      </v-alert>
       <v-layout row wrap class="search-results face-results cards-view">
         <v-flex
             v-for="(marker, index) in markers"
@@ -29,33 +29,31 @@
                    :transition="false"
                    aspect-ratio="1"
                    class="accent lighten-2">
+              <v-btn v-if="!marker.SubjUID && !marker.Invalid" :ripple="false" :depressed="false" class="input-reject"
+                     icon flat small absolute :title="$gettext('Remove')"
+                     @click.stop.prevent="onReject(marker)">
+                <v-icon color="white" class="action-reject">clear</v-icon>
+              </v-btn>
             </v-img>
 
             <v-card-actions class="card-details pa-0">
-              <v-layout v-if="marker.Review || marker.Invalid" row wrap align-center>
-                <v-flex xs6 class="text-xs-center pa-0">
+              <v-layout v-if="marker.Invalid" row wrap align-center>
+                <v-flex xs12 class="text-xs-center pa-0">
                   <v-btn color="transparent" :disabled="busy"
                          large depressed block :round="false"
-                         class="action-archive text-xs-center"
-                         :title="$gettext('Reject')" @click.stop="reject(marker)">
-                    <v-icon dark>clear</v-icon>
-                  </v-btn>
-                </v-flex>
-                <v-flex xs6 class="text-xs-center pa-0">
-                  <v-btn color="transparent" :disabled="busy"
-                         large depressed block :round="false"
-                         class="action-approve text-xs-center"
-                         :title="$gettext('Approve')" @click.stop="approve(marker)">
-                    <v-icon dark>check</v-icon>
+                         class="action-undo text-xs-center"
+                         :title="$gettext('Undo')" @click.stop="onApprove(marker)">
+                    <v-icon dark>undo</v-icon>
                   </v-btn>
                 </v-flex>
               </v-layout>
-              <v-layout v-else-if="marker.SubjectUID" row wrap align-center>
+              <v-layout v-else-if="marker.SubjUID" row wrap align-center>
                 <v-flex xs12 class="text-xs-left pa-0">
                   <v-text-field
                       v-model="marker.Name"
                       :rules="[textRule]"
                       :disabled="busy"
+                      :readonly="true"
                       browser-autocomplete="off"
                       class="input-name pa-0 ma-0"
                       hide-details
@@ -63,9 +61,9 @@
                       solo-inverted
                       clearable
                       clear-icon="eject"
-                      @click:clear="clearSubject(marker)"
-                      @change="rename(marker)"
-                      @keyup.enter.native="rename(marker)"
+                      @click:clear="onClearSubject(marker)"
+                      @change="onRename(marker)"
+                      @keyup.enter.native="onRename(marker)"
                   ></v-text-field>
                 </v-flex>
               </v-layout>
@@ -90,8 +88,8 @@
                       prepend-inner-icon="person_add"
                       browser-autocomplete="off"
                       class="input-name pa-0 ma-0"
-                      @change="rename(marker)"
-                      @keyup.enter.native="rename(marker)"
+                      @change="onRename(marker)"
+                      @keyup.enter.native="onRename(marker)"
                   >
                   </v-combobox>
                 </v-flex>
@@ -126,28 +124,40 @@ export default {
           return this.$gettext("Name");
         }
 
-        return v.length <= this.$config.get('clip') || this.$gettext("Text too long");
+        return v.length <= this.$config.get('clip') || this.$gettext("Name too long");
       },
     };
   },
   methods: {
     refresh() {
     },
-    reject(marker) {
+    onReject(marker) {
       this.busy = true;
-      marker.reject().finally(() => this.busy = false);
+      this.$notify.blockUI();
+      marker.reject().finally(() => {
+        this.$notify.unblockUI();
+        this.busy = false;
+      });
     },
-    approve(marker) {
+    onApprove(marker) {
       this.busy = true;
       marker.approve().finally(() => this.busy = false);
     },
-    clearSubject(marker) {
+    onClearSubject(marker) {
       this.busy = true;
-      marker.clearSubject(marker).finally(() => this.busy = false);
+      this.$notify.blockUI();
+      marker.clearSubject(marker).finally(() => {
+        this.$notify.unblockUI();
+        this.busy = false;
+      });
     },
-    rename(marker) {
+    onRename(marker) {
       this.busy = true;
-      marker.rename().finally(() => this.busy = false);
+      this.$notify.blockUI();
+      marker.rename().finally(() => {
+        this.$notify.unblockUI();
+        this.busy = false;
+      });
     },
   },
 };

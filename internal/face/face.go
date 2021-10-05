@@ -29,7 +29,6 @@ Additional information can be found in our Developer Guide:
 https://docs.photoprism.org/developer-guide/
 
 */
-
 package face
 
 import (
@@ -39,72 +38,17 @@ import (
 	"github.com/photoprism/photoprism/internal/event"
 )
 
-var CropSize = crop.Sizes[crop.Tile160]
-var ClusterCore = 4
-var ClusterRadius = 0.6
-var ClusterMinScore = 30
-var ClusterMinSize = 100
-var SampleThreshold = 2 * ClusterCore
-
 var log = event.Log
 
-// Faces is a list of face detection results.
-type Faces []Face
-
-// Count returns the number of faces detected.
-func (faces Faces) Count() int {
-	return len(faces)
-}
-
-// Uncertainty return the max face detection uncertainty in percent.
-func (faces Faces) Uncertainty() int {
-	if len(faces) < 1 {
-		return 100
-	}
-
-	maxScore := 0
-
-	for _, f := range faces {
-		if f.Score > maxScore {
-			maxScore = f.Score
-		}
-	}
-
-	switch {
-	case maxScore > 300:
-		return 1
-	case maxScore > 200:
-		return 5
-	case maxScore > 100:
-		return 10
-	case maxScore > 80:
-		return 15
-	case maxScore > 65:
-		return 20
-	case maxScore > 50:
-		return 25
-	case maxScore > 40:
-		return 30
-	case maxScore > 30:
-		return 35
-	case maxScore > 20:
-		return 40
-	case maxScore > 10:
-		return 45
-	}
-
-	return 50
-}
-
-// Face represents a face detection result.
+// Face represents a face detected.
 type Face struct {
-	Rows       int         `json:"rows,omitempty"`
-	Cols       int         `json:"cols,omitempty"`
-	Score      int         `json:"score,omitempty"`
-	Area       Area        `json:"face,omitempty"`
-	Eyes       Areas       `json:"eyes,omitempty"`
-	Landmarks  Areas       `json:"landmarks,omitempty"`
-	Embeddings [][]float32 `json:"embeddings,omitempty"`
+	Rows       int        `json:"rows,omitempty"`
+	Cols       int        `json:"cols,omitempty"`
+	Score      int        `json:"score,omitempty"`
+	Area       Area       `json:"face,omitempty"`
+	Eyes       Areas      `json:"eyes,omitempty"`
+	Landmarks  Areas      `json:"landmarks,omitempty"`
+	Embeddings Embeddings `json:"embeddings,omitempty"`
 }
 
 // Size returns the absolute face size in pixels.
@@ -192,11 +136,19 @@ func (f *Face) RelativeLandmarksJSON() (b []byte) {
 
 // EmbeddingsJSON returns detected face embeddings as JSON array.
 func (f *Face) EmbeddingsJSON() (b []byte) {
-	var noResult = []byte("")
+	return f.Embeddings.JSON()
+}
 
-	if result, err := json.Marshal(f.Embeddings); err != nil {
-		return noResult
-	} else {
-		return result
+// HasEmbedding tests if the face has at least one embedding.
+func (f *Face) HasEmbedding() bool {
+	return len(f.Embeddings) > 0
+}
+
+// NoEmbedding tests if the face has no embeddings.
+func (f *Face) NoEmbedding() bool {
+	if f.Embeddings == nil {
+		return true
 	}
+
+	return f.Embeddings.Empty()
 }

@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/urfave/cli"
+
 	"github.com/photoprism/photoprism/internal/config"
 	"github.com/photoprism/photoprism/internal/photoprism"
 	"github.com/photoprism/photoprism/internal/service"
-	"github.com/urfave/cli"
 )
 
 // CopyCommand registers the copy cli command.
@@ -71,6 +72,8 @@ func copyAction(ctx *cli.Context) error {
 	elapsed := time.Since(start)
 
 	log.Infof("import completed in %s", elapsed)
+
 	conf.Shutdown()
+
 	return nil
 }

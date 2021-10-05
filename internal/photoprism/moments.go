@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"runtime/debug"
+	"strconv"
 	"strings"
 
 	"github.com/photoprism/photoprism/internal/config"
@@ -54,10 +55,10 @@ func (w *Moments) Start() (err error) {
 		threshold = int(math.Log2(float64(indexSize))) + 1
 	}
 
-	log.Debugf("moments: index contains %d photos and %d videos, using threshold %d", counts.Photos, counts.Videos, threshold)
+	log.Debugf("moments: analyzing %d photos / %d videos, using threshold %d", counts.Photos, counts.Videos, threshold)
 
 	if indexSize < threshold {
-		log.Debugf("moments: nothing to do, index size is smaller than threshold")
+		log.Debugf("moments: not enough files")
 
 		return nil
 	}
@@ -81,7 +82,7 @@ func (w *Moments) Start() (err error) {
 				} else {
 					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
 				}
-			} else if a := entity.NewFolderAlbum(mom.Title(), mom.Path, f.Serialize()); a != nil {
+			} else if a := entity.NewFolderAlbum(mom.Title(), mom.Path, f.Serialize(), conf.Settings().Folders.SortOrder); a != nil {
 				a.AlbumYear = mom.FolderYear
 				a.AlbumMonth = mom.FolderMonth
 				a.AlbumDay = mom.FolderDay
@@ -126,7 +127,7 @@ func (w *Moments) Start() (err error) {
 		for _, mom := range results {
 			f := form.PhotoSearch{
 				Country: mom.Country,
-				Year:    mom.Year,
+				Year:    strconv.Itoa(mom.Year),
 				Public:  true,
 			}
 
@@ -232,7 +233,7 @@ func (w *Moments) Start() (err error) {
 				} else {
 					w := txt.Words(f.Label)
 					w = append(w, mom.Label)
-					f.Label = strings.Join(txt.UniqueWords(w), query.Or)
+					f.Label = strings.Join(txt.UniqueWords(w), txt.Or)
 				}
 
 				if err := a.Update("AlbumFilter", f.Serialize()); err != nil {
@@ -256,7 +257,7 @@ func (w *Moments) Start() (err error) {
 		log.Errorf("moments: %s (update folder dates)", err.Error())
 	}
 
-	if err := query.UpdateAlbumDates(); err != nil {
+	if err := query.UpdateAlbumDates(w.conf.Settings().Folders.DateMode); err != nil {
 		log.Errorf("moments: %s (update album dates)", err.Error())
 	}
 
