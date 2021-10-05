@@ -5,18 +5,6 @@
 
     <v-form ref="form" class="p-faces-search" lazy-validation dense @submit.prevent="updateQuery">
       <v-toolbar dense flat color="secondary-light pa-0">
-        <!-- v-text-field id="search"
-                      v-model="filter.q"
-                      class="input-search background-inherit elevation-0"
-                      solo hide-details
-                      :label="$gettext('Search')"
-                      prepend-inner-icon="search"
-                      browser-autocomplete="off"
-                      clearable overflow
-                      color="secondary-dark"
-                      @click:clear="clearQuery"
-                      @keyup.enter.native="updateQuery"
-        ></v-text-field -->
         <v-spacer></v-spacer>
         <v-divider vertical></v-divider>
 
@@ -37,10 +25,10 @@
           <v-card-title primary-title>
             <div>
               <h3 class="title ma-0 pa-0">
-                <translate>Couldn't find anything</translate>
+                <translate>Couldn't find any new faces</translate>
               </h3>
               <p class="mt-4 mb-0 pa-0">
-                <translate>Try again using other filters or keywords.</translate>
+                <translate>Please reindex your library to find additional faces. Recognition starts after indexing has been completed.</translate>
               </p>
             </div>
           </v-card-title>
@@ -194,15 +182,19 @@ export default {
       this.filter.q = query["q"] ? query["q"] : "";
       this.filter.all = query["all"] ? query["all"] : "";
       this.filter.order = this.sortOrder();
-      this.lastFilter = {};
       this.routeName = this.$route.name;
+
+      if (this.dirty) {
+        this.lastFilter = {};
+      }
+
       this.search();
     }
   },
   created() {
     this.search();
 
-    // this.subscriptions.push(Event.subscribe("subjects", (ev, data) => this.onUpdate(ev, data)));
+    this.subscriptions.push(Event.subscribe("faces", (ev, data) => this.onUpdate(ev, data)));
 
     this.subscriptions.push(Event.subscribe("touchmove.top", () => this.refresh()));
     this.subscriptions.push(Event.subscribe("touchmove.bottom", () => this.loadMore()));

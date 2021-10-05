@@ -2,8 +2,8 @@ package form
 
 import "time"
 
-// GeoSearch represents search form fields for "/api/v1/geo".
-type GeoSearch struct {
+// PhotoSearchGeo represents search form fields for "/api/v1/geo".
+type PhotoSearchGeo struct {
 	Query    string    `form:"q"`
 	Type     string    `form:"type"`
 	Path     string    `form:"path"`
@@ -27,55 +27,63 @@ type GeoSearch struct {
 	Dist     uint      `form:"dist"`
 	Face     string    `form:"face"`     // UIDs
 	Subject  string    `form:"subject"`  // UIDs
+	Person   string    `form:"person"`   // Alias for Subject
 	Subjects string    `form:"subjects"` // Text
 	People   string    `form:"people"`   // Alias for Subjects
 	Keywords string    `form:"keywords"`
 	Album    string    `form:"album"`
 	Albums   string    `form:"albums"`
 	Country  string    `form:"country"`
-	Year     int       `form:"year"`  // Moments
-	Month    int       `form:"month"` // Moments
-	Day      int       `form:"day"`   // Moments
+	Year     string    `form:"year"`  // Moments
+	Month    string    `form:"month"` // Moments
+	Day      string    `form:"day"`   // Moments
 	Color    string    `form:"color"`
 	Camera   int       `form:"camera"`
 	Lens     int       `form:"lens"`
 }
 
 // GetQuery returns the query parameter as string.
-func (f *GeoSearch) GetQuery() string {
+func (f *PhotoSearchGeo) GetQuery() string {
 	return f.Query
 }
 
 // SetQuery sets the query parameter.
-func (f *GeoSearch) SetQuery(q string) {
+func (f *PhotoSearchGeo) SetQuery(q string) {
 	f.Query = q
 }
 
 // ParseQueryString parses the query parameter if possible.
-func (f *GeoSearch) ParseQueryString() error {
+func (f *PhotoSearchGeo) ParseQueryString() error {
 	err := ParseQueryString(f)
 
 	if f.Path == "" && f.Folder != "" {
 		f.Path = f.Folder
+		f.Folder = ""
 	}
 
-	if f.Subjects == "" {
+	if f.Subject == "" && f.Person != "" {
+		f.Subject = f.Person
+		f.Person = ""
+	}
+
+	if f.Subjects == "" && f.People != "" {
 		f.Subjects = f.People
+		f.People = ""
 	}
 
 	return err
 }
 
 // Serialize returns a string containing non-empty fields and values of a struct.
-func (f *GeoSearch) Serialize() string {
+func (f *PhotoSearchGeo) Serialize() string {
 	return Serialize(f, false)
 }
 
 // SerializeAll returns a string containing all non-empty fields and values of a struct.
-func (f *GeoSearch) SerializeAll() string {
+func (f *PhotoSearchGeo) SerializeAll() string {
 	return Serialize(f, true)
 }
 
-func NewGeoSearch(query string) GeoSearch {
-	return GeoSearch{Query: query}
+func NewGeoSearch(query string) PhotoSearchGeo {
+	return PhotoSearchGeo{Query: query}
 }

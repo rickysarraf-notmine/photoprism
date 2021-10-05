@@ -47,11 +47,12 @@ type PhotoSearch struct {
 	Category  string    `form:"category"` // Moments
 	Country   string    `form:"country"`  // Moments
 	State     string    `form:"state"`    // Moments
-	Year      int       `form:"year"`     // Moments
-	Month     int       `form:"month"`    // Moments, Discover
-	Day       int       `form:"day"`      // Moments, Discover
+	Year      string    `form:"year"`     // Moments
+	Month     string    `form:"month"`    // Moments, Discover
+	Day       string    `form:"day"`      // Moments, Discover
 	Face      string    `form:"face"`     // UIDs
 	Subject   string    `form:"subject"`  // UIDs
+	Person    string    `form:"person"`   // Alias for Subject
 	Subjects  string    `form:"subjects"` // Text
 	People    string    `form:"people"`   // Alias for Subjects
 	Album     string    `form:"album"`    // UIDs
@@ -85,10 +86,17 @@ func (f *PhotoSearch) ParseQueryString() error {
 
 	if f.Path == "" && f.Folder != "" {
 		f.Path = f.Folder
+		f.Folder = ""
 	}
 
-	if f.Subjects == "" {
+	if f.Subject == "" && f.Person != "" {
+		f.Subject = f.Person
+		f.Person = ""
+	}
+
+	if f.Subjects == "" && f.People != "" {
 		f.Subjects = f.People
+		f.People = ""
 	}
 
 	if f.Filter != "" {

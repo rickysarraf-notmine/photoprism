@@ -23,7 +23,7 @@ type Face struct {
 	ID              string          `gorm:"type:VARBINARY(42);primary_key;auto_increment:false;" json:"ID" yaml:"ID"`
 	FaceSrc         string          `gorm:"type:VARBINARY(8);" json:"Src" yaml:"Src,omitempty"`
 	FaceHidden      bool            `json:"Hidden" yaml:"Hidden,omitempty"`
-	SubjUID         string          `gorm:"type:VARBINARY(42);index;" json:"SubjUID" yaml:"SubjUID,omitempty"`
+	SubjUID         string          `gorm:"type:VARBINARY(42);index;default:'';" json:"SubjUID" yaml:"SubjUID,omitempty"`
 	Samples         int             `json:"Samples" yaml:"Samples,omitempty"`
 	SampleRadius    float64         `json:"SampleRadius" yaml:"SampleRadius,omitempty"`
 	Collisions      int             `json:"Collisions" yaml:"Collisions,omitempty"`
@@ -40,7 +40,7 @@ var Faceless = []string{""}
 
 // TableName returns the entity database table name.
 func (Face) TableName() string {
-	return "faces_dev9"
+	return "faces"
 }
 
 // NewFace returns a new face.
@@ -133,7 +133,7 @@ func (m *Face) Match(embeddings Embeddings) (match bool, dist float64) {
 	case dist < 0:
 		// Should never happen.
 		return false, dist
-	case dist > (m.SampleRadius + face.ClusterRadius):
+	case dist > (m.SampleRadius + face.MatchRadius):
 		// Too far.
 		return false, dist
 	case m.CollisionRadius > 0.1 && dist > m.CollisionRadius:

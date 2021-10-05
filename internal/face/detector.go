@@ -87,7 +87,7 @@ func Detect(fileName string, findLandmarks bool, minSize int) (faces Faces, err 
 		shiftFactor:    0.1,
 		scaleFactor:    1.1,
 		iouThreshold:   0.2,
-		scoreThreshold: 9.0,
+		scoreThreshold: ScoreThreshold,
 		perturb:        63,
 	}
 
@@ -124,7 +124,9 @@ func (d *Detector) Detect(fileName string) (faces []pigo.Detection, params pigo.
 		return faces, params, err
 	}
 
-	defer file.Close()
+	defer func(file *os.File) {
+		err = file.Close()
+	}(file)
 
 	srcFile = file
 
@@ -154,10 +156,6 @@ func (d *Detector) Detect(fileName string) (faces []pigo.Detection, params pigo.
 		Dim:    cols,
 	}
 
-	if rows > 800 || cols > 800 {
-		d.scoreThreshold += 9.0
-	}
-
 	params = pigo.CascadeParams{
 		MinSize:     d.minSize,
 		MaxSize:     maxSize,
@@ -180,27 +178,20 @@ func (d *Detector) Detect(fileName string) (faces []pigo.Detection, params pigo.
 
 // Faces adds landmark coordinates to detected faces and returns the results.
 func (d *Detector) Faces(det []pigo.Detection, params pigo.CascadeParams, findLandmarks bool) (results Faces, err error) {
-	var maxQ float32
-
-	// Sort by quality.
+	// Sort results by size.
 	sort.Slice(det, func(i, j int) bool {
-		return det[i].Q > det[j].Q
+		return det[i].Scale > det[j].Scale
 	})
 
 	for _, face := range det {
+		// Skip result if quality is too low.
+		if face.Q < ScaleScoreThreshold(face.Scale) {
+			continue
+		}
+
 		var eyesCoords []Area
 		var landmarkCoords []Area
 		var puploc *pigo.Puploc
-
-		if face.Q < d.scoreThreshold {
-			continue
-		}
-
-		if maxQ < face.Q {
-			maxQ = face.Q
-		} else if maxQ >= 20 && face.Q < 15 {
-			continue
-		}
 
 		faceCoord := NewArea(
 			"face",
@@ -209,6 +200,7 @@ func (d *Detector) Faces(det []pigo.Detection, params pigo.CascadeParams, findLa
 			face.Scale,
 		)
 
+		// Detect additional face landmarks?
 		if face.Scale > 50 && findLandmarks {
 			// Find left eye.
 			puploc = &pigo.Puploc{
@@ -312,14 +304,23 @@ func (d *Detector) Faces(det []pigo.Detection, params pigo.CascadeParams, findLa
 			}
 		}
 
-		results = append(results, Face{
+		// Create face.
+		f := Face{
 			Rows:      params.ImageParams.Rows,
 			Cols:      params.ImageParams.Cols,
 			Score:     int(face.Q),
 			Area:      faceCoord,
 			Eyes:      eyesCoords,
 			Landmarks: landmarkCoords,
-		})
+		}
+
+		// Does the face significantly overlap with previous results?
+		if results.Contains(f) {
+			// Ignore face.
+		} else {
+			// Append face.
+			results.Append(f)
+		}
 	}
 
 	return results, nil

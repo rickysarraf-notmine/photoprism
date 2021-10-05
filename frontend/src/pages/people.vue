@@ -29,23 +29,13 @@
 import Subjects from "pages/people/subjects.vue";
 import Faces from "pages/people/faces.vue";
 
-function initTabs(flag, tabs) {
-  let i = 0;
-  while (i < tabs.length) {
-    if (!tabs[i][flag]) {
-      tabs.splice(i, 1);
-    } else {
-      i++;
-    }
-  }
-}
-
 export default {
   name: 'PPagePeople',
   props: {
     tab: String,
   },
   data() {
+    let tabName = this.tab;
     const config = this.$config.values;
     const isDemo = this.$config.get("demo");
     const isPublic = this.$config.get("public");
@@ -60,8 +50,6 @@ export default {
         'class': '',
         'path': '/people',
         'icon': 'people_alt',
-        'readonly': true,
-        'demo': true,
       },
       {
         'name': 'people-faces',
@@ -71,15 +59,17 @@ export default {
         'class': '',
         'path': '/people/new',
         'icon': 'person_add',
-        'readonly': true,
-        'demo': true,
       },
     ];
 
+    if (config.count.people === 0) {
+      tabName = "people-faces";
+    }
+
     let active = 0;
 
-    if (typeof this.tab === 'string' && this.tab !== '') {
-      active = tabs.findIndex((t) => t.name === this.tab);
+    if (typeof tabName === 'string' && tabName !== '') {
+      active = tabs.findIndex((t) => t.name === tabName);
     }
 
     return {

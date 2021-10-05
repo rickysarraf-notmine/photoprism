@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/photoprism/photoprism/pkg/rnd"
+
 	"github.com/photoprism/photoprism/pkg/fs"
 
 	"github.com/jinzhu/gorm"
@@ -16,7 +18,7 @@ import (
 )
 
 // PhotosGeo searches for photos based on Form values and returns GeoResults ([]GeoResult).
-func PhotosGeo(f form.GeoSearch) (results GeoResults, err error) {
+func PhotosGeo(f form.PhotoSearchGeo) (results GeoResults, err error) {
 	start := time.Now()
 
 	if err := f.ParseQueryString(); err != nil {
@@ -107,7 +109,7 @@ func PhotosGeo(f form.GeoSearch) (results GeoResults, err error) {
 
 	// Search for one or more keywords?
 	if f.Keywords != "" {
-		for _, where := range LikeAllKeywords("k.keyword", f.Keywords) {
+		for _, where := range LikeAnyKeyword("k.keyword", f.Keywords) {
 			s = s.Where("photos.id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
 		}
 	}
@@ -123,21 +125,30 @@ func PhotosGeo(f form.GeoSearch) (results GeoResults, err error) {
 	// Filter for one or more subjects?
 	if f.Subject != "" {
 		for _, subj := range strings.Split(strings.ToLower(f.Subject), txt.And) {
-			s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 WHERE subj_uid IN (?))",
-				entity.Marker{}.TableName()), strings.Split(subj, txt.Or))
+			if subjects := strings.Split(subj, txt.Or); rnd.ContainsUIDs(subjects, 'j') {
+				s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 WHERE subj_uid IN (?))",
+					entity.Marker{}.TableName()), subjects)
+			} else {
+				s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 JOIN %s s ON s.subj_uid = m.subj_uid WHERE (?))",
+					entity.Marker{}.TableName(), entity.Subject{}.TableName()), gorm.Expr(AnySlug("s.subj_slug", subj, txt.Or)))
+			}
 		}
 	} else if f.Subjects != "" {
-		for _, where := range LikeAnyWord("s.subj_name", f.Subjects) {
+		for _, where := range LikeAllNames(Cols{"subj_name", "subj_alias"}, f.Subjects) {
 			s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 JOIN %s s ON s.subj_uid = m.subj_uid WHERE (?))",
 				entity.Marker{}.TableName(), entity.Subject{}.TableName()), gorm.Expr(where))
 		}
 	}
 
 	// Filter by album?
-	if f.Album != "" {
+	if rnd.IsPPID(f.Album, 'a') {
 		s = s.Joins("JOIN photos_albums ON photos_albums.photo_uid = photos.photo_uid").
 			Where("photos_albums.hidden = 0 AND photos_albums.album_uid = ?", f.Album)
-	} else if f.Albums != "" {
+	} else if f.Albums != "" || f.Album != "" {
+		if f.Albums == "" {
+			f.Albums = f.Album
+		}
+
 		for _, where := range LikeAnyWord("a.album_title", f.Albums) {
 			s = s.Where("photos.photo_uid IN (SELECT pa.photo_uid FROM photos_albums pa JOIN albums a ON a.album_uid = pa.album_uid WHERE (?))", gorm.Expr(where))
 		}
@@ -154,18 +165,18 @@ func PhotosGeo(f form.GeoSearch) (results GeoResults, err error) {
 	}
 
 	// Filter by year?
-	if (f.Year > 0 && f.Year <= txt.YearMax) || f.Year == entity.UnknownYear {
-		s = s.Where("photos.photo_year = ?", f.Year)
+	if f.Year != "" {
+		s = s.Where(AnyInt("photos.photo_year", f.Year, txt.Or, entity.UnknownYear, txt.YearMax))
 	}
 
 	// Filter by month?
-	if (f.Month >= txt.MonthMin && f.Month <= txt.MonthMax) || f.Month == entity.UnknownMonth {
-		s = s.Where("photos.photo_month = ?", f.Month)
+	if f.Month != "" {
+		s = s.Where(AnyInt("photos.photo_month", f.Month, txt.Or, entity.UnknownMonth, txt.MonthMax))
 	}
 
 	// Filter by day?
-	if (f.Day >= txt.DayMin && f.Month <= txt.DayMax) || f.Day == entity.UnknownDay {
-		s = s.Where("photos.photo_day = ?", f.Day)
+	if f.Day != "" {
+		s = s.Where(AnyInt("photos.photo_day", f.Day, txt.Or, entity.UnknownDay, txt.DayMax))
 	}
 
 	// Find or exclude people if detected.

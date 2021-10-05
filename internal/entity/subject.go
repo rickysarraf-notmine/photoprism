@@ -21,19 +21,19 @@ type Subjects []Subject
 // Subject represents a named photo subject, typically a person.
 type Subject struct {
 	SubjUID      string          `gorm:"type:VARBINARY(42);primary_key;auto_increment:false;" json:"UID" yaml:"UID"`
-	MarkerUID    string          `gorm:"type:VARBINARY(42);index" json:"MarkerUID" yaml:"MarkerUID,omitempty"`
-	MarkerSrc    string          `gorm:"type:VARBINARY(8);default:''" json:"MarkerSrc,omitempty" yaml:"MarkerSrc,omitempty"`
-	SubjType     string          `gorm:"type:VARBINARY(8);default:''" json:"Type,omitempty" yaml:"Type,omitempty"`
-	SubjSrc      string          `gorm:"type:VARBINARY(8);default:''" json:"Src,omitempty" yaml:"Src,omitempty"`
-	SubjSlug     string          `gorm:"type:VARBINARY(255);index;default:''" json:"Slug" yaml:"-"`
-	SubjName     string          `gorm:"type:VARCHAR(255);unique_index;default:''" json:"Name" yaml:"Name"`
-	SubjAlias    string          `gorm:"type:VARCHAR(255);default:''" json:"Alias" yaml:"Alias"`
+	SubjType     string          `gorm:"type:VARBINARY(8);default:'';" json:"Type,omitempty" yaml:"Type,omitempty"`
+	SubjSrc      string          `gorm:"type:VARBINARY(8);default:'';" json:"Src,omitempty" yaml:"Src,omitempty"`
+	SubjSlug     string          `gorm:"type:VARBINARY(255);index;default:'';" json:"Slug" yaml:"-"`
+	SubjName     string          `gorm:"type:VARCHAR(255);unique_index;default:'';" json:"Name" yaml:"Name"`
+	SubjAlias    string          `gorm:"type:VARCHAR(255);default:'';" json:"Alias" yaml:"Alias"`
 	SubjBio      string          `gorm:"type:TEXT;" json:"Bio" yaml:"Bio,omitempty"`
 	SubjNotes    string          `gorm:"type:TEXT;" json:"Notes,omitempty" yaml:"Notes,omitempty"`
 	SubjFavorite bool            `gorm:"default:false" json:"Favorite" yaml:"Favorite,omitempty"`
 	SubjPrivate  bool            `gorm:"default:false" json:"Private" yaml:"Private,omitempty"`
 	SubjExcluded bool            `gorm:"default:false" json:"Excluded" yaml:"Excluded,omitempty"`
 	FileCount    int             `gorm:"default:0" json:"FileCount" yaml:"-"`
+	Thumb        string          `gorm:"type:VARBINARY(128);index;default:''" json:"Thumb" yaml:"Thumb,omitempty"`
+	ThumbSrc     string          `gorm:"type:VARBINARY(8);default:''" json:"ThumbSrc,omitempty" yaml:"ThumbSrc,omitempty"`
 	MetadataJSON json.RawMessage `gorm:"type:MEDIUMBLOB;" json:"Metadata,omitempty" yaml:"Metadata,omitempty"`
 	CreatedAt    time.Time       `json:"CreatedAt" yaml:"-"`
 	UpdatedAt    time.Time       `json:"UpdatedAt" yaml:"-"`
@@ -42,7 +42,7 @@ type Subject struct {
 
 // TableName returns the entity database table name.
 func (Subject) TableName() string {
-	return "subjects_dev9"
+	return "subjects"
 }
 
 // BeforeCreate creates a random UID if needed before inserting a new row to the database.
@@ -202,15 +202,17 @@ func FindSubject(s string) *Subject {
 }
 
 // FindSubjectByName find an existing subject by name.
-func FindSubjectByName(s string) *Subject {
-	if s == "" {
+func FindSubjectByName(name string) *Subject {
+	name = txt.NormalizeName(name)
+
+	if name == "" {
 		return nil
 	}
 
 	result := Subject{}
 
 	// Search database.
-	db := UnscopedDb().Where("subj_name LIKE ?", s).First(&result)
+	db := UnscopedDb().Where("subj_name LIKE ?", name).First(&result)
 
 	if err := db.First(&result).Error; err != nil {
 		return nil
@@ -238,14 +240,14 @@ func (m *Subject) Person() *Person {
 
 // SetName changes the subject's name.
 func (m *Subject) SetName(name string) error {
-	newName := txt.Clip(name, txt.ClipDefault)
+	name = txt.NormalizeName(name)
 
-	if newName == "" {
+	if name == "" {
 		return fmt.Errorf("subject: name must not be empty")
 	}
 
-	m.SubjName = txt.Title(newName)
-	m.SubjSlug = slug.Make(txt.Clip(name, txt.ClipSlug))
+	m.SubjName = name
+	m.SubjSlug = txt.NameSlug(name)
 
 	return nil
 }

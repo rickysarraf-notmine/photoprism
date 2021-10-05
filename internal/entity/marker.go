@@ -26,9 +26,7 @@ const (
 // Marker represents an image marker point.
 type Marker struct {
 	MarkerUID      string          `gorm:"type:VARBINARY(42);primary_key;auto_increment:false;" json:"UID" yaml:"UID"`
-	FileUID        string          `gorm:"type:VARBINARY(42);index;" json:"FileUID" yaml:"FileUID"`
-	FileHash       string          `gorm:"type:VARBINARY(128);index" json:"FileHash" yaml:"FileHash,omitempty"`
-	CropArea       string          `gorm:"type:VARBINARY(16);default:''" json:"CropArea" yaml:"CropArea,omitempty"`
+	FileUID        string          `gorm:"type:VARBINARY(42);index;default:'';" json:"FileUID" yaml:"FileUID"`
 	MarkerType     string          `gorm:"type:VARBINARY(8);default:'';" json:"Type" yaml:"Type"`
 	MarkerSrc      string          `gorm:"type:VARBINARY(8);default:'';" json:"Src" yaml:"Src,omitempty"`
 	MarkerName     string          `gorm:"type:VARCHAR(255);" json:"Name" yaml:"Name,omitempty"`
@@ -38,7 +36,7 @@ type Marker struct {
 	SubjSrc        string          `gorm:"type:VARBINARY(8);index:idx_markers_subj_uid_src;default:'';" json:"SubjSrc" yaml:"SubjSrc,omitempty"`
 	subject        *Subject        `gorm:"foreignkey:SubjUID;association_foreignkey:SubjUID;association_autoupdate:false;association_autocreate:false;association_save_reference:false"`
 	FaceID         string          `gorm:"type:VARBINARY(42);index;" json:"FaceID" yaml:"FaceID,omitempty"`
-	FaceDist       float64         `gorm:"default:-1" json:"FaceDist" yaml:"FaceDist,omitempty"`
+	FaceDist       float64         `gorm:"default:-1;" json:"FaceDist" yaml:"FaceDist,omitempty"`
 	face           *Face           `gorm:"foreignkey:FaceID;association_foreignkey:ID;association_autoupdate:false;association_autocreate:false;association_save_reference:false"`
 	EmbeddingsJSON json.RawMessage `gorm:"type:MEDIUMBLOB;" json:"-" yaml:"EmbeddingsJSON,omitempty"`
 	embeddings     Embeddings      `gorm:"-"`
@@ -48,8 +46,9 @@ type Marker struct {
 	W              float32         `gorm:"type:FLOAT;" json:"W" yaml:"W,omitempty"`
 	H              float32         `gorm:"type:FLOAT;" json:"H" yaml:"H,omitempty"`
 	Q              int             `json:"Q" yaml:"Q,omitempty"`
-	Size           int             `gorm:"default:-1" json:"Size" yaml:"Size,omitempty"`
-	Score          int             `gorm:"type:SMALLINT" json:"Score" yaml:"Score,omitempty"`
+	Size           int             `gorm:"default:-1;" json:"Size" yaml:"Size,omitempty"`
+	Score          int             `gorm:"type:SMALLINT;" json:"Score" yaml:"Score,omitempty"`
+	Thumb          string          `gorm:"type:VARBINARY(128);index;default:'';" json:"Thumb" yaml:"Thumb,omitempty"`
 	MatchedAt      *time.Time      `sql:"index" json:"MatchedAt" yaml:"MatchedAt,omitempty"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
@@ -57,7 +56,7 @@ type Marker struct {
 
 // TableName returns the entity database table name.
 func (Marker) TableName() string {
-	return "markers_dev9"
+	return "markers"
 }
 
 // BeforeCreate creates a random UID if needed before inserting a new row to the database.
@@ -70,19 +69,24 @@ func (m *Marker) BeforeCreate(scope *gorm.Scope) error {
 }
 
 // NewMarker creates a new entity.
-func NewMarker(file File, area crop.Area, subjUID, markerSrc, markerType string) *Marker {
+func NewMarker(file File, area crop.Area, subjUID, markerSrc, markerType string, size, score int) *Marker {
 	m := &Marker{
-		FileUID:    file.FileUID,
-		FileHash:   file.FileHash,
-		CropArea:   area.String(),
-		MarkerSrc:  markerSrc,
-		MarkerType: markerType,
-		SubjUID:    subjUID,
-		X:          area.X,
-		Y:          area.Y,
-		W:          area.W,
-		H:          area.H,
-		MatchedAt:  nil,
+		FileUID:       file.FileUID,
+		MarkerSrc:     markerSrc,
+		MarkerType:    markerType,
+		MarkerReview:  score < 30,
+		MarkerInvalid: false,
+		SubjUID:       subjUID,
+		FaceDist:      -1,
+		X:             area.X,
+		Y:             area.Y,
+		W:             area.W,
+		H:             area.H,
+		Q:             int(float32(math.Log(float64(score))) * float32(size) * area.W),
+		Size:          size,
+		Score:         score,
+		Thumb:         area.Thumb(file.FileHash),
+		MatchedAt:     nil,
 	}
 
 	return m
@@ -90,13 +94,8 @@ func NewMarker(file File, area crop.Area, subjUID, markerSrc, markerType string)
 
 // NewFaceMarker creates a new entity.
 func NewFaceMarker(f face.Face, file File, subjUID string) *Marker {
-	m := NewMarker(file, f.CropArea(), subjUID, SrcImage, MarkerFace)
+	m := NewMarker(file, f.CropArea(), subjUID, SrcImage, MarkerFace, f.Size(), f.Score)
 
-	m.Size = f.Size()
-	m.Q = int(float32(math.Log(float64(f.Score))) * float32(m.Size) * m.W)
-	m.Score = f.Score
-	m.MarkerReview = f.Score < 30
-	m.FaceDist = -1
 	m.EmbeddingsJSON = f.EmbeddingsJSON()
 	m.LandmarksJSON = f.RelativeLandmarksJSON()
 
@@ -127,7 +126,7 @@ func (m *Marker) SaveForm(f form.Marker) (changed bool, err error) {
 
 	if f.SubjSrc == SrcManual && strings.TrimSpace(f.MarkerName) != "" && f.MarkerName != m.MarkerName {
 		m.SubjSrc = SrcManual
-		m.MarkerName = txt.Title(txt.Clip(f.MarkerName, txt.ClipDefault))
+		m.MarkerName = txt.NormalizeName(f.MarkerName)
 
 		if err := m.SyncSubject(true); err != nil {
 			return changed, err
@@ -176,7 +175,7 @@ func (m *Marker) SetFace(f *Face, dist float64) (updated bool, err error) {
 	} else if reported, err := f.ResolveCollision(m.Embeddings()); err != nil {
 		return false, err
 	} else if reported {
-		log.Infof("faces: collision of marker %s, subject %s, face %s, subject %s, source %s", m.MarkerUID, m.SubjUID, f.ID, f.SubjUID, m.SubjSrc)
+		log.Infof("marker: collision reported for %s, face %s, source %s, subject %s <> %s", m.MarkerUID, f.ID, m.SubjSrc, m.SubjUID, f.SubjUID)
 		return false, nil
 	} else {
 		return false, nil
@@ -330,7 +329,7 @@ func (m *Marker) Embeddings() Embeddings {
 	} else if len(m.embeddings) > 0 {
 		return m.embeddings
 	} else if err := json.Unmarshal(m.EmbeddingsJSON, &m.embeddings); err != nil {
-		log.Errorf("failed parsing marker embeddings json: %s", err)
+		log.Errorf("marker: %s while parsing embeddings json", err)
 	}
 
 	return m.embeddings
@@ -391,7 +390,7 @@ func (m *Marker) ClearSubject(src string) error {
 	} else if resolved, err := m.face.ResolveCollision(m.Embeddings()); err != nil {
 		return err
 	} else if resolved {
-		log.Debugf("faces: resolved collision with %s", m.face.ID)
+		log.Debugf("marker: resolved collision with face %s", m.face.ID)
 	}
 
 	// Clear references.
@@ -403,6 +402,11 @@ func (m *Marker) ClearSubject(src string) error {
 
 // Face returns a matching face entity if possible.
 func (m *Marker) Face() (f *Face) {
+	if m.MarkerUID == "" {
+		log.Debugf("marker: empty uid while finding face")
+		return nil
+	}
+
 	if m.face != nil {
 		if m.FaceID == m.face.ID {
 			return m.face
@@ -412,7 +416,7 @@ func (m *Marker) Face() (f *Face) {
 	// Add face if size
 	if m.SubjSrc != SrcAuto && m.FaceID == "" {
 		if m.Size < face.ClusterMinSize || m.Score < face.ClusterMinScore {
-			log.Debugf("faces: skipped adding face for low-quality marker %s, size %d, score %d", m.MarkerUID, m.Size, m.Score)
+			log.Debugf("marker: skipped adding face due to low-quality (uid %s, size %d, score %d)", txt.Quote(m.MarkerUID), m.Size, m.Score)
 			return nil
 		} else if emb := m.Embeddings(); len(emb) == 0 {
 			log.Warnf("marker: %s has no embeddings", m.MarkerUID)
@@ -424,7 +428,7 @@ func (m *Marker) Face() (f *Face) {
 			log.Warnf("marker: failed adding face for id %s", m.MarkerUID)
 			return nil
 		} else if err := f.MatchMarkers(Faceless); err != nil {
-			log.Errorf("faces: %s (match markers)", err)
+			log.Errorf("marker: %s (match faces)", err)
 		}
 
 		m.face = f
@@ -478,6 +482,11 @@ func (m *Marker) Matched() error {
 	return UnscopedDb().Model(m).UpdateColumns(Values{"MatchedAt": m.MatchedAt}).Error
 }
 
+// Top returns the top Y coordinate as float64.
+func (m *Marker) Top() float64 {
+	return float64(m.Y)
+}
+
 // Left returns the left X coordinate as float64.
 func (m *Marker) Left() float64 {
 	return float64(m.X)
@@ -488,14 +497,29 @@ func (m *Marker) Right() float64 {
 	return float64(m.X + m.W)
 }
 
-// Top returns the top Y coordinate as float64.
-func (m *Marker) Top() float64 {
-	return float64(m.Y)
-}
-
 // Bottom returns the bottom Y coordinate as float64.
 func (m *Marker) Bottom() float64 {
 	return float64(m.Y + m.H)
+}
+
+// Surface returns the surface area.
+func (m *Marker) Surface() float64 {
+	return float64(m.W * m.H)
+}
+
+// SurfaceRatio returns the surface ratio.
+func (m *Marker) SurfaceRatio(area float64) float64 {
+	if area <= 0 {
+		return 0
+	}
+
+	if s := m.Surface(); s <= 0 {
+		return 0
+	} else if area > s {
+		return s / area
+	} else {
+		return area / s
+	}
 }
 
 // Overlap calculates the overlap of two markers.
@@ -513,11 +537,20 @@ func (m *Marker) OverlapArea(marker Marker) (area float64) {
 	return x * y
 }
 
+// OverlapPercent calculates the overlap ratio of two markers in percent.
+func (m *Marker) OverlapPercent(marker Marker) int {
+	return int(math.Round(marker.SurfaceRatio(m.OverlapArea(marker)) * 100))
+}
+
 // FindMarker returns an existing row if exists.
-func FindMarker(uid string) *Marker {
+func FindMarker(markerUid string) *Marker {
+	if markerUid == "" {
+		return nil
+	}
+
 	var result Marker
 
-	if err := Db().Where("marker_uid = ?", uid).First(&result).Error; err != nil {
+	if err := Db().Where("marker_uid = ?", markerUid).First(&result).Error; err != nil {
 		return nil
 	}
 
@@ -526,12 +559,16 @@ func FindMarker(uid string) *Marker {
 
 // FindFaceMarker finds the best marker for a given face
 func FindFaceMarker(faceId string) *Marker {
+	if faceId == "" {
+		return nil
+	}
+
 	var result Marker
 
 	if err := Db().Where("face_id = ?", faceId).
-		Where("file_hash <> '' AND marker_invalid = 0").
-		Order("q DESC").First(&result).Error; err != nil {
-		log.Warnf("face: no marker for %s", txt.Quote(faceId))
+		Where("thumb <> '' AND marker_invalid = 0").
+		Order("face_dist ASC, q DESC").First(&result).Error; err != nil {
+		log.Warnf("marker: face %s not found", txt.Quote(faceId))
 		return nil
 	}
 
@@ -540,43 +577,21 @@ func FindFaceMarker(faceId string) *Marker {
 
 // UpdateOrCreateMarker updates a marker in the database or creates a new one if needed.
 func UpdateOrCreateMarker(m *Marker) (*Marker, error) {
-	const d = 0.07
-
 	result := Marker{}
 
 	if m.MarkerUID != "" {
 		err := m.Save()
-		log.Debugf("faces: saved marker %s for file %s", m.MarkerUID, m.FileUID)
+		log.Debugf("marker: updated existing %s %s for %s", txt.Quote(m.MarkerType), txt.Quote(m.MarkerUID), txt.Quote(m.FileUID))
 		return m, err
-	} else if err := Db().Where(`file_uid = ? AND x > ? AND x < ? AND y > ? AND y < ?`,
-		m.FileUID, m.X-d, m.X+d, m.Y-d, m.Y+d).First(&result).Error; err == nil {
-
-		if SrcPriority[m.MarkerSrc] < SrcPriority[result.MarkerSrc] {
-			// Ignore.
-			return &result, nil
-		}
-
-		err := result.Updates(map[string]interface{}{
-			"MarkerType":     m.MarkerType,
-			"MarkerSrc":      m.MarkerSrc,
-			"CropArea":       m.CropArea,
-			"X":              m.X,
-			"Y":              m.Y,
-			"W":              m.W,
-			"H":              m.H,
-			"Q":              m.Q,
-			"Size":           m.Size,
-			"Score":          m.Score,
-			"LandmarksJSON":  m.LandmarksJSON,
-			"EmbeddingsJSON": m.EmbeddingsJSON,
-		})
-
-		log.Debugf("faces: updated existing marker %s for file %s", result.MarkerUID, result.FileUID)
-
+	} else if err := Db().Where(`file_uid = ? AND thumb = ? AND marker_type = ?`,
+		m.FileUID, m.Thumb, m.MarkerType).First(&result).Error; err == nil {
+		log.Infof("marker: found existing %s %s for %s", txt.Quote(m.MarkerType), txt.Quote(result.MarkerUID), txt.Quote(result.FileUID))
 		return &result, err
 	} else if err := m.Create(); err != nil {
-		log.Debugf("faces: added marker %s for file %s", m.MarkerUID, m.FileUID)
+		log.Warnf("marker: %s while creating %s for %s", err, txt.Quote(m.MarkerType), txt.Quote(m.FileUID))
 		return m, err
+	} else {
+		log.Debugf("marker: added %s %s for %s", txt.Quote(m.MarkerType), txt.Quote(m.MarkerUID), txt.Quote(m.FileUID))
 	}
 
 	return m, nil

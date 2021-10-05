@@ -19,10 +19,7 @@ func Subjects(f form.SubjectSearch) (results SubjectResults, err error) {
 
 	// Base query.
 	s := UnscopedDb().Table(entity.Subject{}.TableName()).
-		Select(fmt.Sprintf("%s.*, m.file_hash, m.crop_area", entity.Subject{}.TableName()))
-
-	// Join markers table for face thumbs.
-	s = s.Joins(fmt.Sprintf("LEFT JOIN %s m ON m.marker_uid = %s.marker_uid", entity.Marker{}.TableName(), entity.Subject{}.TableName()))
+		Select(fmt.Sprintf("%s.*", entity.Subject{}.TableName()))
 
 	// Limit result count.
 	if f.Count > 0 && f.Count <= MaxResults {
@@ -55,9 +52,12 @@ func Subjects(f form.SubjectSearch) (results SubjectResults, err error) {
 		return results, nil
 	}
 
+	// Clip to reasonable size and normalize operators.
+	f.Query = txt.NormalizeQuery(f.Query)
+
 	if f.Query != "" {
-		for _, where := range LikeAnyWord("subj_name", f.Query) {
-			s = s.Where("(?)", gorm.Expr(where))
+		for _, where := range LikeAllNames(Cols{"subj_name", "subj_alias"}, f.Query) {
+			s = s.Where("?", gorm.Expr(where))
 		}
 	}
 
