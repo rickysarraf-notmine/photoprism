@@ -83,7 +83,7 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 
 		if offset == 0 {
 			log.Warnf("mp: mp4 offset in motion photo directory entry is 0 in %s, resetting offset in an attempt to recover", txt.Quote(fileName))
-			offset = math.MaxInt64
+			offset = math.MaxInt32
 		}
 
 		if err := f.extractGoogleMotionPhotoVideo(offset, mpName, fileName); err != nil {
