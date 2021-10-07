@@ -18,6 +18,7 @@ import (
 
 const (
 	AlbumDefault = "album"
+	AlbumCountry = "country"
 	AlbumFolder  = "folder"
 	AlbumMoment  = "moment"
 	AlbumMonth   = "month"
@@ -128,7 +129,7 @@ func NewAlbum(albumTitle, albumType string) *Album {
 }
 
 // NewFolderAlbum creates a new folder album.
-func NewFolderAlbum(albumTitle, albumPath, albumFilter string) *Album {
+func NewFolderAlbum(albumTitle, albumPath, albumFilter string, albumSortOrder string) *Album {
 	albumSlug := slug.Make(albumPath)
 
 	if albumTitle == "" || albumSlug == "" || albumPath == "" || albumFilter == "" {
@@ -138,7 +139,7 @@ func NewFolderAlbum(albumTitle, albumPath, albumFilter string) *Album {
 	now := TimeStamp()
 
 	result := &Album{
-		AlbumOrder:  SortOrderAdded,
+		AlbumOrder:  albumSortOrder,
 		AlbumType:   AlbumFolder,
 		AlbumTitle:  albumTitle,
 		AlbumSlug:   albumSlug,
@@ -183,6 +184,27 @@ func NewStateAlbum(albumTitle, albumSlug, albumFilter string) *Album {
 	result := &Album{
 		AlbumOrder:  SortOrderNewest,
 		AlbumType:   AlbumState,
+		AlbumTitle:  albumTitle,
+		AlbumSlug:   albumSlug,
+		AlbumFilter: albumFilter,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+
+	return result
+}
+
+// NewCountryAlbum creates a new moment.
+func NewCountryAlbum(albumTitle, albumSlug, albumFilter string) *Album {
+	if albumTitle == "" || albumSlug == "" || albumFilter == "" {
+		return nil
+	}
+
+	now := TimeStamp()
+
+	result := &Album{
+		AlbumOrder:  SortOrderNewest,
+		AlbumType:   AlbumCountry,
 		AlbumTitle:  albumTitle,
 		AlbumSlug:   albumSlug,
 		AlbumFilter: albumFilter,

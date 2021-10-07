@@ -170,7 +170,7 @@ func (m *Folder) Create() error {
 		} else if err := a.UpdateFolder(m.Path, f.Serialize()); err != nil {
 			log.Errorf("folder: %s (update album)", err.Error())
 		}
-	} else if a := NewFolderAlbum(m.Title(), m.Path, f.Serialize()); a != nil {
+	} else if a := NewFolderAlbum(m.Title(), m.Path, f.Serialize(), f.Order); a != nil {
 		a.AlbumYear = m.FolderYear
 		a.AlbumMonth = m.FolderMonth
 		a.AlbumDay = m.FolderDay
