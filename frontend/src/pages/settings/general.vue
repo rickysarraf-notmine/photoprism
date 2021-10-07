@@ -409,19 +409,20 @@ export default {
         return false;
       }
 
-      if(!this.$config.values.sponsor && themes[newTheme].sponsor) {
-        this.dialog.sponsor = true;
-
-        this.$nextTick(() => {
-          this.settings.ui.theme = this.currentTheme;
-        });
-
-        return false;
-      }
-
-      this.currentTheme = newTheme;
-
-      this.onChange();
+      this.$earlyAccess().then(() => {
+        this.currentTheme = newTheme;
+        this.onChange();
+      }).catch(() => {
+        if (themes[newTheme].sponsor) {
+          this.dialog.sponsor = true;
+          this.$nextTick(() => {
+            this.settings.ui.theme = this.currentTheme;
+          });
+        } else {
+          this.currentTheme = newTheme;
+          this.onChange();
+        }
+      });
     },
     onChange() {
       const reload = this.settings.changed("ui", "language");

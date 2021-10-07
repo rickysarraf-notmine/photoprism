@@ -12,7 +12,7 @@ import (
 func IndexMain(related *RelatedFiles, ind *Index, opt IndexOptions) (result IndexResult) {
 	// Skip sidecar files without related media file.
 	if related.Main == nil {
-		result.Err = fmt.Errorf("index: no main file found for %s", txt.Quote(related.String()))
+		result.Err = fmt.Errorf("index: found no main file for %s", txt.Quote(related.String()))
 		result.Status = IndexFailed
 		return result
 	}
@@ -56,7 +56,7 @@ func IndexMain(related *RelatedFiles, ind *Index, opt IndexOptions) (result Inde
 			log.Debugf("index: created %s", txt.Quote(jpegFile.BaseName()))
 
 			if err := jpegFile.ResampleDefault(ind.thumbPath(), false); err != nil {
-				result.Err = fmt.Errorf("index: failed creating thumbs for %s (%s)", txt.Quote(f.BaseName()), err.Error())
+				result.Err = fmt.Errorf("index: failed creating thumbnails for %s (%s)", txt.Quote(f.BaseName()), err.Error())
 				result.Status = IndexFailed
 
 				return result
@@ -70,7 +70,7 @@ func IndexMain(related *RelatedFiles, ind *Index, opt IndexOptions) (result Inde
 
 	if result.Indexed() && f.IsJpeg() {
 		if err := f.ResampleDefault(ind.thumbPath(), false); err != nil {
-			log.Errorf("index: failed creating thumbs for %s (%s)", txt.Quote(f.BaseName()), err.Error())
+			log.Errorf("index: failed creating thumbnails for %s (%s)", txt.Quote(f.BaseName()), err.Error())
 			query.SetFileError(result.FileUID, err.Error())
 		}
 	}
@@ -137,7 +137,7 @@ func IndexRelated(related RelatedFiles, ind *Index, opt IndexOptions) (result In
 				log.Debugf("index: created %s", txt.Quote(jpegFile.BaseName()))
 
 				if err := jpegFile.ResampleDefault(ind.thumbPath(), false); err != nil {
-					result.Err = fmt.Errorf("index: failed creating thumbs for %s (%s)", txt.Quote(f.BaseName()), err.Error())
+					result.Err = fmt.Errorf("index: failed creating thumbnails for %s (%s)", txt.Quote(f.BaseName()), err.Error())
 					result.Status = IndexFailed
 
 					return result
@@ -151,7 +151,7 @@ func IndexRelated(related RelatedFiles, ind *Index, opt IndexOptions) (result In
 
 		if res.Indexed() && f.IsJpeg() {
 			if err := f.ResampleDefault(ind.thumbPath(), false); err != nil {
-				log.Errorf("index: failed creating thumbs for %s (%s)", txt.Quote(f.BaseName()), err.Error())
+				log.Errorf("index: failed creating thumbnails for %s (%s)", txt.Quote(f.BaseName()), err.Error())
 				query.SetFileError(res.FileUID, err.Error())
 			}
 		}
