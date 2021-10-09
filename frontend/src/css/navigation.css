@@ -93,3 +93,20 @@
     white-space: nowrap;
     overflow: hidden;
 }
+
+.p-user-box {
+    width: 100%;
+    padding: 0;
+}
+.p-profile > a {
+    height: 64px;
+}
+.p-flex-nav {
+    display: flex;
+    flex-flow: column nowrap;
+    overflow-y: hidden;
+}
+.p-flex-menu {
+    overflow-y: scroll;
+    flex-grow: 1;
+}
