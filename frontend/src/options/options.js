@@ -290,7 +290,6 @@ export const FoldersSortOrder = () => [
     text: $gettext("Random"),
     value: "random",
   },
-
 ];
 
 export const MapsAnimate = () => [
