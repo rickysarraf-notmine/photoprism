@@ -374,7 +374,8 @@ func deleteAlbumIfEmpty(album entity.Album) {
 			log.Infof("moments: moment album %s is below threshold, but will not be deleted", txt.Quote(album.AlbumTitle))
 		} else if count == 0 {
 			log.Infof("moments: empty moment album %s will be deleted (%s)", txt.Quote(album.AlbumTitle), album.AlbumFilter)
-			album.Delete()
+			log.Warn("moments: album deletion is running in dry-run mode, so the album will not be deleted yet")
+			// album.Delete()
 		}
 	}
 }
