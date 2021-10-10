@@ -59,6 +59,10 @@ class Viewer {
     Event.publish("player.open", params);
   }
 
+  showSphere(item) {
+    Event.publish("sphereviewer.open", item);
+  }
+
   show(items, index = 0) {
     if (!Array.isArray(items) || items.length === 0 || index >= items.length) {
       console.log("photo list passed to gallery was empty:", items);

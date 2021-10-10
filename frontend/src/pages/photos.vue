@@ -43,7 +43,7 @@
 
 <script>
 import Label from "model/label";
-import {Photo, TypeLive, TypeRaw, TypeVideo} from "model/photo";
+import {Photo, TypeLive, TypeRaw, TypeSphere, TypeVideo} from "model/photo";
 import Thumb from "model/thumb";
 import Event from "pubsub-js";
 
@@ -237,6 +237,8 @@ export default {
         } else {
           this.$viewer.show(Thumb.fromPhotos(this.results), index);
         }
+      } else if (showMerged && selected.Type == TypeSphere) {
+        this.$viewer.showSphere(Thumb.fromPhoto(selected));
       } else if (showMerged) {
         this.$viewer.show(Thumb.fromFiles([selected]), 0);
       } else {
