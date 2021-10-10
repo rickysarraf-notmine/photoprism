@@ -343,6 +343,11 @@ func (ind *Index) MediaFile(m *MediaFile, o IndexOptions, originalName string) (
 			photo.PhotoType = entity.TypeLive
 			photo.TypeSrc = entity.SrcDefault
 		}
+
+		if m.IsPhotosphere() {
+			photo.PhotoType = entity.TypeSphere
+		}
+
 	case m.IsXMP():
 		if metaData, err := meta.XMP(m.FileName()); err == nil {
 			// Update basic metadata.

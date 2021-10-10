@@ -2,7 +2,7 @@ import { timeZonesNames } from "@vvo/tzdb";
 import { $gettext } from "common/vm";
 import { Info } from "luxon";
 import { config } from "../session";
-import { TypeVideo, TypeImage, TypeLive, TypeRaw } from "../model/photo";
+import { TypeVideo, TypeImage, TypeLive, TypeRaw, TypeSphere } from "../model/photo";
 
 export const TimeZones = () =>
   [
@@ -350,6 +350,10 @@ export const PhotoTypes = () => [
   {
     text: $gettext("Video"),
     value: TypeVideo,
+  },
+  {
+    text: $gettext("Photosphere"),
+    value: TypeSphere,
   },
 ];
 

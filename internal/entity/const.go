@@ -21,6 +21,7 @@ const (
 	TypeVideo   = "video"
 	TypeRaw     = "raw"
 	TypeText    = "text"
+	TypeSphere  = "sphere"
 )
 
 // Root Directories Types
