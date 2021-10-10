@@ -53,7 +53,7 @@ func (m *Folder) BeforeCreate(scope *gorm.Scope) error {
 }
 
 // NewFolder creates a new file system directory entity.
-func NewFolder(root, pathName string, modTime time.Time) Folder {
+func NewFolder(root, pathName string, modTime time.Time, order string) Folder {
 	now := TimeStamp()
 
 	pathName = strings.Trim(pathName, string(os.PathSeparator))
@@ -75,7 +75,7 @@ func NewFolder(root, pathName string, modTime time.Time) Folder {
 		Root:          root,
 		Path:          pathName,
 		FolderType:    TypeDefault,
-		FolderOrder:   SortOrderName,
+		FolderOrder:   order,
 		FolderCountry: UnknownCountry.ID,
 		FolderYear:    year,
 		FolderMonth:   month,
@@ -170,7 +170,7 @@ func (m *Folder) Create() error {
 		} else if err := a.UpdateFolder(m.Path, f.Serialize()); err != nil {
 			log.Errorf("folder: %s (update album)", err.Error())
 		}
-	} else if a := NewFolderAlbum(m.Title(), m.Path, f.Serialize(), f.Order); a != nil {
+	} else if a := NewFolderAlbum(m.Title(), m.Path, f.Serialize(), m.FolderOrder); a != nil {
 		a.AlbumYear = m.FolderYear
 		a.AlbumMonth = m.FolderMonth
 		a.AlbumDay = m.FolderDay
