@@ -142,7 +142,7 @@ class Viewer {
 
         if (item.sphere) {
           captionEl.children[0].innerHTML +=
-            ' <i aria-hidden="true" class="v-icon material-icons theme--dark" title="Show Photosphere">panorama_photosphere_select</i>';
+            ' <i aria-hidden="true" class="v-icon material-icons theme--dark" title="Show Photosphere">panorama_photosphere</i>';
         }
 
         if (item.description) {
