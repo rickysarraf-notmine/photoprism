@@ -639,7 +639,7 @@ export default {
       };
 
       const geocoder = new MaplibreGeocoder(nominatim, {
-        // placeholder: this.$gettext("Search"),
+        placeholder: this.$gettext("Search"),
         marker: false,
         // the explicit search is broken in several ways:
         // - the enter key event is retargeted to the clear button, so no search is performed and instead the text is cleared
