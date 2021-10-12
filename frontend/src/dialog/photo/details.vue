@@ -181,6 +181,10 @@
                 ></v-text-field>
               </v-flex>
 
+              <v-flex xs12 sm12 md12>
+                <div id="map" style="height: 500px;" />
+              </v-flex>
+
               <v-flex xs12 md6 pa-2 class="p-camera-select">
                 <v-select
                     v-model="model.CameraID"
@@ -409,6 +413,8 @@
 </template>
 
 <script>
+import mapboxgl from "mapbox-gl";
+
 import countries from "options/countries.json";
 import Thumb from "model/thumb";
 import * as options from "options/options";
@@ -435,6 +441,7 @@ export default {
       time: "",
       textRule: v => v.length <= this.$config.get('clip') || this.$gettext("Text too long"),
       rtl: this.$rtl,
+      map: null,
     };
   },
   computed: {
@@ -455,6 +462,9 @@ export default {
   },
   created() {
     this.updateTime();
+  },
+  mounted() {
+    this.renderMap();
   },
   methods: {
     updateTime() {
@@ -529,6 +539,28 @@ export default {
     },
     close() {
       this.$emit('close');
+    },
+    renderMap() {
+      const s = this.$config.values.settings.maps;
+
+      let mapKey = "";
+
+      if (this.$config.has("mapKey")) {
+        mapKey = this.$config.get("mapKey");
+      }
+
+      let mapOptions = {
+        container: "map",
+        style: "https://api.maptiler.com/maps/" + s.style + "/style.json?key=" + mapKey,
+        attributionControl: true,
+        customAttribution: "<a href='https://nominatim.org/' target='_blank'>Geocoding provided by OpenStreetMap Nominatim</a>",
+        zoom: 0,
+      };
+
+      this.map = new mapboxgl.Map(mapOptions);
+
+      const nav = new mapboxgl.NavigationControl();
+      this.map.addControl(nav, 'top-left');
     },
   },
 };
