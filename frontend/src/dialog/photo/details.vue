@@ -414,6 +414,9 @@
 
 <script>
 import mapboxgl from "mapbox-gl";
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
+
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 import countries from "options/countries.json";
 import Thumb from "model/thumb";
@@ -561,6 +564,46 @@ export default {
 
       const nav = new mapboxgl.NavigationControl();
       this.map.addControl(nav, 'top-left');
+
+      const draw = new MapboxDraw({
+        displayControlsDefault: false,
+        controls: {
+            point: true,
+            trash: true
+        },
+      });
+      this.map.addControl(draw, 'bottom-right');
+
+      this.map.on('draw.create', e => {
+        // remove all previously selected points (should be only one)
+        const featureCollection = draw.getAll();
+        const previous = featureCollection.features.slice(0, -1);
+        previous.forEach(feature => draw.delete(feature.id));
+
+        // update the model with the selected coordinates
+        const point = e.features[0].geometry.coordinates;
+        this.model.Lat = point[1];
+        this.model.Lng = point[0];
+      });
+      this.map.on('draw.delete', e => {
+        // for some reason the backend does not reset the country code whenever the location is unset,
+        // so let's do it in the frontend
+        // this will force the country estimation (based on the path) to kick in
+        this.model.Country = "zz";
+        this.model.Lat = 0;
+        this.model.Lng = 0;
+      });
+
+      this.map.on('load', () => {
+        if (this.model.hasLocation()) {
+          draw.add({ type: 'Point', coordinates: [this.model.Lng, this.model.Lat] });
+          this.map.flyTo({
+            center: [this.model.Lng, this.model.Lat],
+            zoom: 16,
+            maxDuration: 0.1,
+          });
+        }
+      });
     },
   },
 };
