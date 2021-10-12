@@ -413,10 +413,14 @@
 </template>
 
 <script>
+import Axios from "axios";
 import mapboxgl from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import MaplibreGeocoder from '@maplibre/maplibre-gl-geocoder';
 
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+// import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
+import '@maplibre/maplibre-gl-geocoder/lib/maplibre-gl-geocoder.css';
 
 import countries from "options/countries.json";
 import Thumb from "model/thumb";
@@ -604,6 +608,47 @@ export default {
           });
         }
       });
+
+      var nominatim = {
+        forwardGeocode: async (config) => {
+          const url = "https://nominatim.openstreetmap.org/";
+          const urlFwd = url + "search";
+
+          const params = {
+            q: config.query,
+            limit: config.limit,
+            format: "geojson",
+          };
+
+          const {data, status} = await Axios.get(urlFwd, { params });
+
+          // add required Carmen GeoJson properties
+          data.attribution = data.license;
+          data.query = config.query;
+
+          data.features.forEach(feature => {
+            feature.id = feature.properties.category + "." + feature.properties.osm_id;
+            feature.place_name = feature.properties.display_name;
+            feature.place_type = [feature.properties.category];
+            feature.center = feature.geometry.coordinates;
+          });
+
+          return data;
+        },
+        reverseGeocode: async (config) => { },
+      };
+
+      const geocoder = new MaplibreGeocoder(nominatim, {
+        // placeholder: this.$gettext("Search"),
+        marker: false,
+        // the explicit search is broken in several ways:
+        // - the enter key event is retargeted to the clear button, so no search is performed and instead the text is cleared
+        // - even if the above is fixed, the keyup.enter event is bubbled-up to the form and a save action is performed
+        showResultsWhileTyping: true,
+        debounceSearch: 1500,
+      });
+
+      this.map.addControl(geocoder);
     },
   },
 };
