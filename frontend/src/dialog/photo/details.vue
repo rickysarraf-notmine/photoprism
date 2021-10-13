@@ -578,16 +578,37 @@ export default {
       });
       this.map.addControl(draw, 'bottom-right');
 
-      this.map.on('draw.create', e => {
-        // remove all previously selected points (should be only one)
+      this.map.on('draw.create', async (e) => {
+        // remove all previously selected points
         const featureCollection = draw.getAll();
         const previous = featureCollection.features.slice(0, -1);
         previous.forEach(feature => draw.delete(feature.id));
 
-        // update the model with the selected coordinates
+        // update the model with the selected location
         const point = e.features[0].geometry.coordinates;
         this.model.Lat = point[1];
         this.model.Lng = point[0];
+
+        // in case of a cached location we can skip the reverse lookup and the storing
+        // in local storage, as this has already been done
+        if (e.properties && e.properties.cached) {
+          return;
+        }
+
+        // reverse geocode the selected location and store it in localStorage
+        const lookupConfig = {query: [this.model.Lat, this.model.Lng]};
+        const lookupResult = await nominatim.reverseGeocode(lookupConfig);
+
+        if (lookupResult && lookupResult.features && lookupResult.features.length) {
+          // set a marker that the location has been cached
+          const geolocation = lookupResult.features[0];
+          geolocation.properties.cached = true;
+
+          const geolocations = JSON.parse(window.localStorage.getItem("geolocations")) || [];
+          geolocations.push(geolocation);
+
+          window.localStorage.setItem("geolocations", JSON.stringify(geolocations));
+        }
       });
       this.map.on('draw.delete', e => {
         // for some reason the backend does not reset the country code whenever the location is unset,
@@ -609,14 +630,37 @@ export default {
         }
       });
 
+      const localStorageGeocoder = (query) => {
+        const matches = [];
+        const geolocations = JSON.parse(window.localStorage.getItem("geolocations")) || [];
+
+        for (const location of geolocations) {
+          if (location.place_name.toLowerCase().includes(query.toLowerCase())) {
+            matches.push(location);
+          }
+        }
+
+        return matches;
+      };
+
       const geocoder = new MaplibreGeocoder(nominatim, {
         placeholder: this.$gettext("Search"),
         marker: false,
+        localGeocoder: localStorageGeocoder,
         // the explicit search is broken in several ways:
         // - the enter key event is retargeted to the clear button, so no search is performed and instead the text is cleared
         // - even if the above is fixed, the keyup.enter event is bubbled-up to the form and a save action is performed
         showResultsWhileTyping: true,
         debounceSearch: 1500,
+      });
+
+      geocoder.on('result', (e) => {
+        // if the user selects a cached entry (meaning a previously selected location), instead of only jumping
+        // to that location, we should also set it as the photo's geolocation
+        if (e.result.properties.cached) {
+          draw.add(e.result.geometry);
+          this.map.fire('draw.create', { features: [e.result]});
+        }
       });
 
       this.map.addControl(geocoder);
