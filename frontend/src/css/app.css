@@ -44,6 +44,7 @@ Additional information can be found in our Developer Guide:
 @import url("pages.css");
 @import url("help.css");
 @import url("auth.css");
+@import url("icons.css");
 
 @media (min-width: 1750px) {
     .flex.xlg2 {

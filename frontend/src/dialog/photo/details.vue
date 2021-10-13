@@ -631,11 +631,14 @@ export default {
       });
 
       const localStorageGeocoder = (query) => {
+        const indicator = '<span class="material-icons md-12">cached</span>';
+
         const matches = [];
         const geolocations = JSON.parse(window.localStorage.getItem("geolocations")) || [];
 
         for (const location of geolocations) {
           if (location.place_name.toLowerCase().includes(query.toLowerCase())) {
+            location.place_name = `${indicator} ${location.place_name}`;
             matches.push(location);
           }
         }
