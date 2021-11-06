@@ -122,6 +122,11 @@ export const Languages = () => [
     value: "hi",
   },
   {
+    text: "Bahasa Indonesia",
+    translated: $gettext("Bahasa Indonesia"),
+    value: "id",
+  },
+  {
     text: "Italian",
     translated: $gettext("Italian"),
     value: "it",
@@ -201,13 +206,8 @@ export const Themes = () => [
     disabled: false,
   },
   {
-    text: $gettext("Cyano"),
-    value: "cyano",
-    disabled: false,
-  },
-  {
-    text: $gettext("Lavender"),
-    value: "lavender",
+    text: $gettext("Vanta"),
+    value: "vanta",
     disabled: false,
   },
   {
@@ -218,6 +218,16 @@ export const Themes = () => [
   {
     text: $gettext("Onyx"),
     value: "onyx",
+    disabled: false,
+  },
+  {
+    text: $gettext("Cyano"),
+    value: "cyano",
+    disabled: false,
+  },
+  {
+    text: $gettext("Lavender"),
+    value: "lavender",
     disabled: false,
   },
   {

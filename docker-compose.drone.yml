@@ -1,5 +1,7 @@
 version: '3.5'
 
+# Drone CI Test Environment
+
 services:
   photoprism:
     build: .
@@ -140,10 +142,10 @@ services:
       DRONE_TARGET_BRANCH:
 
   mariadb:
-    image: mariadb:10.5
+    image: mariadb:10.6
     command: mysqld --port=4001 --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
     expose:
-      - "4001"
+      - "4001" # Database port (internal)
     volumes:
       - "./scripts/sql/init-test-databases.sql:/docker-entrypoint-initdb.d/init-test-databases.sql"
     environment:
@@ -153,4 +155,4 @@ services:
       MYSQL_DATABASE: photoprism
 
   webdav-dummy:
-    image: photoprism/webdav:20210602
+    image: photoprism/webdav:20211021
