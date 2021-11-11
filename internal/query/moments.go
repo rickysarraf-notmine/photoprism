@@ -93,7 +93,7 @@ func (m Moment) Title() string {
 		}
 
 		if state == "" {
-			return m.Country
+			return country
 		}
 
 		return fmt.Sprintf("%s / %s", state, country)
