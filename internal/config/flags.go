@@ -495,4 +495,9 @@ var GlobalFlags = []cli.Flag{
 		Value:  face.MatchDist,
 		EnvVar: "PHOTOPRISM_FACE_MATCH_DIST",
 	},
+	cli.BoolFlag{
+		Name:   "enable-expvar",
+		Usage:  "provide a publicly accessible expvar endpoint",
+		EnvVar: "PHOTOPRISM_ENABLE_EXPVAR",
+	},
 }

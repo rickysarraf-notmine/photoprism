@@ -265,6 +265,13 @@ export default {
           this.fileName = data.fileName;
 
           break;
+        case "motionphotos":
+          this.action = this.$gettext("Extracting motion photo for");
+          this.busy = true;
+          this.completed = 0;
+          this.fileName = data.fileName;
+
+          break;
         case 'completed':
           this.action = "";
           this.busy = false;

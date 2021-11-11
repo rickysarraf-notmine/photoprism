@@ -21,6 +21,7 @@ const (
 	TypeVideo   = "video"
 	TypeRaw     = "raw"
 	TypeText    = "text"
+	TypeSphere  = "sphere"
 )
 
 // Root Directories Types
@@ -71,4 +72,13 @@ const (
 	SortOrderSimilar   = "similar"
 	SortOrderRelevance = "relevance"
 	SortOrderEdited    = "edited"
+	SortOrderRandom    = "random"
+)
+
+// Date Modes
+
+const (
+	DateModeLast    = "last"
+	DateModeFirst   = "first"
+	DateModeAverage = "average"
 )
