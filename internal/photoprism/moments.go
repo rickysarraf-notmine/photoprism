@@ -84,13 +84,12 @@ func (w *Moments) Start() (err error) {
 				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: folder album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.FileCount)
 
-				if a.DeletedAt != nil {
-					// Nothing to do.
-					log.Tracef("moments: %s was deleted (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				} else if err := a.UpdateFolder(mom.Path, f.Serialize()); err != nil {
+				// restore the folder album if it has been automatically deleted
+				restoreAlbum(a)
+
+				// Update folder search filter when path changes
+				if err := a.UpdateFolder(mom.Path, f.Serialize()); err != nil {
 					log.Errorf("moments: %s (update folder)", err.Error())
-				} else {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
 				}
 			} else if a := entity.NewFolderAlbum(mom.Title(), mom.Path, f.Serialize(), w.conf.Settings().Folders.SortOrder); a != nil {
 				a.AlbumYear = mom.FolderYear
@@ -126,13 +125,8 @@ func (w *Moments) Start() (err error) {
 				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: month album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
 
-				if !a.Deleted() {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				} else if err := a.Restore(); err != nil {
-					log.Errorf("moments: %s (restore month)", err.Error())
-				} else {
-					log.Infof("moments: %s restored", txt.Quote(a.AlbumTitle))
-				}
+				// restore the month album if it has been automatically deleted
+				restoreAlbum(a)
 			} else if a := entity.NewMonthAlbum(mom.Title(), mom.Slug(), mom.Year, mom.Month); a != nil {
 				if err := a.Create(); err != nil {
 					log.Errorf("moments: %s", err)
@@ -168,12 +162,8 @@ func (w *Moments) Start() (err error) {
 				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: moment album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
 
-				if a.Deleted() {
-					// Nothing to do.
-					log.Tracef("moments: %s was deleted (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				} else {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				}
+				// restore the moment album if it has been automatically deleted
+				restoreAlbum(a)
 			} else if a := entity.NewMomentsAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
 				a.AlbumYear = mom.Year
 				a.AlbumCountry = mom.Country
@@ -211,12 +201,8 @@ func (w *Moments) Start() (err error) {
 				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: country album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
 
-				if a.Deleted() {
-					// Nothing to do.
-					log.Tracef("moments: %s was deleted (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				} else {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				}
+				// restore the country album if it has been automatically deleted
+				restoreAlbum(a)
 			} else if a := entity.NewCountryAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
 				a.AlbumCountry = mom.Country
 
@@ -254,12 +240,8 @@ func (w *Moments) Start() (err error) {
 				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: state album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
 
-				if a.Deleted() {
-					// Nothing to do.
-					log.Tracef("moments: %s was deleted (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				} else {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				}
+				// restore the state album if it has been automatically deleted
+				restoreAlbum(a)
 			} else if a := entity.NewStateAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
 				a.AlbumCountry = mom.Country
 
@@ -352,6 +334,16 @@ func (w *Moments) Start() (err error) {
 // Cancel stops the current operation.
 func (w *Moments) Cancel() {
 	mutex.MainWorker.Cancel()
+}
+
+func restoreAlbum(a *entity.Album) {
+	if !a.Deleted() {
+		log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
+	} else if err := a.Restore(); err != nil {
+		log.Errorf("moments: %s (restore %s)", err.Error(), a.AlbumType)
+	} else {
+		log.Infof("moments: %s restored", txt.Quote(a.AlbumTitle))
+	}
 }
 
 func deleteAlbumIfEmpty(album entity.Album) {
