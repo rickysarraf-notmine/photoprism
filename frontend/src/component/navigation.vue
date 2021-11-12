@@ -274,9 +274,9 @@
 
           <v-list-tile to="/countries" class="nav-countries" @click.stop="">
             <v-list-tile-content>
-              <v-list-tile-title>
+              <v-list-tile-title :class="`p-flex-menuitem menu-item ${rtl ? '--rtl' : ''}`">
                 <translate key="Countries">Countries</translate>
-                <span v-show="config.count.countries > 0" :class="`nav-count ${rtl ? '--rtl' : ''}`">{{ config.count.countries }}</span>
+                <span v-show="config.count.countries > 0" :class="`nav-count ${rtl ? '--rtl' : ''}`">{{ config.count.countries | abbreviateCount }}</span>
               </v-list-tile-title>
             </v-list-tile-content>
           </v-list-tile>
