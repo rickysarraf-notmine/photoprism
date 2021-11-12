@@ -12,7 +12,7 @@ import (
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
-// Location
+// Location represents a specific geolocation identified by its S2 ID.
 type Location struct {
 	ID          string  `json:"id"`
 	LocLat      float64 `json:"lat"`
@@ -135,16 +135,16 @@ func (l Location) Label() (result string) {
 	return l.Place.LocLabel
 }
 
-func (l Location) State() (result string) {
-	return l.Place.LocState
-}
-
 func (l Location) City() (result string) {
 	return l.Place.LocCity
 }
 
 func (l Location) CountryCode() (result string) {
 	return l.Place.LocCountry
+}
+
+func (l Location) State() (result string) {
+	return txt.NormalizeState(l.Place.LocState, l.CountryCode())
 }
 
 func (l Location) Latitude() (result float64) {
