@@ -68,9 +68,9 @@ func (w *Moments) Start() (err error) {
 	if results, err := query.AlbumFolders(1); err != nil {
 		log.Errorf("moments: %s", err.Error())
 	} else {
-		emptyAlbumbs := make(map[string]entity.Album)
+		emptyAlbums := make(map[string]entity.Album)
 		for _, a := range entity.FindAlbumsByType(entity.AlbumFolder) {
-			emptyAlbumbs[a.AlbumUID] = a
+			emptyAlbums[a.AlbumUID] = a
 		}
 
 		for _, mom := range results {
@@ -80,17 +80,16 @@ func (w *Moments) Start() (err error) {
 			}
 
 			if a := entity.FindFolderAlbum(mom.Path); a != nil {
-				// mark the album as non-empty to prevent deletion
-				delete(emptyAlbumbs, a.AlbumUID)
+				// Mark the album as non-empty to prevent deletion.
+				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: folder album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.FileCount)
 
-				if a.DeletedAt != nil {
-					// Nothing to do.
-					log.Tracef("moments: %s was deleted (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				} else if err := a.UpdateFolder(mom.Path, f.Serialize()); err != nil {
+				// restore the folder album if it has been automatically deleted
+				restoreAlbum(a)
+
+				// Update folder search filter when path changes
+				if err := a.UpdateFolder(mom.Path, f.Serialize()); err != nil {
 					log.Errorf("moments: %s (update folder)", err.Error())
-				} else {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
 				}
 			} else if a := entity.NewFolderAlbum(mom.Title(), mom.Path, f.Serialize(), w.conf.Settings().Folders.SortOrder); a != nil {
 				a.AlbumYear = mom.FolderYear
@@ -106,9 +105,8 @@ func (w *Moments) Start() (err error) {
 			}
 		}
 
-		for _, album := range emptyAlbumbs {
-			log.Infof("moments: empty folder album %s will be deleted (%s)", txt.Quote(album.AlbumTitle), album.AlbumFilter)
-			album.Delete()
+		for _, album := range emptyAlbums {
+			deleteAlbumIfEmpty(album)
 		}
 	}
 
@@ -116,24 +114,19 @@ func (w *Moments) Start() (err error) {
 	if results, err := query.MomentsTime(1); err != nil {
 		log.Errorf("moments: %s", err.Error())
 	} else {
-		emptyAlbumbs := make(map[string]entity.Album)
+		emptyAlbums := make(map[string]entity.Album)
 		for _, a := range entity.FindAlbumsByType(entity.AlbumMonth) {
-			emptyAlbumbs[a.AlbumUID] = a
+			emptyAlbums[a.AlbumUID] = a
 		}
 
 		for _, mom := range results {
 			if a := entity.FindAlbumBySlug(mom.Slug(), entity.AlbumMonth); a != nil {
-				// mark the album as non-empty to prevent deletion
-				delete(emptyAlbumbs, a.AlbumUID)
+				// Mark the album as non-empty to prevent deletion.
+				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: month album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
 
-				if !a.Deleted() {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				} else if err := a.Restore(); err != nil {
-					log.Errorf("moments: %s (restore month)", err.Error())
-				} else {
-					log.Infof("moments: %s restored", txt.Quote(a.AlbumTitle))
-				}
+				// restore the month album if it has been automatically deleted
+				restoreAlbum(a)
 			} else if a := entity.NewMonthAlbum(mom.Title(), mom.Slug(), mom.Year, mom.Month); a != nil {
 				if err := a.Create(); err != nil {
 					log.Errorf("moments: %s", err)
@@ -143,9 +136,8 @@ func (w *Moments) Start() (err error) {
 			}
 		}
 
-		for _, album := range emptyAlbumbs {
-			log.Infof("moments: empty month album %s will be deleted (%s)", txt.Quote(album.AlbumTitle), album.AlbumFilter)
-			album.Delete()
+		for _, album := range emptyAlbums {
+			deleteAlbumIfEmpty(album)
 		}
 	}
 
@@ -153,9 +145,9 @@ func (w *Moments) Start() (err error) {
 	if results, err := query.MomentsCountriesByYear(threshold); err != nil {
 		log.Errorf("moments: %s", err.Error())
 	} else {
-		emptyAlbumbs := make(map[string]entity.Album)
+		emptyAlbums := make(map[string]entity.Album)
 		for _, a := range entity.FindCountriesByYearAlbums() {
-			emptyAlbumbs[a.AlbumUID] = a
+			emptyAlbums[a.AlbumUID] = a
 		}
 
 		for _, mom := range results {
@@ -166,16 +158,12 @@ func (w *Moments) Start() (err error) {
 			}
 
 			if a := entity.FindAlbumBySlug(mom.Slug(), entity.AlbumMoment); a != nil {
-				// mark the album as non-empty to prevent deletion
-				delete(emptyAlbumbs, a.AlbumUID)
+				// Mark the album as non-empty to prevent deletion.
+				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: moment album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
 
-				if a.Deleted() {
-					// Nothing to do.
-					log.Tracef("moments: %s was deleted (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				} else {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				}
+				// restore the moment album if it has been automatically deleted
+				restoreAlbum(a)
 			} else if a := entity.NewMomentsAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
 				a.AlbumYear = mom.Year
 				a.AlbumCountry = mom.Country
@@ -188,7 +176,7 @@ func (w *Moments) Start() (err error) {
 			}
 		}
 
-		for _, album := range emptyAlbumbs {
+		for _, album := range emptyAlbums {
 			deleteAlbumIfEmpty(album)
 		}
 	}
@@ -197,9 +185,9 @@ func (w *Moments) Start() (err error) {
 	if results, err := query.MomentsCountries(threshold); err != nil {
 		log.Errorf("moments: %s", err.Error())
 	} else {
-		emptyAlbumbs := make(map[string]entity.Album)
+		emptyAlbums := make(map[string]entity.Album)
 		for _, a := range entity.FindAlbumsByType(entity.AlbumCountry) {
-			emptyAlbumbs[a.AlbumUID] = a
+			emptyAlbums[a.AlbumUID] = a
 		}
 
 		for _, mom := range results {
@@ -209,16 +197,12 @@ func (w *Moments) Start() (err error) {
 			}
 
 			if a := entity.FindAlbumBySlug(mom.Slug(), entity.AlbumCountry); a != nil {
-				// mark the album as non-empty to prevent deletion
-				delete(emptyAlbumbs, a.AlbumUID)
+				// Mark the album as non-empty to prevent deletion.
+				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: country album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
 
-				if a.Deleted() {
-					// Nothing to do.
-					log.Tracef("moments: %s was deleted (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				} else {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				}
+				// restore the country album if it has been automatically deleted
+				restoreAlbum(a)
 			} else if a := entity.NewCountryAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
 				a.AlbumCountry = mom.Country
 
@@ -230,7 +214,7 @@ func (w *Moments) Start() (err error) {
 			}
 		}
 
-		for _, album := range emptyAlbumbs {
+		for _, album := range emptyAlbums {
 			deleteAlbumIfEmpty(album)
 		}
 	}
@@ -239,9 +223,9 @@ func (w *Moments) Start() (err error) {
 	if results, err := query.MomentsStates(1); err != nil {
 		log.Errorf("moments: %s", err.Error())
 	} else {
-		emptyAlbumbs := make(map[string]entity.Album)
+		emptyAlbums := make(map[string]entity.Album)
 		for _, a := range entity.FindAlbumsByType(entity.AlbumState) {
-			emptyAlbumbs[a.AlbumUID] = a
+			emptyAlbums[a.AlbumUID] = a
 		}
 
 		for _, mom := range results {
@@ -252,16 +236,12 @@ func (w *Moments) Start() (err error) {
 			}
 
 			if a := entity.FindAlbumBySlug(mom.Slug(), entity.AlbumState); a != nil {
-				// mark the album as non-empty to prevent deletion
-				delete(emptyAlbumbs, a.AlbumUID)
+				// Mark the album as non-empty to prevent deletion.
+				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: state album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
 
-				if a.Deleted() {
-					// Nothing to do.
-					log.Tracef("moments: %s was deleted (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				} else {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
-				}
+				// restore the state album if it has been automatically deleted
+				restoreAlbum(a)
 			} else if a := entity.NewStateAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
 				a.AlbumCountry = mom.Country
 
@@ -273,9 +253,8 @@ func (w *Moments) Start() (err error) {
 			}
 		}
 
-		for _, album := range emptyAlbumbs {
-			log.Infof("moments: empty state album %s will be deleted (%s)", txt.Quote(album.AlbumTitle), album.AlbumFilter)
-			album.Delete()
+		for _, album := range emptyAlbums {
+			deleteAlbumIfEmpty(album)
 		}
 	}
 
@@ -283,9 +262,9 @@ func (w *Moments) Start() (err error) {
 	if results, err := query.MomentsLabels(threshold); err != nil {
 		log.Errorf("moments: %s", err.Error())
 	} else {
-		emptyAlbumbs := make(map[string]entity.Album)
+		emptyAlbums := make(map[string]entity.Album)
 		for _, a := range entity.FindLabelAlbums() {
-			emptyAlbumbs[a.AlbumUID] = a
+			emptyAlbums[a.AlbumUID] = a
 		}
 
 		for _, mom := range results {
@@ -297,8 +276,8 @@ func (w *Moments) Start() (err error) {
 			if a := entity.FindAlbumBySlug(mom.Slug(), entity.AlbumMoment); a != nil {
 				log.Tracef("moments: %s already exists (%s)", txt.Quote(mom.Title()), f.Serialize())
 
-				// mark the album as non-empty to prevent deletion
-				delete(emptyAlbumbs, a.AlbumUID)
+				// Mark the album as non-empty to prevent deletion.
+				delete(emptyAlbums, a.AlbumUID)
 				log.Infof("moments: label album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
 
 				if f.Serialize() == a.AlbumFilter || a.DeletedAt != nil {
@@ -330,7 +309,7 @@ func (w *Moments) Start() (err error) {
 			}
 		}
 
-		for _, album := range emptyAlbumbs {
+		for _, album := range emptyAlbums {
 			deleteAlbumIfEmpty(album)
 		}
 	}
@@ -357,6 +336,16 @@ func (w *Moments) Cancel() {
 	mutex.MainWorker.Cancel()
 }
 
+func restoreAlbum(a *entity.Album) {
+	if !a.Deleted() {
+		log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
+	} else if err := a.Restore(); err != nil {
+		log.Errorf("moments: %s (restore %s)", err.Error(), a.AlbumType)
+	} else {
+		log.Infof("moments: %s restored", txt.Quote(a.AlbumTitle))
+	}
+}
+
 func deleteAlbumIfEmpty(album entity.Album) {
 	// The threshold will naturaly rise when people upload more photos, so all of a sudden some
 	// albums might be considered empty if they drop below the dynamic threshold. To prevent that
@@ -371,9 +360,9 @@ func deleteAlbumIfEmpty(album entity.Album) {
 		if _, count, err := search.Photos(f); err != nil {
 			log.Errorf("moments: %s (photo search for album %s)", err, txt.Quote(album.AlbumTitle))
 		} else if count > 0 {
-			log.Infof("moments: moment album %s is below threshold, but will not be deleted", txt.Quote(album.AlbumTitle))
+			log.Infof("moments: %s album %s is below threshold, but will not be deleted", album.AlbumType, txt.Quote(album.AlbumTitle))
 		} else if count == 0 {
-			log.Infof("moments: empty moment album %s will be deleted (%s)", txt.Quote(album.AlbumTitle), album.AlbumFilter)
+			log.Infof("moments: empty %s album %s will be deleted (%s)", album.AlbumType, txt.Quote(album.AlbumTitle), album.AlbumFilter)
 			log.Warn("moments: album deletion is running in dry-run mode, so the album will not be deleted yet")
 			// album.Delete()
 		}
