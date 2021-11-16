@@ -7,7 +7,6 @@ import (
 	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/internal/search"
-	"github.com/photoprism/photoprism/pkg/txt"
 )
 
 // Albums returns a slice of albums.
@@ -43,15 +42,6 @@ func AlbumCoverByUID(uid string) (file entity.File, err error) {
 				} else {
 					return file, nil
 				}
-			}
-		}
-
-		// Automatically hide empty months.
-		if a.AlbumType == entity.AlbumMonth {
-			if err := a.Delete(); err != nil {
-				log.Errorf("album: %s (hide %s)", err, a.AlbumType)
-			} else {
-				log.Infof("album: %s hidden", txt.Quote(a.AlbumTitle))
 			}
 		}
 
