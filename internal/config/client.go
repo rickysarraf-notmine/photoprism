@@ -389,11 +389,6 @@ func (c *Config) UserConfig() ClientConfig {
 		Take(&result.Count)
 
 	c.Db().
-		Table("countries").
-		Select("(COUNT(*) - 1) AS countries").
-		Take(&result.Count)
-
-	c.Db().
 		Table("places").
 		Select("SUM(photo_count > 0) AS places").
 		Where("id <> 'zz'").
