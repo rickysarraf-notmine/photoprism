@@ -4,9 +4,12 @@ on:
   release:
     types:
       - published
+  push:
+    branches:
+      - preview
 
 env:
-  TAG: ${{ github.event.release.tag_name }}
+  TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || 'preview' }}
   DOCKER_REPO: kvalev/photoprism
 
 jobs:
