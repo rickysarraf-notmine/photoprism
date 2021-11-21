@@ -49,6 +49,7 @@ export const TypeImage = "image";
 export const TypeVideo = "video";
 export const TypeLive = "live";
 export const TypeRaw = "raw";
+export const TypeSphere = "sphere";
 export const YearUnknown = -1;
 export const MonthUnknown = -1;
 export const DayUnknown = -1;
@@ -307,6 +308,10 @@ export class Photo extends RestModel {
     }
 
     return this.Files.findIndex((f) => f.Video) !== -1;
+  }
+
+  isSphere() {
+    return this.Type === TypeSphere;
   }
 
   videoParams() {
