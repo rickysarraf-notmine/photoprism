@@ -39,11 +39,19 @@ var once sync.Once
 var LowMem = false
 var TotalMem uint64
 
-const ApiUri = "/api/v1"
-const StaticUri = "/static"
-const DefaultWakeupInterval = int(15 * 60)
-const DefaultAutoIndexDelay = int(5 * 60)
-const DefaultAutoImportDelay = int(3 * 60)
+const MsgSponsor = "Help us make a difference and become a sponsor today!"
+const SignUpURL = "https://docs.photoprism.org/funding/"
+const MsgSignUp = "Visit " + SignUpURL + " to learn more."
+const MsgSponsorCommand = "Since running this command puts additional load on our infrastructure," +
+	" we unfortunately can only offer it to sponsors."
+
+const ApiUri = "/api/v1"    // REST API
+const StaticUri = "/static" // Static Content
+
+const DefaultAutoIndexDelay = int(5 * 60)  // 5 Minutes
+const DefaultAutoImportDelay = int(3 * 60) // 3 Minutes
+
+const DefaultWakeupIntervalSeconds = int(15 * 60) // 15 Minutes
 
 // Megabyte in bytes.
 const Megabyte = 1000 * 1000
@@ -170,6 +178,12 @@ func (c *Config) Init() error {
 		return err
 	}
 
+	// Show funding info?
+	if !c.Sponsor() {
+		log.Info(MsgSponsor)
+		log.Info(MsgSignUp)
+	}
+
 	if insensitive, err := c.CaseInsensitive(); err != nil {
 		return err
 	} else if insensitive {
@@ -192,6 +206,9 @@ func (c *Config) Init() error {
 	if TotalMem < RecommendedMem {
 		log.Infof("config: make sure your server has enough swap configured to prevent restarts when there are memory usage spikes")
 	}
+
+	// Set User Agent for HTTP requests.
+	places.UserAgent = fmt.Sprintf("%s/%s", c.Name(), c.Version())
 
 	c.initSettings()
 	c.initHub()
@@ -313,19 +330,6 @@ func (c *Config) SiteUrl() string {
 	return strings.TrimRight(c.options.SiteUrl, "/") + "/"
 }
 
-// SitePreview returns the site preview image URL for sharing.
-func (c *Config) SitePreview() string {
-	if c.options.SitePreview == "" {
-		return c.SiteUrl() + "static/img/preview.jpg"
-	}
-
-	if !strings.HasPrefix(c.options.SitePreview, "http") {
-		return c.SiteUrl() + c.options.SitePreview
-	}
-
-	return c.options.SitePreview
-}
-
 // SiteAuthor returns the site author / copyright.
 func (c *Config) SiteAuthor() string {
 	return c.options.SiteAuthor
@@ -348,6 +352,19 @@ func (c *Config) SiteCaption() string {
 // SiteDescription returns a long site description.
 func (c *Config) SiteDescription() string {
 	return c.options.SiteDescription
+}
+
+// SitePreview returns the site preview image URL for sharing.
+func (c *Config) SitePreview() string {
+	if c.options.SitePreview == "" {
+		return c.SiteUrl() + "static/img/preview.jpg"
+	}
+
+	if !strings.HasPrefix(c.options.SitePreview, "http") {
+		return c.SiteUrl() + c.options.SitePreview
+	}
+
+	return c.options.SitePreview
 }
 
 // Debug tests if debug mode is enabled.
@@ -488,7 +505,7 @@ func (c *Config) WakeupInterval() time.Duration {
 		return time.Duration(0)
 	} else if c.options.WakeupInterval <= 0 || c.options.WakeupInterval > 604800 {
 		// Default if out of range.
-		return time.Duration(DefaultWakeupInterval) * time.Second
+		return time.Duration(DefaultWakeupIntervalSeconds) * time.Second
 	}
 
 	return time.Duration(c.options.WakeupInterval) * time.Second

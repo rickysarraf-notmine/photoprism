@@ -4,36 +4,34 @@ import (
 	"github.com/photoprism/photoprism/internal/entity"
 )
 
-// CellIDs returns all known S2 cell ids as string slice.
-func CellIDs() (ids []string, err error) {
+type Cell struct {
+	ID      string
+	PlaceID string
+}
+
+type Cells []Cell
+
+// CellIDs returns all known S2 cell ids as Cell slice.
+func CellIDs() (result Cells, err error) {
 	tableName := entity.Cell{}.TableName()
 
 	var count int64
 
 	if err = UnscopedDb().Table(tableName).Where("id <> 'zz'").Count(&count).Error; err != nil {
-		return []string{}, err
+		return result, err
 	}
 
-	ids = make([]string, 0, count)
+	result = make(Cells, 0, count)
 
-	err = UnscopedDb().Table(tableName).Select("id").Where("id <> 'zz'").Pluck("id", &ids).Error
+	err = UnscopedDb().Table(tableName).Select("id, place_id").Where("id <> 'zz'").Order("id").Scan(&result).Error
 
-	return ids, err
+	return result, err
 }
 
-// PlaceIDs returns all known S2 place ids as string slice.
-func PlaceIDs() (ids []string, err error) {
-	tableName := entity.Place{}.TableName()
+// PurgePlaces removes unused entries from the places table.
+func PurgePlaces() error {
+	query := "DELETE FROM places WHERE id NOT IN (SELECT DISTINCT place_id FROM cells)" +
+		" AND id NOT IN (SELECT DISTINCT place_id FROM photos)"
 
-	var count int64
-
-	if err = UnscopedDb().Table(tableName).Where("id <> 'zz'").Count(&count).Error; err != nil {
-		return []string{}, err
-	}
-
-	ids = make([]string, 0, count)
-
-	err = UnscopedDb().Table(tableName).Select("id").Where("id <> 'zz'").Pluck("id", &ids).Error
-
-	return ids, err
+	return Db().Exec(query).Error
 }

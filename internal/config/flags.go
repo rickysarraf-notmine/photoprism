@@ -139,7 +139,7 @@ var GlobalFlags = []cli.Flag{
 	cli.IntFlag{
 		Name:   "wakeup-interval",
 		Usage:  "metadata, share & sync background worker wakeup interval in `SECONDS` (1-604800)",
-		Value:  DefaultWakeupInterval,
+		Value:  DefaultWakeupIntervalSeconds,
 		EnvVar: "PHOTOPRISM_WAKEUP_INTERVAL",
 	},
 	cli.IntFlag{
@@ -228,6 +228,23 @@ var GlobalFlags = []cli.Flag{
 		Name:   "upload-nsfw",
 		Usage:  "allow uploads that may be offensive",
 		EnvVar: "PHOTOPRISM_UPLOAD_NSFW",
+	},
+	cli.StringFlag{
+		Name:   "app-name",
+		Usage:  "application `NAME` when installed on a device",
+		Value:  "PhotoPrism",
+		EnvVar: "PHOTOPRISM_APP_NAME",
+	},
+	cli.StringFlag{
+		Name:   "app-mode",
+		Usage:  "application `MODE` (fullscreen, standalone, minimal-ui, browser)",
+		Value:  "standalone",
+		EnvVar: "PHOTOPRISM_APP_MODE",
+	},
+	cli.StringFlag{
+		Name:   "app-icon",
+		Usage:  "application `ICON` (default, square, glow, lens, camera)",
+		EnvVar: "PHOTOPRISM_APP_ICON",
 	},
 	cli.StringFlag{
 		Name:   "cdn-url",
@@ -344,7 +361,7 @@ var GlobalFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "darktable-blacklist",
-		Usage:  "RAW file `EXTENSIONS` incompatible with Darktable",
+		Usage:  "file `EXTENSIONS` incompatible with Darktable",
 		Value:  "cr3,dng",
 		EnvVar: "PHOTOPRISM_DARKTABLE_BLACKLIST",
 	},
@@ -356,7 +373,7 @@ var GlobalFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "rawtherapee-blacklist",
-		Usage:  "RAW file `EXTENSIONS` incompatible with RawTherapee",
+		Usage:  "file `EXTENSIONS` incompatible with RawTherapee",
 		Value:  "",
 		EnvVar: "PHOTOPRISM_RAWTHERAPEE_BLACKLIST",
 	},
