@@ -83,11 +83,7 @@ func TestParseOverpassJson(t *testing.T) {
 
 func TestFindState(t *testing.T) {
 	t.Run("Khumjung", func(t *testing.T) {
-		state, err := FindState("39e9ac0d2c4c")
-
-		if err != nil {
-			t.Fatal(err)
-		}
+		state := FindState("39e9ac0d2c4c")
 
 		assert.Equal(t, "पुर्वाञ्चल विकास क्षेत्र", state)
 	})

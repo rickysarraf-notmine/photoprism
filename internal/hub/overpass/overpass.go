@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/dsoprea/go-logging"
+	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/pkg/s2"
 )
 
@@ -18,6 +18,8 @@ out meta;
 `
 
 const OverpassUrl = "https://overpass-api.de/api/interpreter"
+
+var log = event.Log
 
 // OverpassResponse represents the response from the Overpass API.
 type OverpassResponse struct {
@@ -63,23 +65,28 @@ func (e OverpassElement) AdministrativeLevel() string {
 }
 
 // FindState queries the Overpass API to retrieve the state name in the native language for the given s2 cell.
-func FindState(token string) (state string, err error) {
+func FindState(token string) (state string) {
+	log.Debugf("overpass: quering state for %s s2 cell", token)
+
 	lat, lng := s2.LatLng(token)
 	query := fmt.Sprintf(OverpassStateQuery, lat, lng)
 
 	r, err := queryOverpass(query)
 	if err != nil {
-		return state, err
+		log.Errorf("overpass: %s", err)
+		return state
 	}
 
 	if len(r.Elements) == 0 {
-		return state, fmt.Errorf("overpass: token %s does not have state data", token)
+		log.Warnf("overpass: token %s does not have state data", token)
+		return state
 	}
 
 	// TODO Should we return the "native" name or the international?
 	state = r.Elements[0].Name()
+	log.Debugf("overpass: found %s state for %s s2 cell", state, token)
 
-	return state, nil
+	return state
 }
 
 // queryOverpass sends the given query to the Overpass API and unmarshals the response.
@@ -88,7 +95,6 @@ func queryOverpass(query string) (result OverpassResponse, err error) {
 	req, err := http.NewRequest(http.MethodPost, OverpassUrl, reader)
 
 	if err != nil {
-		log.Errorf("overpass: %s", err.Error())
 		return result, err
 	}
 
@@ -96,18 +102,15 @@ func queryOverpass(query string) (result OverpassResponse, err error) {
 	r, err := client.Do(req)
 
 	if err != nil {
-		log.Errorf("overpass: %s (http request)", err.Error())
-		return result, err
+		return result, fmt.Errorf("%s (http request)", err)
 	} else if r.StatusCode >= 400 {
-		err = fmt.Errorf("overpass: request failed with code %d", r.StatusCode)
-		return result, err
+		return result, fmt.Errorf("request failed with code %d", r.StatusCode)
 	}
 
 	err = json.NewDecoder(r.Body).Decode(&result)
 
 	if err != nil {
-		log.Errorf("overpass: %s (decode json)", err.Error())
-		return result, err
+		return result, fmt.Errorf("%s (decode json)", err)
 	}
 
 	return result, nil

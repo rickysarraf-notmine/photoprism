@@ -72,12 +72,9 @@ func (l *Location) QueryPlaces() error {
 	l.LocKeywords = s.Keywords()
 
 	if l.LocState == "" {
-		state, err := overpass.FindState(l.ID)
-		if err != nil {
-			return err
+		if state := overpass.FindState(l.ID); state != "" {
+			l.LocState = state
 		}
-
-		l.LocState = state
 	}
 
 	return nil
