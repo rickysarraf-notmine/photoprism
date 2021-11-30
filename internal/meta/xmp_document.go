@@ -3,6 +3,7 @@ package meta
 import (
 	"encoding/xml"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -194,6 +195,19 @@ type XmpDocument struct {
 					Li   string `xml:"li"` // Gopher
 				} `xml:"Bag" json:"bag,omitempty"`
 			} `xml:"PersonInImage" json:"personinimage,omitempty"`
+			MicroVideo         string `xml:"MicroVideo,attr"`
+			MicroVideoVersion  string `xml:"MicroVideoVersion,attr"`
+			MicroVideoOffset   string `xml:"MicroVideoOffset,attr"`
+			MotionPhoto        string `xml:"MotionPhoto,attr"`
+			MotionPhotoVersion string `xml:"MotionPhotoVersion,attr"`
+			Directory          struct {
+				Items []struct {
+					Mime     string `xml:"Mime,attr"`
+					Semantic string `xml:"Semantic,attr"`
+					Length   string `xml:"Length,attr"`
+					Padding  string `xml:"Padding,attr"`
+				} `xml:"Seq>li>Item"`
+			} `xml:"Directory"`
 		} `xml:"Description" json:"description,omitempty"`
 	} `xml:"RDF" json:"rdf,omitempty"`
 }
@@ -206,6 +220,10 @@ func (doc *XmpDocument) Load(filename string) error {
 		return err
 	}
 
+	return doc.LoadFromBytes(data)
+}
+
+func (doc *XmpDocument) LoadFromBytes(data []byte) error {
 	return xml.Unmarshal(data, doc)
 }
 
@@ -279,6 +297,43 @@ func (doc *XmpDocument) TakenAt() time.Time {
 	}
 
 	return taken
+}
+
+// MicroVideo returns the XML document micro video flag (legacy Google Motion Photo implementation).
+func (doc *XmpDocument) MicroVideo() int {
+	if flag, err := strconv.Atoi(doc.RDF.Description.MicroVideo); err == nil {
+		return flag
+	}
+
+	return 0
+}
+
+// MicroVideo returns the XML document micro video offset (legacy Google Motion Photo implementation).
+func (doc *XmpDocument) MicroVideoOffset() int {
+	if offset, err := strconv.Atoi(doc.RDF.Description.MicroVideoOffset); err == nil {
+		return offset
+	}
+
+	return 0
+}
+
+// MotionPhoto returns the XML document motion photo flag (new Google Motion Photo implementation).
+func (doc *XmpDocument) MotionPhoto() int {
+	if flag, err := strconv.Atoi(doc.RDF.Description.MotionPhoto); err == nil {
+		return flag
+	}
+
+	return 0
+}
+
+// Keywords r
+// MotionPhotoVersion returns the XML document motion photo version (new Google Motion Photo implementation).
+func (doc *XmpDocument) MotionPhotoVersion() int {
+	if version, err := strconv.Atoi(doc.RDF.Description.MotionPhotoVersion); err == nil {
+		return version
+	}
+
+	return 0
 }
 
 // Keywords returns the XMP document keywords.
