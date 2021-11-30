@@ -19,7 +19,7 @@ import (
 const OverpassQueryState = `
 is_in(%f,%f) -> .a;
 (
-	area.a[admin_level="3"][boundary="administrative"];
+	area.a[admin_level="3"][boundary="administrative"]["border_type"!="territorial"];
 	area.a[admin_level="4"][boundary="administrative"];
 	area.a[admin_level="5"][boundary="administrative"];
 	area.a[admin_level="6"][boundary="administrative"];

@@ -82,10 +82,25 @@ func TestParseOverpassJson(t *testing.T) {
 }
 
 func TestFindState(t *testing.T) {
-	t.Run("Khumjung", func(t *testing.T) {
+	t.Run("Khumjung, Nepal", func(t *testing.T) {
 		state := FindState("39e9ac0d2c4c")
 
+		// For Nepal the correct boundary is admin_level 3
 		assert.Equal(t, "Province #1", state)
+	})
+
+	t.Run("Paris, France", func(t *testing.T) {
+		state := FindState("47e66fe289fc")
+
+		// For France the correct boundary is admin_level 4 (and NOT 3)
+		assert.Equal(t, "Île-de-France", state)
+	})
+
+	t.Run("Thingvellir, Iceland", func(t *testing.T) {
+		state := FindState("48d680def0a4")
+
+		// For Iceland the correct boundary is admin_level 5
+		assert.Equal(t, "Suðurland", state)
 	})
 }
 
