@@ -71,9 +71,21 @@ func (l *Location) QueryPlaces() error {
 	l.LocCountry = s.CountryCode()
 	l.LocKeywords = s.Keywords()
 
-	if l.LocState == "" {
-		if state := overpass.FindState(l.ID); state != "" {
+	// Fallback to the Overpass API in case the Places API does not provide state information.
+	// In case there is no state data for the given location in Overpass, check whether there are nearby
+	// city and state borders. This should help with locations where the OSM data is incomplete or ones,
+	// which are very close to the state border (such as piers).
+	if !l.Unknown() && l.LocState == "" {
+		} else if state := overpass.FindState(l.S2Token()); state != "" {
 			l.LocState = state
+		} else {
+			city, state := overpass.FindNearbyLocation(l.S2Token())
+			if city != "" {
+				l.LocCity = city
+			}
+			if state != "" {
+				l.LocState = state
+			}
 		}
 	}
 
