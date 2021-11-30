@@ -15,7 +15,7 @@ import (
 // Different countries have different definitions for state, but generally the state is
 // represented by an admin_level [3,6] area. Furthermore we are only interested in the
 // "administrative" boundaries, which are the ones that denote the state.
-const OverpassStateQuery = `
+const OverpassQueryState = `
 is_in(%f,%f) -> .a;
 (
 	area.a[admin_level="3"][boundary="administrative"];
@@ -26,6 +26,13 @@ is_in(%f,%f) -> .a;
 out;
 `
 
+// Overpass query to retrieve all administrative boundaries within a radius of the given location.
+// The query will return all possible boundaries - country, state, city, neighborhood.
+const OverpassQueryNearbyBoundaries = `
+rel["boundary"="administrative"](around:%f,%f,%f);
+out tags;
+`
+
 const OverpassUrl = "https://overpass-api.de/api/interpreter"
 
 const (
@@ -34,16 +41,23 @@ const (
 	OverpassTagInternationalName   = "int_name"
 	OverpassTagLocalizedNamePrefix = OverpassTagName + ":"
 	OverpassTagName                = "name"
+	OverpassTagPlace               = "place"
+)
+
+const (
+	OverpassPlacesCity = "city"
 )
 
 var log = event.Log
 
 // OverpassResponse represents the response from the Overpass API.
 type OverpassResponse struct {
-	Version   float32           `json:"version"`
-	Generator string            `json:"generator"`
-	Elements  []OverpassElement `json:"elements"`
+	Version   float32          `json:"version"`
+	Generator string           `json:"generator"`
+	Elements  OverpassElements `json:"elements"`
 }
+
+type OverpassElements []OverpassElement
 
 // OverpassElement represents a generic Overpass element.
 type OverpassElement struct {
@@ -86,27 +100,16 @@ func (e OverpassElement) Boundary() string {
 	return e.Tags[OverpassTagBoundary]
 }
 
-// FindState queries the Overpass API to retrieve the state name in the native language for the given s2 cell.
-func FindState(token string) (state string) {
-	log.Debugf("overpass: quering state for %s s2 cell", token)
+// IsCity returns whether the Overpass element represents a city.
+func (e OverpassElement) IsCity() bool {
+	return e.Tags[OverpassTagPlace] == OverpassPlacesCity
+}
 
-	lat, lng := s2.LatLng(token)
-	query := fmt.Sprintf(OverpassStateQuery, lat, lng)
-
-	r, err := queryOverpass(query)
-	if err != nil {
-		log.Errorf("overpass: %s", err)
-		return state
-	}
-
-	if len(r.Elements) == 0 {
-		log.Warnf("overpass: token %s does not have state data", token)
-		return state
-	}
-
+// FindState attempts to detect a state in the list of Overpass elements and returns the native state name.
+func (elements OverpassElements) FindState() (state string) {
 	admin_level := 12
 
-	for _, area := range r.Elements {
+	for _, area := range elements {
 		area_admin_level, err := strconv.Atoi(area.AdministrativeLevel())
 		if err != nil {
 			log.Warnf("overpass: area %s has an invalid admin_level %s", area.Name(), area.AdministrativeLevel())
@@ -123,9 +126,59 @@ func FindState(token string) (state string) {
 		}
 	}
 
-	log.Debugf("overpass: found %s state for %s s2 cell", state, token)
+	return state
+}
+
+// FindState queries the Overpass API to retrieve the state name in the native language for the given s2 cell.
+func FindState(token string) (state string) {
+	lat, lng := s2.LatLng(token)
+	query := fmt.Sprintf(OverpassQueryState, lat, lng)
+
+	r, err := queryOverpass(query)
+	if err != nil {
+		log.Errorf("overpass: %s (query state)", err)
+		return state
+	}
+
+	if len(r.Elements) == 0 {
+		log.Warnf("overpass: no return data for token %s (query state)", token)
+		return state
+	}
+
+	state = r.Elements.FindState()
+	log.Debugf("overpass: found %s state for %s s2 cell (query state)", state, token)
 
 	return state
+}
+
+// FindNearbyLocation looks for a city and state boundary within 200 meters of the given s2 cell.
+func FindNearbyLocation(token string) (city, state string) {
+	radius := 200.0
+	lat, lng := s2.LatLng(token)
+
+	query := fmt.Sprintf(OverpassQueryNearbyBoundaries, radius, lat, lng)
+
+	r, err := queryOverpass(query)
+	if err != nil {
+		log.Errorf("overpass: %s (nearby location)", err)
+		return city, state
+	}
+
+	if len(r.Elements) == 0 {
+		log.Warnf("overpass: no return data for token %s (nearby location)", token)
+		return city, state
+	}
+
+	for _, area := range r.Elements {
+		if area.IsCity() {
+			city = area.Name()
+			break
+		}
+	}
+
+	state = r.Elements.FindState()
+
+	return city, state
 }
 
 // queryOverpass sends the given query to the Overpass API and unmarshals the response.

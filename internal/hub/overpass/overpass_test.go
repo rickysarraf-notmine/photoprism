@@ -88,3 +88,12 @@ func TestFindState(t *testing.T) {
 		assert.Equal(t, "Province #1", state)
 	})
 }
+
+func TestFindNearbyLocation(t *testing.T) {
+	t.Run("Rambla de Mar", func(t *testing.T) {
+		city, state := FindNearbyLocation("12a4a253f84c")
+
+		assert.Equal(t, "Barcelona", city)
+		assert.Equal(t, "Catalunya", state)
+	})
+}
