@@ -85,6 +85,6 @@ func TestFindState(t *testing.T) {
 	t.Run("Khumjung", func(t *testing.T) {
 		state := FindState("39e9ac0d2c4c")
 
-		assert.Equal(t, "पुर्वाञ्चल विकास क्षेत्र", state)
+		assert.Equal(t, "Province #1", state)
 	})
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -11,13 +12,29 @@ import (
 	"github.com/photoprism/photoprism/pkg/s2"
 )
 
+// Different countries have different definitions for state, but generally the state is
+// represented by an admin_level [3,6] area. Furthermore we are only interested in the
+// "administrative" boundaries, which are the ones that denote the state.
 const OverpassStateQuery = `
-is_in(%f,%f);
-area._[admin_level="4"];
-out meta;
+is_in(%f,%f) -> .a;
+(
+	area.a[admin_level="3"][boundary="administrative"];
+	area.a[admin_level="4"][boundary="administrative"];
+	area.a[admin_level="5"][boundary="administrative"];
+	area.a[admin_level="6"][boundary="administrative"];
+);
+out;
 `
 
 const OverpassUrl = "https://overpass-api.de/api/interpreter"
+
+const (
+	OverpassTagAdministrativeLevel = "admin_level"
+	OverpassTagBoundary            = "boundary"
+	OverpassTagInternationalName   = "int_name"
+	OverpassTagLocalizedNamePrefix = OverpassTagName + ":"
+	OverpassTagName                = "name"
+)
 
 var log = event.Log
 
@@ -37,12 +54,12 @@ type OverpassElement struct {
 
 // Name returns the native name of the Overpass element.
 func (e OverpassElement) Name() string {
-	return e.Tags["name"]
+	return e.Tags[OverpassTagName]
 }
 
 // InternationalName returns the international name of the Overpass element.
 func (e OverpassElement) InternationalName() string {
-	return e.Tags["int_name"]
+	return e.Tags[OverpassTagInternationalName]
 }
 
 // LocalizedNames returns a mapping of the available localized names (language ISO code -> name).
@@ -50,8 +67,8 @@ func (e OverpassElement) LocalizedNames() map[string]string {
 	names := make(map[string]string)
 
 	for name, value := range e.Tags {
-		if strings.HasPrefix(name, "name:") {
-			country_code := name[len("name:"):]
+		if strings.HasPrefix(name, OverpassTagLocalizedNamePrefix) {
+			country_code := name[len(OverpassTagLocalizedNamePrefix):]
 			names[country_code] = value
 		}
 	}
@@ -61,7 +78,12 @@ func (e OverpassElement) LocalizedNames() map[string]string {
 
 // AdministrativeLevel returns the administrative level of the Overpass element if available.
 func (e OverpassElement) AdministrativeLevel() string {
-	return e.Tags["admin_level"]
+	return e.Tags[OverpassTagAdministrativeLevel]
+}
+
+// Boundary returns the boundary type of the Overpass element if available.
+func (e OverpassElement) Boundary() string {
+	return e.Tags[OverpassTagBoundary]
 }
 
 // FindState queries the Overpass API to retrieve the state name in the native language for the given s2 cell.
@@ -82,8 +104,25 @@ func FindState(token string) (state string) {
 		return state
 	}
 
-	// TODO Should we return the "native" name or the international?
-	state = r.Elements[0].Name()
+	admin_level := 12
+
+	for _, area := range r.Elements {
+		area_admin_level, err := strconv.Atoi(area.AdministrativeLevel())
+		if err != nil {
+			log.Warnf("overpass: area %s has an invalid admin_level %s", area.Name(), area.AdministrativeLevel())
+			continue
+		}
+
+		// Return the name of the smallest possible administrative boundary,
+		// which ideally should represent a "state" for the given country.
+		// See: https://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative
+		// Return the "native" name instead of the international one to be compatible with the Places API.
+		if area_admin_level < admin_level {
+			admin_level = area_admin_level
+			state = area.Name()
+		}
+	}
+
 	log.Debugf("overpass: found %s state for %s s2 cell", state, token)
 
 	return state
