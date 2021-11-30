@@ -3,10 +3,11 @@ package overpass
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
-	"time"
+
+	"github.com/sethgrid/pester"
 
 	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/pkg/s2"
@@ -183,15 +184,14 @@ func FindNearbyLocation(token string) (city, state string) {
 
 // queryOverpass sends the given query to the Overpass API and unmarshals the response.
 func queryOverpass(query string) (result OverpassResponse, err error) {
-	reader := strings.NewReader(fmt.Sprintf("data=[out:json];%s", query))
-	req, err := http.NewRequest(http.MethodPost, OverpassUrl, reader)
+	params := make(url.Values)
+	params.Set("data", fmt.Sprintf("[out:json];%s", query))
 
-	if err != nil {
-		return result, err
-	}
+	client := pester.New()
+	client.MaxRetries = 3
+	client.Backoff = pester.ExponentialBackoff
 
-	client := &http.Client{Timeout: 60 * time.Second}
-	r, err := client.Do(req)
+	r, err := client.PostForm(OverpassUrl, params)
 
 	if err != nil {
 		return result, fmt.Errorf("%s (http request)", err)
