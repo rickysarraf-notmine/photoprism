@@ -76,8 +76,11 @@ func (l *Location) QueryPlaces() error {
 	// city and state borders. This should help with locations where the OSM data is incomplete or ones,
 	// which are very close to the state border (such as piers).
 	if !l.Unknown() && l.LocState == "" {
+		if state := overpass.CacheGet(l.LocCity); state != "" {
+			l.LocState = state
 		} else if state := overpass.FindState(l.S2Token()); state != "" {
 			l.LocState = state
+			overpass.CacheSet(l.LocCity, state)
 		} else {
 			city, state := overpass.FindNearbyLocation(l.S2Token())
 			if city != "" {
