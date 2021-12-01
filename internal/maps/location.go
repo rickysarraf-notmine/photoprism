@@ -81,14 +81,6 @@ func (l *Location) QueryPlaces() error {
 		} else if state := overpass.FindState(l.S2Token()); state != "" {
 			l.LocState = state
 			overpass.CacheSet(l.LocCity, state)
-		} else {
-			city, state := overpass.FindNearbyLocation(l.S2Token())
-			if city != "" {
-				l.LocCity = city
-			}
-			if state != "" {
-				l.LocState = state
-			}
 		}
 	}
 
