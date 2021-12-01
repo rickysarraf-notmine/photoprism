@@ -186,7 +186,8 @@ func queryOverpass(query string) (result OverpassResponse, err error) {
 	params.Set("data", fmt.Sprintf("[out:json];%s", query))
 
 	client := pester.New()
-	client.MaxRetries = 7
+	client.RetryOnHTTP429 = true
+	client.MaxRetries = 5
 	client.Backoff = pester.ExponentialBackoff
 
 	r, err := client.PostForm(OverpassUrl, params)
