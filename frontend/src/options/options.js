@@ -348,14 +348,17 @@ export const MapsStyle = () => [
   {
     text: $gettext("Hybrid"),
     value: "hybrid",
+    sponsor: true,
   },
   {
     text: $gettext("Topographic"),
     value: "topographique",
+    sponsor: true,
   },
   {
     text: $gettext("Outdoor"),
     value: "outdoor",
+    sponsor: true,
   },
 ];
 
