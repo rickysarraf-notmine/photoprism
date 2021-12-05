@@ -50,8 +50,8 @@ type SearchPhotos struct {
 	Country   string    `form:"country"`  // Moments
 	State     string    `form:"state"`    // Moments
 	Year      string    `form:"year"`     // Moments
-	Month     string    `form:"month"`    // Moments
-	Day       string    `form:"day"`      // Moments
+	Month     string    `form:"month"`    // Moments, Discover
+	Day       string    `form:"day"`      // Moments, Discover
 	Face      string    `form:"face"`     // UIDs
 	Subject   string    `form:"subject"`  // UIDs
 	Person    string    `form:"person"`   // Alias for Subject
