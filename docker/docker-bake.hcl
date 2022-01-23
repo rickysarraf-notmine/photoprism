@@ -14,7 +14,7 @@ group "arm" {
 }
 
 target "armv7" {
-    dockerfile = "docker/photoprism/Dockerfile"
+    dockerfile = "docker/photoprism/armv7/Dockerfile"
     tags = ["${DOCKER_REPO}:${TAG}-armv7"]
     platforms = ["linux/arm/v7"]
     # No need, as this is done by the "--push" flag
