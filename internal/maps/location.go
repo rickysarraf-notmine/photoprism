@@ -7,6 +7,7 @@ import (
 	"github.com/photoprism/photoprism/internal/hub/overpass"
 	"github.com/photoprism/photoprism/internal/hub/places"
 	"github.com/photoprism/photoprism/pkg/s2"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
@@ -44,11 +45,11 @@ type LocationSource interface {
 
 func (l *Location) QueryApi(api string) error {
 	switch api {
-	case "places":
+	case places.ApiName:
 		return l.QueryPlaces()
 	}
 
-	return errors.New("maps: reverse lookup disabled")
+	return errors.New("maps: location lookup disabled")
 }
 
 func (l *Location) QueryPlaces() error {
@@ -136,7 +137,7 @@ func (l Location) CountryCode() string {
 }
 
 func (l Location) State() string {
-	return txt.Clip(txt.NormalizeState(l.LocState, l.CountryCode()), 100)
+	return txt.Clip(sanitize.State(l.LocState, l.CountryCode()), 100)
 }
 
 func (l Location) CountryName() string {

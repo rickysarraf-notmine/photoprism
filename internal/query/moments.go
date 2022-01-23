@@ -9,6 +9,7 @@ import (
 
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/maps"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
@@ -106,7 +107,7 @@ func (m Moment) CountryName() string {
 
 // Slug returns an identifier string for a moment.
 func (m Moment) Slug() (s string) {
-	state := txt.NormalizeState(m.State, m.Country)
+	state := sanitize.State(m.State, m.Country)
 
 	if state == "" {
 		return m.TitleSlug()
@@ -132,7 +133,7 @@ func (m Moment) TitleSlug() string {
 
 // Title returns an english title for the moment.
 func (m Moment) Title() string {
-	state := txt.NormalizeState(m.State, m.Country)
+	state := sanitize.State(m.State, m.Country)
 
 	if m.Year == 0 && m.Month == 0 {
 		if m.Label != "" {
@@ -243,7 +244,7 @@ func MomentsStates(threshold int) (results Moments, err error) {
 func MomentsLabels(threshold int) (results Moments, err error) {
 	var cats []string
 
-	for cat, _ := range MomentLabels {
+	for cat := range MomentLabels {
 		cats = append(cats, cat)
 	}
 

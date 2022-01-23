@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,8 @@ func Start(ctx context.Context, conf *config.Config) {
 			log.Error(err)
 		}
 	}()
+
+	start := time.Now()
 
 	// Set HTTP server mode.
 	if conf.HttpMode() != "" {
@@ -61,6 +64,7 @@ func Start(ctx context.Context, conf *config.Config) {
 				conf.BaseUri(config.ApiUri + "/zip"),
 				conf.BaseUri(config.ApiUri + "/albums"),
 				conf.BaseUri(config.ApiUri + "/labels"),
+				conf.BaseUri(config.ApiUri + "/videos"),
 			})))
 	}
 
@@ -75,6 +79,8 @@ func Start(ctx context.Context, conf *config.Config) {
 		Addr:    fmt.Sprintf("%s:%d", conf.HttpHost(), conf.HttpPort()),
 		Handler: router,
 	}
+
+	log.Debugf("http: successfully initialized [%s]", time.Since(start))
 
 	// Start HTTP server.
 	go func() {

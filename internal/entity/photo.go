@@ -17,6 +17,7 @@ import (
 	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/pkg/rnd"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
@@ -145,7 +146,7 @@ func SavePhotoForm(model Photo, form form.Photo) error {
 	}
 
 	if !model.HasID() {
-		return errors.New("can't save form when photo id is missing")
+		return errors.New("cannot save form when photo id is missing")
 	}
 
 	// Update time fields.
@@ -210,15 +211,15 @@ func SavePhotoForm(model Photo, form form.Photo) error {
 func (m *Photo) String() string {
 	if m.PhotoUID == "" {
 		if m.PhotoName != "" {
-			return txt.Quote(m.PhotoName)
+			return sanitize.Log(m.PhotoName)
 		} else if m.OriginalName != "" {
-			return txt.Quote(m.OriginalName)
+			return sanitize.Log(m.OriginalName)
 		}
 
 		return "(unknown)"
 	}
 
-	return "uid " + txt.Quote(m.PhotoUID)
+	return "uid " + sanitize.Log(m.PhotoUID)
 }
 
 // FirstOrCreate fetches an existing row from the database or inserts a new one.
@@ -299,7 +300,7 @@ func (m *Photo) Find() error {
 // SaveLabels updates the photo after labels have changed.
 func (m *Photo) SaveLabels() error {
 	if !m.HasID() {
-		return errors.New("photo: can't save to database, id is empty")
+		return errors.New("photo: cannot save to database, id is empty")
 	}
 
 	labels := m.ClassifyLabels()
@@ -561,12 +562,12 @@ func (m *Photo) AddLabels(labels classify.Labels) {
 		labelEntity := FirstOrCreateLabel(NewLabel(classifyLabel.Title(), classifyLabel.Priority))
 
 		if labelEntity == nil {
-			log.Errorf("index: label %s should not be nil - bug? (%s)", txt.Quote(classifyLabel.Title()), m)
+			log.Errorf("index: label %s should not be nil - bug? (%s)", sanitize.Log(classifyLabel.Title()), m)
 			continue
 		}
 
 		if labelEntity.Deleted() {
-			log.Debugf("index: skipping deleted label %s (%s)", txt.Quote(classifyLabel.Title()), m)
+			log.Debugf("index: skipping deleted label %s (%s)", sanitize.Log(classifyLabel.Title()), m)
 			continue
 		}
 
@@ -721,7 +722,7 @@ func (m *Photo) Restore() error {
 // Delete deletes the photo from the index.
 func (m *Photo) Delete(permanently bool) (files Files, err error) {
 	if m.ID < 1 || m.PhotoUID == "" {
-		return files, fmt.Errorf("invalid photo id %d / uid %s", m.ID, txt.Quote(m.PhotoUID))
+		return files, fmt.Errorf("invalid photo id %d / uid %s", m.ID, sanitize.Log(m.PhotoUID))
 	}
 
 	if permanently {
@@ -742,7 +743,7 @@ func (m *Photo) Delete(permanently bool) (files Files, err error) {
 // DeletePermanently permanently removes a photo from the index.
 func (m *Photo) DeletePermanently() (files Files, err error) {
 	if m.ID < 1 || m.PhotoUID == "" {
-		return files, fmt.Errorf("invalid photo id %d / uid %s", m.ID, txt.Quote(m.PhotoUID))
+		return files, fmt.Errorf("invalid photo id %d / uid %s", m.ID, sanitize.Log(m.PhotoUID))
 	}
 
 	files = m.AllFiles()
@@ -787,7 +788,7 @@ func (m *Photo) Updates(values interface{}) error {
 	return UnscopedDb().Model(m).UpdateColumns(values).Error
 }
 
-// SetFavorite updates the favorite status of a photo.
+// SetFavorite updates the favorite flag of a photo.
 func (m *Photo) SetFavorite(favorite bool) error {
 	changed := m.PhotoFavorite != favorite
 	m.PhotoFavorite = favorite
@@ -811,6 +812,14 @@ func (m *Photo) SetFavorite(favorite bool) error {
 	}
 
 	return nil
+}
+
+// SetStack updates the stack flag of a photo.
+func (m *Photo) SetStack(stack int8) {
+	if m.PhotoStack != stack {
+		m.PhotoStack = stack
+		Log("photo", "update stack flag", m.Update("PhotoStack", m.PhotoStack))
+	}
 }
 
 // Approve approves a photo in review.
@@ -862,7 +871,7 @@ func (m *Photo) SetPrimary(fileUID string) error {
 		// Do nothing.
 	} else if err := Db().Model(File{}).
 		Where("photo_uid = ? AND file_type = 'jpg' AND file_missing = 0 AND file_error = ''", m.PhotoUID).
-		Order("file_width DESC").Limit(1).
+		Order("file_width DESC, file_hdr DESC").Limit(1).
 		Pluck("file_uid", &files).Error; err != nil {
 		return err
 	} else if len(files) == 0 {

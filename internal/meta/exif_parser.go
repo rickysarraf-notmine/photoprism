@@ -12,20 +12,20 @@ import (
 	pngstructure "github.com/dsoprea/go-png-image-structure/v2"
 	tiffstructure "github.com/dsoprea/go-tiff-image-structure/v2"
 	"github.com/photoprism/photoprism/pkg/fs"
-	"github.com/photoprism/photoprism/pkg/txt"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 )
 
 func RawExif(fileName string, fileType fs.FileFormat) (rawExif []byte, err error) {
 	defer func() {
 		if e := recover(); e != nil {
-			err = fmt.Errorf("metadata: %s in %s (raw exif panic)\nstack: %s", e, txt.Quote(filepath.Base(fileName)), debug.Stack())
+			err = fmt.Errorf("metadata: %s in %s (raw exif panic)\nstack: %s", e, sanitize.Log(filepath.Base(fileName)), debug.Stack())
 		}
 	}()
 
 	// Extract raw EXIF block.
 	var parsed bool
 
-	logName := txt.Quote(filepath.Base(fileName))
+	logName := sanitize.Log(filepath.Base(fileName))
 
 	if fileType == fs.FormatJpeg {
 		jpegMp := jpegstructure.NewJpegMediaParser()
@@ -33,7 +33,7 @@ func RawExif(fileName string, fileType fs.FileFormat) (rawExif []byte, err error
 		sl, err := jpegMp.ParseFile(fileName)
 
 		if err != nil {
-			log.Warnf("metadata: %s in %s (parse jpeg)", err, logName)
+			log.Infof("metadata: %s in %s (parse jpeg)", err, logName)
 		} else {
 			_, rawExif, err = sl.Exif()
 
@@ -43,7 +43,7 @@ func RawExif(fileName string, fileType fs.FileFormat) (rawExif []byte, err error
 				} else if strings.HasPrefix(err.Error(), "no exif data") {
 					log.Debugf("metadata: failed parsing %s, starting brute-force search (parse jpeg)", logName)
 				} else {
-					log.Warnf("metadata: %s in %s, starting brute-force search (parse jpeg)", err, logName)
+					log.Infof("metadata: %s in %s, starting brute-force search (parse jpeg)", err, logName)
 				}
 			} else {
 				parsed = true
@@ -64,7 +64,7 @@ func RawExif(fileName string, fileType fs.FileFormat) (rawExif []byte, err error
 			if err.Error() == "file does not have EXIF" {
 				return rawExif, fmt.Errorf("metadata: found no exif header in %s (parse png)", logName)
 			} else {
-				log.Warnf("metadata: %s in %s (parse png)", err, logName)
+				log.Infof("metadata: %s in %s (parse png)", err, logName)
 			}
 		} else {
 			parsed = true
@@ -84,7 +84,7 @@ func RawExif(fileName string, fileType fs.FileFormat) (rawExif []byte, err error
 			if err.Error() == "file does not have EXIF" {
 				return rawExif, fmt.Errorf("metadata: found no exif header in %s (parse heic)", logName)
 			} else {
-				log.Warnf("metadata: %s in %s (parse heic)", err, logName)
+				log.Infof("metadata: %s in %s (parse heic)", err, logName)
 			}
 		} else {
 			parsed = true
@@ -104,7 +104,7 @@ func RawExif(fileName string, fileType fs.FileFormat) (rawExif []byte, err error
 			if err.Error() == "file does not have EXIF" {
 				return rawExif, fmt.Errorf("metadata: found no exif header in %s (parse tiff)", logName)
 			} else {
-				log.Warnf("metadata: %s in %s (parse tiff)", err, logName)
+				log.Infof("metadata: %s in %s (parse tiff)", err, logName)
 			}
 		} else {
 			parsed = true

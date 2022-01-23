@@ -14,7 +14,7 @@ import (
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/internal/query"
 	"github.com/photoprism/photoprism/internal/search"
-	"github.com/photoprism/photoprism/pkg/txt"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 )
 
 // Moments represents a worker that creates albums based on popular locations, dates and labels.
@@ -106,7 +106,7 @@ func (w *Moments) Start() (err error) {
 
 				// Mark the album as non-empty to prevent deletion.
 				delete(emptyAlbums, a.AlbumUID)
-				log.Infof("moments: folder album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.FileCount)
+				log.Infof("moments: folder album %s is not empty, has %d photos", sanitize.Log(a.AlbumTitle), mom.FileCount)
 
 				// Restore the album if it has been automatically deleted.
 				restoreAlbum(a)
@@ -119,7 +119,7 @@ func (w *Moments) Start() (err error) {
 				if err := a.Create(); err != nil {
 					log.Errorf("moments: %s (create folder)", err)
 				} else {
-					log.Infof("moments: added %s (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
+					log.Infof("moments: added %s (%s)", sanitize.Log(a.AlbumTitle), a.AlbumFilter)
 				}
 			}
 		}
@@ -146,7 +146,7 @@ func (w *Moments) Start() (err error) {
 
 				// Mark the album as non-empty to prevent deletion.
 				delete(emptyAlbums, a.AlbumUID)
-				log.Infof("moments: month album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
+				log.Infof("moments: month album %s is not empty, has %d photos", sanitize.Log(a.AlbumTitle), mom.PhotoCount)
 
 				// Restore the album if it has been automatically deleted.
 				restoreAlbum(a)
@@ -154,7 +154,7 @@ func (w *Moments) Start() (err error) {
 				if err := a.Create(); err != nil {
 					log.Errorf("moments: %s", err)
 				} else {
-					log.Infof("moments: added %s (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
+					log.Infof("moments: added %s (%s)", sanitize.Log(a.AlbumTitle), a.AlbumFilter)
 				}
 			}
 		}
@@ -187,7 +187,7 @@ func (w *Moments) Start() (err error) {
 
 				// Mark the album as non-empty to prevent deletion.
 				delete(emptyAlbums, a.AlbumUID)
-				log.Infof("moments: moment album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
+				log.Infof("moments: moment album %s is not empty, has %d photos", sanitize.Log(a.AlbumTitle), mom.PhotoCount)
 
 				// Restore the album if it has been automatically deleted.
 				restoreAlbum(a)
@@ -198,7 +198,7 @@ func (w *Moments) Start() (err error) {
 				if err := a.Create(); err != nil {
 					log.Errorf("moments: %s", err)
 				} else {
-					log.Infof("moments: added %s (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
+					log.Infof("moments: added %s (%s)", sanitize.Log(a.AlbumTitle), a.AlbumFilter)
 				}
 			}
 		}
@@ -230,7 +230,7 @@ func (w *Moments) Start() (err error) {
 
 				// Mark the album as non-empty to prevent deletion.
 				delete(emptyAlbums, a.AlbumUID)
-				log.Infof("moments: country album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
+				log.Infof("moments: country album %s is not empty, has %d photos", sanitize.Log(a.AlbumTitle), mom.PhotoCount)
 
 				// Restore the album if it has been automatically deleted.
 				restoreAlbum(a)
@@ -240,7 +240,7 @@ func (w *Moments) Start() (err error) {
 				if err := a.Create(); err != nil {
 					log.Errorf("moments: %s", err)
 				} else {
-					log.Infof("moments: added %s (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
+					log.Infof("moments: added %s (%s)", sanitize.Log(a.AlbumTitle), a.AlbumFilter)
 				}
 			}
 		}
@@ -273,7 +273,7 @@ func (w *Moments) Start() (err error) {
 
 				// Mark the album as non-empty to prevent deletion.
 				delete(emptyAlbums, a.AlbumUID)
-				log.Infof("moments: state album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
+				log.Infof("moments: state album %s is not empty, has %d photos", sanitize.Log(a.AlbumTitle), mom.PhotoCount)
 
 				// Restore the album if it has been automatically deleted.
 				restoreAlbum(a)
@@ -285,7 +285,7 @@ func (w *Moments) Start() (err error) {
 				if err := a.Create(); err != nil {
 					log.Errorf("moments: %s", err)
 				} else {
-					log.Infof("moments: added %s (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
+					log.Infof("moments: added %s (%s)", sanitize.Log(a.AlbumTitle), a.AlbumFilter)
 				}
 			}
 		}
@@ -319,23 +319,23 @@ func (w *Moments) Start() (err error) {
 
 				// Mark the album as non-empty to prevent deletion.
 				delete(emptyAlbums, a.AlbumUID)
-				log.Infof("moments: label album %s is not empty, has %d photos", txt.Quote(a.AlbumTitle), mom.PhotoCount)
+				log.Infof("moments: label album %s is not empty, has %d photos", sanitize.Log(a.AlbumTitle), mom.PhotoCount)
 
 				if a.DeletedAt != nil || f.Serialize() == a.AlbumFilter {
-					log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
+					log.Tracef("moments: %s already exists (%s)", sanitize.Log(a.AlbumTitle), a.AlbumFilter)
 					continue
 				}
 
 				if err := a.Update("AlbumFilter", f.Serialize()); err != nil {
 					log.Errorf("moments: %s", err.Error())
 				} else {
-					log.Debugf("moments: updated %s (%s)", txt.Quote(a.AlbumTitle), f.Serialize())
+					log.Debugf("moments: updated %s (%s)", sanitize.Log(a.AlbumTitle), f.Serialize())
 				}
 			} else if a := entity.NewMomentsAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
 				if err := a.Create(); err != nil {
 					log.Errorf("moments: %s", err.Error())
 				} else {
-					log.Infof("moments: added %s (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
+					log.Infof("moments: added %s (%s)", sanitize.Log(a.AlbumTitle), a.AlbumFilter)
 				}
 			} else {
 				log.Errorf("moments: failed to create new moment %s (%s)", mom.Title(), f.Serialize())
@@ -371,11 +371,11 @@ func (w *Moments) Cancel() {
 
 func restoreAlbum(a *entity.Album) {
 	if !a.Deleted() {
-		log.Tracef("moments: %s already exists (%s)", txt.Quote(a.AlbumTitle), a.AlbumFilter)
+		log.Tracef("moments: %s already exists (%s)", sanitize.Log(a.AlbumTitle), a.AlbumFilter)
 	} else if err := a.Restore(); err != nil {
 		log.Errorf("moments: %s (restore %s)", err.Error(), a.AlbumType)
 	} else {
-		log.Infof("moments: %s restored", txt.Quote(a.AlbumTitle))
+		log.Infof("moments: %s restored", sanitize.Log(a.AlbumTitle))
 	}
 }
 
@@ -388,14 +388,14 @@ func deleteAlbumIfEmpty(album entity.Album) {
 	}
 
 	if err := f.ParseQueryString(); err != nil {
-		log.Errorf("moments: %s (deserialize photo query for album %s)", err, txt.Quote(album.AlbumTitle))
+		log.Errorf("moments: %s (deserialize photo query for album %s)", err, sanitize.Log(album.AlbumTitle))
 	} else {
 		if _, count, err := search.Photos(f); err != nil {
-			log.Errorf("moments: %s (photo search for album %s)", err, txt.Quote(album.AlbumTitle))
+			log.Errorf("moments: %s (photo search for album %s)", err, sanitize.Log(album.AlbumTitle))
 		} else if count > 0 {
-			log.Infof("moments: %s album %s is below threshold, but will not be deleted", album.AlbumType, txt.Quote(album.AlbumTitle))
+			log.Infof("moments: %s album %s is below threshold, but will not be deleted", album.AlbumType, sanitize.Log(album.AlbumTitle))
 		} else if count == 0 {
-			log.Infof("moments: empty %s album %s will be deleted (%s)", album.AlbumType, txt.Quote(album.AlbumTitle), album.AlbumFilter)
+			log.Infof("moments: empty %s album %s will be deleted (%s)", album.AlbumType, sanitize.Log(album.AlbumTitle), album.AlbumFilter)
 			log.Warn("moments: album deletion is running in dry-run mode, so the album will not be deleted yet")
 			// album.Delete()
 		}

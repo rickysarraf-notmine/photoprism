@@ -1,10 +1,12 @@
 FROM ubuntu:21.10
 
-LABEL maintainer="Michael Mayer <hello@photoprism.org>"
+LABEL maintainer="Michael Mayer <hello@photoprism.app>"
 
 ARG TARGETARCH
 ARG TARGETPLATFORM
 ARG BUILD_TAG
+ARG GOPROXY
+ARG GODEBUG
 
 # Set environment variables
 ENV DEBIAN_FRONTEND="noninteractive" \
@@ -32,7 +34,7 @@ COPY --chown=root:root --chmod=755 /docker/scripts/*.sh /root/.local/bin/
 # 2. Install TensorFlow for C
 # 3. Install Chrome, NodeJS, NPM, Puppeteer, TestCafe & ChromeDriver
 # 4. Install Go
-RUN apt-get update && apt-get -qq dist-upgrade && apt-get -qq install --no-install-recommends \
+RUN apt-get update && apt-get -qq dist-upgrade && apt dist-upgrade 2>/dev/null && apt-get -qq install --no-install-recommends \
     build-essential \
     ca-certificates \
     wget \
@@ -91,15 +93,15 @@ RUN apt-get update && apt-get -qq dist-upgrade && apt-get -qq install --no-insta
 
 # Download TensorFlow models & example files for testing
 RUN rm -rf /tmp/* && mkdir -p /tmp/photoprism && \
-    wget "https://dl.photoprism.org/tensorflow/nsfw.zip?${BUILD_TAG}" -O /tmp/photoprism/nsfw.zip && \
-    wget "https://dl.photoprism.org/tensorflow/nasnet.zip?${BUILD_TAG}" -O /tmp/photoprism/nasnet.zip && \
-    wget "https://dl.photoprism.org/tensorflow/facenet.zip?${BUILD_TAG}" -O /tmp/photoprism/facenet.zip && \
-    wget "https://dl.photoprism.org/qa/testdata.zip?${BUILD_TAG}" -O /tmp/photoprism/testdata.zip
+    wget "https://dl.photoprism.app/tensorflow/nsfw.zip?${BUILD_TAG}" -O /tmp/photoprism/nsfw.zip && \
+    wget "https://dl.photoprism.app/tensorflow/nasnet.zip?${BUILD_TAG}" -O /tmp/photoprism/nasnet.zip && \
+    wget "https://dl.photoprism.app/tensorflow/facenet.zip?${BUILD_TAG}" -O /tmp/photoprism/facenet.zip && \
+    wget "https://dl.photoprism.app/qa/testdata.zip?${BUILD_TAG}" -O /tmp/photoprism/testdata.zip
 
 # Copy additional scripts to image
 COPY --chown=root:root /docker/scripts/heif-convert.sh /usr/local/bin/heif-convert
 COPY --chown=root:root /docker/scripts/Makefile /root/Makefile
-COPY --chown=root:root /docker/development/entrypoint.sh /entrypoint.sh
+COPY --chown=root:root /docker/develop/entrypoint.sh /entrypoint.sh
 
 # Install Go tools
 RUN /usr/local/go/bin/go install github.com/tianon/gosu@latest && \
@@ -121,9 +123,9 @@ RUN useradd -m -U -u 1000 -d /photoprism photoprism && chmod a+rwx /photoprism &
     chmod 755 /usr/local/bin/heif-convert /entrypoint.sh && \
     find /go -type d -print0 | xargs -0 chmod 777
 
-# Copy mysql client config for development
-COPY --chown=root:root /docker/development/.my.cnf /root/.my.cnf
-COPY --chown=photoprism:photoprism /docker/development/.my.cnf /photoprism/.my.cnf
+# Copy mysql client config for develop
+COPY --chown=root:root /docker/develop/.my.cnf /root/.my.cnf
+COPY --chown=photoprism:photoprism /docker/develop/.my.cnf /photoprism/.my.cnf
 RUN chmod 644 /root/.my.cnf /photoprism/.my.cnf
 
 # Set up project directory

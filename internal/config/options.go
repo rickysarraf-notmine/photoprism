@@ -8,31 +8,34 @@ import (
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/photoprism/photoprism/pkg/fs"
+
 	"github.com/urfave/cli"
 	"gopkg.in/yaml.v2"
+
+	"github.com/photoprism/photoprism/pkg/fs"
 )
 
 // Database drivers (sql dialects).
 const (
 	MySQL    = "mysql"
 	MariaDB  = "mariadb"
-	SQLite   = "sqlite3"
+	SQLite3  = "sqlite3"
 	Postgres = "postgres" // TODO: Requires GORM 2.0 for generic column data types
 )
 
 // Options provides a struct in which application configuration is stored.
 // Application code must use functions to get config options, for two reasons:
 //
-// 1. Some options are computed and we don't want to leak implementation details (aims at reducing refactoring overhead).
-//
-// 2. Paths might actually be dynamic later (if we build a multi-user version).
+// 1. We do not want to leak implementation details so refactoring overhead is kept low
+// 2. Some config values are dynamically generated
+// 3. Paths may become dynamic too at a later time
 //
 // See https://github.com/photoprism/photoprism/issues/50#issuecomment-433856358
 type Options struct {
 	Name                  string  `json:"-"`
 	Version               string  `json:"-"`
 	Copyright             string  `json:"-"`
+	PartnerID             string  `yaml:"-" json:"-" flag:"partner-id"`
 	AdminPassword         string  `yaml:"AdminPassword" json:"-" flag:"admin-password"`
 	LogLevel              string  `yaml:"LogLevel" json:"-" flag:"log-level"`
 	Debug                 bool    `yaml:"Debug" json:"Debug" flag:"debug"`
@@ -47,8 +50,8 @@ type Options struct {
 	ConfigFile            string  `json:"-"`
 	OriginalsPath         string  `yaml:"OriginalsPath" json:"-" flag:"originals-path"`
 	OriginalsLimit        int64   `yaml:"OriginalsLimit" json:"OriginalsLimit" flag:"originals-limit"`
-	ImportPath            string  `yaml:"ImportPath" json:"-" flag:"import-path"`
 	StoragePath           string  `yaml:"StoragePath" json:"-" flag:"storage-path"`
+	ImportPath            string  `yaml:"ImportPath" json:"-" flag:"import-path"`
 	CachePath             string  `yaml:"CachePath" json:"-" flag:"cache-path"`
 	SidecarPath           string  `yaml:"SidecarPath" json:"-" flag:"sidecar-path"`
 	TempPath              string  `yaml:"TempPath" json:"-" flag:"temp-path"`
@@ -73,6 +76,8 @@ type Options struct {
 	DisableClassification bool    `yaml:"DisableClassification" json:"DisableClassification" flag:"disable-classification"`
 	DetectNSFW            bool    `yaml:"DetectNSFW" json:"DetectNSFW" flag:"detect-nsfw"`
 	UploadNSFW            bool    `yaml:"UploadNSFW" json:"-" flag:"upload-nsfw"`
+	DefaultTheme          string  `yaml:"DefaultTheme" json:"DefaultTheme" flag:"default-theme"`
+	DefaultLocale         string  `yaml:"DefaultLocale" json:"DefaultLocale" flag:"default-locale"`
 	AppIcon               string  `yaml:"AppIcon" json:"AppIcon" flag:"app-icon"`
 	AppName               string  `yaml:"AppName" json:"AppName" flag:"app-name"`
 	AppMode               string  `yaml:"AppMode" json:"AppMode" flag:"app-mode"`
@@ -250,7 +255,7 @@ func (c *Options) SetContext(ctx *cli.Context) error {
 					fieldValue.SetBool(f)
 				}
 			default:
-				log.Warnf("can't assign value of type %s from cli flag %s", t, tagValue)
+				log.Warnf("cannot assign value of type %s from cli flag %s", t, tagValue)
 			}
 		}
 	}

@@ -1,71 +1,63 @@
 # Every Contribution Makes a Difference
 
-Think of open-source development as free training with a visible outcome.
-Exploring new technologies is easier than in commercial environments,
-where development effort is more focused on immediate results.
+We welcome contributions of any kind, including blog posts, tutorials, testing, writing documentation, and pull requests. Our [Developer Guide](https://docs.photoprism.app/developer-guide/) contains all the information necessary for you to get started.
 
-We welcome contributions of any kind including pull requests, ideas, bug reports,
-testing, writing documentation, tutorials and blog posts. If you help with development,
-you have the opportunity to learn Docker, Go, TensorFlow and much more.
+## Join the Community ##
 
-## Questions? ##
+Follow us on [Twitter](https://twitter.com/photoprism_app) and join the [Community Chat](https://gitter.im/browseyourlife/community)
+to get regular updates, connect with other contributors, and discuss your ideas.
+Our [Code of Conduct](CODE_OF_CONDUCT.md) explains the "dos and don’ts."
 
-Follow us on [Twitter](https://twitter.com/photoprism_app) to receive regular project updates, 
-get in contact with other contributors and discuss your ideas. Don't be afraid to ask stupid questions.
+An important part of our journey is to explore new ways in product development and build better software through consistent use of community feedback. Feel free to [share your thoughts](https://photoprism.app/contact) with us at any time.
 
-Of all the tools we tested, it works best to get and give continuous feedback. 
-Especially polls are amazing for product development.
+## Creating Bug Reports ##
 
-## Roadmap ##
+Before reporting a bug, please use our [Troubleshooting Checklists](https://docs.photoprism.app/getting-started/troubleshooting/)
+to determine the cause of your problem. If you have a general question, need help, or an issue has not
+(yet) been clearly identified:
 
-Our vision is to provide the most user-friendly solution for browsing, organizing, and sharing your photo collection.
-The [roadmap](https://github.com/photoprism/photoprism/projects/5) shows what tasks are in progress, 
-what needs testing, and which feature requests are going to be implemented next.
+- you are welcome to ask in our [Community Chat](https://gitter.im/browseyourlife/community)
+- or post your question in [GitHub Discussions](https://github.com/photoprism/photoprism/discussions)
 
-Please give ideas you like a thumbs-up 👍  , so that we know what is most popular.
-Ideas backed by one or more eligible [sponsors](SPONSORS.md) will be prioritized as well.
+### GitHub Issues ###
 
-You are welcome to add specific feature requests directly to our [GitHub issue tracker](https://github.com/photoprism/photoprism/issues)
-if no similar [idea](https://github.com/photoprism/photoprism/labels/idea)
-or [todo](https://github.com/photoprism/photoprism/labels/todo) already exists.
-Please don't use the issue tracker to ask general questions.
+Never report a bug unless you are certain to have found a new issue that must be fixed directly in [our source code](https://github.com/photoprism/photoprism):
 
-## Reporting Bugs ##
+- [Contact us](https://photoprism.app/contact) or [a community member](https://github.com/photoprism/photoprism/discussions) if you need help, it could be a local configuration problem, or a misunderstanding in how the software works
+- This gives our team the opportunity to [improve the documentation](https://docs.photoprism.app/getting-started/troubleshooting/) and provide best-in-class support to you, instead of handling unclear and/or duplicate bug reports
+- When reporting a problem, always include the software versions you are using and other information about your environment such as [browser, browser plugins](https://docs.photoprism.app/getting-started/troubleshooting/browsers/), operating system, storage type, memory size, and processor
 
-Please use the [GitHub issue tracker](https://github.com/photoprism/photoprism/issues) to report clearly identified bugs and impediments to us.
-If you're not sure, start by asking in our [community chat](https://gitter.im/browseyourlife/community) or [contact us via email](mailto:help@photoprism.app).
-When reporting an issue, please provide the version in use and information about your environment like browser, operating system, installed memory, and processor type.
+## Submitting Pull Requests ##
 
-## Pull Requests ##
+Because we want to create the best possible product for our users, we have a [set of guidelines](https://docs.photoprism.app/developer-guide/pull-requests) to ensure that all submissions are acceptable.
 
-The [Developer Guide](https://docs.photoprism.org/developer-guide/) contains all information 
-necessary to get you started.
+They include step-by-step instructions for submitting new features,
+bug fixes, and documentation improvements.
 Issues labeled [help wanted](https://github.com/photoprism/photoprism/labels/help%20wanted) /
 [easy](https://github.com/photoprism/photoprism/labels/easy) can be good (first) contributions.
 
-Because we want to create the best possible product for our users, 
-we have a set of [guidelines](https://docs.photoprism.org/developer-guide/pull-requests) 
-to ensure that all source code submissions are acceptable.
-They include step-by-step instructions for submitting new features, 
-bug fixes, and documentation improvements.
-
-**Reviewing, testing and finally merging pull requests requires significant resources 
+**Reviewing, testing and finally merging pull requests requires significant resources
 on our side. If it's not just a small fix, it can take several months.**
 
-## Can't code? ##
+### Contributor License Agreement (CLA) ###
 
-No worries, you may also contribute by...
+After submitting your first pull request, you will automatically be asked to [accept our CLA](https://cla-assistant.io/photoprism/photoprism):
+- This gives us the ability to [(re-)license all code and documentation](https://en.wikipedia.org/wiki/Software_relicensing) at any time, *almost* as if we had created it ourselves (you retain the rights to your own work, which may be different for other CLAs)
+- Otherwise, we cannot accept pull requests, as this would mean that we are not able to change the license of our software and documentation at a later time, even though most of it was developed and written by us
+- This may be necessary, for example, if the license is incompatible with a larger combined work, we want to remove some restrictions on the AGPL/Creative Commons license, or it turns out that someone is abusing the existing license in a way we don't yet know about
+- The lack of a formal contract [would also lead to legal uncertainty](https://en.wikipedia.org/wiki/SCO%E2%80%93Linux_disputes) for us and all users, as some contributors could later claim that they did not intend to license their code in any way and that it was stolen
 
-* doing [research](https://github.com/photoprism/photoprism/issues?q=is%3Aopen+is%3Aissue+label%3Aresearch) or improving our [docs](https://github.com/photoprism/photoprism/issues?q=is%3Aopen+is%3Aissue+label%3Adocs)
-* recommending PhotoPrism to your friends
+## Not a Developer? No Problem ##
+
+You can also contribute by...
+
+* [conducting research](https://github.com/photoprism/photoprism/issues?q=is%3Aopen+is%3Aissue+label%3Aresearch) and [improving the documentation](https://github.com/photoprism/photoprism/issues?q=is%3Aopen+is%3Aissue+label%3Adocs)
+* publishing tutorials, blog posts, and podcasts
 * voting for us on pages like:
    * https://alternativeto.net/software/photoprism/about/
    * https://www.saashub.com/google-photos-alternatives
-* publishing tutorials, blog posts, or podcasts
+* recommending PhotoPrism to your friends
 
-Thank you very much! <3
+----
 
-
-
-
-
+*PhotoPrism® is a [registered trademark](https://photoprism.app/trademark). Docs [are available](https://github.com/photoprism/photoprism-docs) under the [CC BY-NC-SA 4.0 License](https://creativecommons.org/licenses/by-nc-sa/4.0/); [additional terms](https://github.com/photoprism/photoprism/blob/develop/assets/LICENSE) may apply. By using our software and services, you agree to our [terms & conditions](https://photoprism.app/terms).*

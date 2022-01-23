@@ -126,6 +126,14 @@
                             <translate>Yes</translate>
                           </td>
                         </tr>
+                        <tr v-if="file.HDR">
+                          <td>
+                            <translate>High Dynamic Range (HDR)</translate>
+                          </td>
+                          <td>
+                            <translate>Yes</translate>
+                          </td>
+                        </tr>
                         <tr v-if="file.Portrait">
                           <td>
                             <translate>Portrait</translate>
@@ -153,6 +161,12 @@
                           <td>
                             <translate>{{ file.Orientation }}</translate>
                           </td>
+                        </tr>
+                        <tr v-if="file.ColorProfile">
+                          <td>
+                            <translate>Color Profile</translate>
+                          </td>
+                          <td>{{ file.ColorProfile }}</td>
                         </tr>
                         <tr v-if="file.MainColor">
                           <td>

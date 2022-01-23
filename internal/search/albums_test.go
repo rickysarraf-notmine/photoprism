@@ -11,7 +11,7 @@ import (
 
 func TestAlbumPhotos(t *testing.T) {
 	t.Run("search with string", func(t *testing.T) {
-		results, err := AlbumPhotos(entity.AlbumFixtures.Get("april-1990"), 2)
+		results, err := AlbumPhotos(entity.AlbumFixtures.Get("april-1990"), 2, true)
 
 		if err != nil {
 			t.Fatal(err)
@@ -96,7 +96,7 @@ func TestAlbums(t *testing.T) {
 	t.Run("search for existing ID", func(t *testing.T) {
 		f := form.SearchAlbums{
 			Query:    "",
-			ID:       "at9lxuqxpogaaba7",
+			UID:      "at9lxuqxpogaaba7",
 			Slug:     "",
 			Title:    "",
 			Favorite: false,

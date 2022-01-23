@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2018 - 2021 Michael Mayer <hello@photoprism.org>
+Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -20,11 +20,11 @@ Copyright (c) 2018 - 2021 Michael Mayer <hello@photoprism.org>
     offering commercial goods, products, or services without prior written permission.
     In other words, please ask.
 
-Feel free to send an e-mail to hello@photoprism.org if you have questions,
+Feel free to send an e-mail to hello@photoprism.app if you have questions,
 want to support our work, or just want to say hello.
 
 Additional information can be found in our Developer Guide:
-https://docs.photoprism.org/developer-guide/
+https://docs.photoprism.app/developer-guide/
 
 */
 
@@ -189,8 +189,8 @@ export default class Session {
     const hasConfig = !!window.__CONFIG__;
     const clientInfo = {
       session: this.getId(),
-      js: hasConfig ? window.__CONFIG__.jsHash : "",
-      css: hasConfig ? window.__CONFIG__.cssHash : "",
+      cssUri: hasConfig ? window.__CONFIG__.cssUri : "",
+      jsUri: hasConfig ? window.__CONFIG__.jsUri : "",
       version: hasConfig ? window.__CONFIG__.version : "",
     };
 
@@ -226,7 +226,7 @@ export default class Session {
   onLogout(noRedirect) {
     this.deleteId();
     if (noRedirect !== true) {
-      window.location = "/";
+      window.location = this.config.baseUri + "/";
     }
     return Promise.resolve();
   }

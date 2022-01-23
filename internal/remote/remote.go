@@ -5,7 +5,7 @@ Package remote implements remote service sync and uploads.
 See also:
   - RClone (https://rclone.org/), a popular Go tool for syncing data with remote services
 
-Copyright (c) 2018 - 2021 Michael Mayer <hello@photoprism.org>
+Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.org>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -29,7 +29,7 @@ Feel free to send an e-mail to hello@photoprism.org if you have questions,
 want to support our work, or just want to say hello.
 
 Additional information can be found in our Developer Guide:
-https://docs.photoprism.org/developer-guide/
+https://docs.photoprism.app/developer-guide/
 
 */
 package remote

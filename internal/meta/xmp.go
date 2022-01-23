@@ -7,8 +7,9 @@ import (
 	"strconv"
 
 	jpegstructure "github.com/dsoprea/go-jpeg-image-structure/v2"
+
 	"github.com/photoprism/photoprism/pkg/fs"
-	"github.com/photoprism/photoprism/pkg/txt"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 )
 
 // XMP parses an XMP file and returns a Data struct.
@@ -20,7 +21,7 @@ func XMP(fileName string) (data Data, err error) {
 
 // XMP parses an XMP file and returns a Data struct.
 func (data *Data) XMP(fileName string, fileType fs.FileFormat) (err error) {
-	logName := txt.Quote(filepath.Base(fileName))
+	logName := sanitize.Log(filepath.Base(fileName))
 
 	defer func() {
 		if e := recover(); e != nil {

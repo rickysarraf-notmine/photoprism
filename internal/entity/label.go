@@ -5,10 +5,12 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+
 	"github.com/photoprism/photoprism/internal/classify"
 	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/pkg/rnd"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 	"github.com/photoprism/photoprism/pkg/txt"
 	"github.com/ulule/deepcopier"
 )
@@ -175,7 +177,7 @@ func (m *Label) AfterCreate(scope *gorm.Scope) error {
 
 // SetName changes the label name.
 func (m *Label) SetName(name string) {
-	name = txt.NormalizeName(name)
+	name = sanitize.Name(name)
 
 	if name == "" {
 		return

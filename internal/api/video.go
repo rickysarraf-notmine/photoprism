@@ -3,15 +3,18 @@ package api
 import (
 	"net/http"
 
+	"github.com/photoprism/photoprism/pkg/sanitize"
+
 	"github.com/photoprism/photoprism/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/photoprism/photoprism/internal/photoprism"
 	"github.com/photoprism/photoprism/internal/query"
 	"github.com/photoprism/photoprism/internal/video"
-	"github.com/photoprism/photoprism/pkg/txt"
 )
 
+// GetVideo streams videos.
+//
 // GET /api/v1/videos/:hash/:token/:type
 //
 // Parameters:
@@ -24,13 +27,13 @@ func GetVideo(router *gin.RouterGroup) {
 			return
 		}
 
-		fileHash := c.Param("hash")
-		typeName := c.Param("type")
+		fileHash := sanitize.Token(c.Param("hash"))
+		typeName := sanitize.Token(c.Param("type"))
 
 		videoType, ok := video.Types[typeName]
 
 		if !ok {
-			log.Errorf("video: invalid type %s", txt.Quote(typeName))
+			log.Errorf("video: invalid type %s", sanitize.Log(typeName))
 			c.Data(http.StatusOK, "image/svg+xml", videoIconSvg)
 			return
 		}
@@ -62,7 +65,7 @@ func GetVideo(router *gin.RouterGroup) {
 		fileName := photoprism.FileName(f.FileRoot, f.FileName)
 
 		if mf, err := photoprism.NewMediaFile(fileName); err != nil {
-			log.Errorf("video: file %s is missing", txt.Quote(f.FileName))
+			log.Errorf("video: file %s is missing", sanitize.Log(f.FileName))
 			c.Data(http.StatusOK, "image/svg+xml", videoIconSvg)
 
 			// Set missing flag so that the file doesn't show up in search results anymore.
@@ -73,7 +76,7 @@ func GetVideo(router *gin.RouterGroup) {
 			conv := service.Convert()
 
 			if avcFile, err := conv.ToAvc(mf, service.Config().FFmpegEncoder()); err != nil {
-				log.Errorf("video: transcoding %s failed", txt.Quote(f.FileName))
+				log.Errorf("video: transcoding %s failed", sanitize.Log(f.FileName))
 				c.Data(http.StatusOK, "image/svg+xml", videoIconSvg)
 				return
 			} else {

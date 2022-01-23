@@ -15,6 +15,7 @@ import (
 	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/internal/maps"
 	"github.com/photoprism/photoprism/pkg/rnd"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
@@ -43,7 +44,7 @@ type Album struct {
 	AlbumCaption     string      `gorm:"type:TEXT;" json:"Caption" yaml:"Caption,omitempty"`
 	AlbumDescription string      `gorm:"type:TEXT;" json:"Description" yaml:"Description,omitempty"`
 	AlbumNotes       string      `gorm:"type:TEXT;" json:"Notes" yaml:"Notes,omitempty"`
-	AlbumFilter      string      `gorm:"type:VARBINARY(1024);" json:"Filter" yaml:"Filter,omitempty"`
+	AlbumFilter      string      `gorm:"type:VARBINARY(767);" json:"Filter" yaml:"Filter,omitempty"`
 	AlbumOrder       string      `gorm:"type:VARBINARY(32);" json:"Order" yaml:"Order,omitempty"`
 	AlbumTemplate    string      `gorm:"type:VARBINARY(255);" json:"Template" yaml:"Template,omitempty"`
 	AlbumState       string      `gorm:"type:VARCHAR(100);index;" json:"State" yaml:"State,omitempty"`
@@ -401,15 +402,15 @@ func (m *Album) BeforeCreate(scope *gorm.Scope) error {
 // String returns the id or name as string.
 func (m *Album) String() string {
 	if m.AlbumSlug != "" {
-		return m.AlbumSlug
+		return sanitize.Log(m.AlbumSlug)
 	}
 
 	if m.AlbumTitle != "" {
-		return txt.Quote(m.AlbumTitle)
+		return sanitize.Log(m.AlbumTitle)
 	}
 
 	if m.AlbumUID != "" {
-		return m.AlbumUID
+		return sanitize.Log(m.AlbumUID)
 	}
 
 	return "[unknown album]"

@@ -19,16 +19,21 @@ import (
 	"github.com/photoprism/photoprism/internal/photoprism"
 	"github.com/photoprism/photoprism/internal/service"
 	"github.com/photoprism/photoprism/pkg/fs"
-	"github.com/photoprism/photoprism/pkg/txt"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 )
+
+const restoreDescription = "A user-defined SQL dump FILENAME can be passed as the first argument. " +
+	"The -i parameter can be omitted in this case.\n" +
+	"   The index backup and album file paths are automatically detected if not specified explicitly."
 
 // RestoreCommand configures the backup cli command.
 var RestoreCommand = cli.Command{
-	Name:      "restore",
-	Usage:     "Restores the index from database dumps and YAML album backups",
-	UsageText: `A custom database SQL dump FILENAME may be passed as first argument. The backup paths will be detected automatically if not provided.`,
-	Flags:     restoreFlags,
-	Action:    restoreAction,
+	Name:        "restore",
+	Description: restoreDescription,
+	Usage:       "Restores the index from an SQL dump and optionally albums from YAML files",
+	ArgsUsage:   "[FILENAME]",
+	Flags:       restoreFlags,
+	Action:      restoreAction,
 }
 
 var restoreFlags = []cli.Flag{
@@ -38,19 +43,19 @@ var restoreFlags = []cli.Flag{
 	},
 	cli.BoolFlag{
 		Name:  "albums, a",
-		Usage: "restore albums from YAML backups",
+		Usage: "restore albums from YAML files",
 	},
 	cli.StringFlag{
 		Name:  "albums-path",
-		Usage: "custom albums backup `PATH`",
+		Usage: "custom album files `PATH`",
 	},
 	cli.BoolFlag{
 		Name:  "index, i",
-		Usage: "restore index from database SQL dump",
+		Usage: "restore index from SQL dump",
 	},
 	cli.StringFlag{
 		Name:  "index-path",
-		Usage: "custom database backup `PATH`",
+		Usage: "custom index backup `PATH`",
 	},
 }
 
@@ -65,11 +70,7 @@ func restoreAction(ctx *cli.Context) error {
 	restoreAlbums := ctx.Bool("albums") || albumsPath != ""
 
 	if !restoreIndex && !restoreAlbums {
-		for _, flag := range restoreFlags {
-			fmt.Println(flag.String())
-		}
-
-		return nil
+		return cli.ShowSubcommandHelp(ctx)
 	}
 
 	start := time.Now()
@@ -97,7 +98,7 @@ func restoreAction(ctx *cli.Context) error {
 			}
 
 			if len(matches) == 0 {
-				log.Errorf("no backup files found in %s", indexPath)
+				log.Errorf("no SQL dumps found in %s", indexPath)
 				return nil
 			}
 
@@ -105,7 +106,7 @@ func restoreAction(ctx *cli.Context) error {
 		}
 
 		if !fs.FileExists(indexFileName) {
-			log.Errorf("backup file not found: %s", indexFileName)
+			log.Errorf("SQL dump not found: %s", indexFileName)
 			return nil
 		}
 
@@ -123,7 +124,7 @@ func restoreAction(ctx *cli.Context) error {
 			log.Warnf("replacing existing index with %d photos", counts.Photos)
 		}
 
-		log.Infof("restoring index from %s", txt.Quote(indexFileName))
+		log.Infof("restoring index from %s", sanitize.Log(indexFileName))
 
 		sqlBackup, err := os.ReadFile(indexFileName)
 
@@ -148,7 +149,7 @@ func restoreAction(ctx *cli.Context) error {
 				"-f",
 				conf.DatabaseName(),
 			)
-		case config.SQLite:
+		case config.SQLite3:
 			log.Infoln("dropping existing tables")
 			tables.Drop(conf.Db())
 			cmd = exec.Command(
@@ -199,21 +200,21 @@ func restoreAction(ctx *cli.Context) error {
 		}
 
 		if !fs.PathExists(albumsPath) {
-			log.Warnf("albums backup path %s not found", txt.Quote(albumsPath))
+			log.Warnf("album files path %s not found", sanitize.Log(albumsPath))
 		} else {
-			log.Infof("restoring albums from %s", txt.Quote(albumsPath))
+			log.Infof("restoring albums from %s", sanitize.Log(albumsPath))
 
 			if count, err := photoprism.RestoreAlbums(albumsPath, true); err != nil {
 				return err
 			} else {
-				log.Infof("restored %s from YAML backups", english.Plural(count, "album", "albums"))
+				log.Infof("restored %s from YAML files", english.Plural(count, "album", "albums"))
 			}
 		}
 	}
 
 	elapsed := time.Since(start)
 
-	log.Infof("backup restored in %s", elapsed)
+	log.Infof("restored in %s", elapsed)
 
 	conf.Shutdown()
 

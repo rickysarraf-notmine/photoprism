@@ -2,7 +2,7 @@ const clientConfig = {
   mode: "user",
   name: "PhotoPrism",
   version: "210710-bae1f2d7-Linux-x86_64-DEBUG",
-  copyright: "(c) 2018-2021 Michael Mayer <hello@photoprism.org>",
+  copyright: "(c) 2018-2022 Michael Mayer <hello@photoprism.org>",
   flags: "public debug experimental settings",
   baseUri: "",
   staticUri: "/static",
@@ -283,9 +283,9 @@ const clientConfig = {
   mapKey: "D9ve6edlcVR2mEsNvCXa",
   downloadToken: "2lbh9x09",
   previewToken: "public",
-  jsHash: "4b3198d7",
-  cssHash: "62f08685",
-  manifestHash: "3c637fa8",
+  cssUri: "/static/build/app.2259c0edcc020e7af593.css",
+  jsUri: "/static/build/app.9bd7132eaee8e4c7c7e3.js",
+  manifestUri: "/manifest.json?0e41a7e5",
   settings: {
     ui: {
       scrollbar: true,

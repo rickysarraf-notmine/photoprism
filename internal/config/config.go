@@ -31,7 +31,7 @@ import (
 	"github.com/photoprism/photoprism/internal/thumb"
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/rnd"
-	"github.com/photoprism/photoprism/pkg/txt"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 )
 
 var log = event.Log
@@ -40,7 +40,7 @@ var LowMem = false
 var TotalMem uint64
 
 const MsgSponsor = "Help us make a difference and become a sponsor today!"
-const SignUpURL = "https://docs.photoprism.org/funding/"
+const SignUpURL = "https://docs.photoprism.app/funding/"
 const MsgSignUp = "Visit " + SignUpURL + " to learn more."
 const MsgSponsorCommand = "Since running this command puts additional load on our infrastructure," +
 	" we unfortunately can only offer it to sponsors."
@@ -63,7 +63,7 @@ const Gigabyte = Megabyte * 1000
 const MinMem = Gigabyte
 
 // RecommendedMem is the recommended amount of system memory.
-const RecommendedMem = 5 * Gigabyte
+const RecommendedMem = 3 * Gigabyte
 
 // Config holds database, cache and all parameters of photoprism
 type Config struct {
@@ -124,7 +124,7 @@ func NewConfig(ctx *cli.Context) *Config {
 		if err := c.options.Load(configFile); err != nil {
 			log.Warnf("config: %s", err)
 		} else {
-			log.Debugf("config: options loaded from %s", txt.Quote(configFile))
+			log.Debugf("config: options loaded from %s", sanitize.Log(configFile))
 		}
 	}
 
@@ -170,6 +170,8 @@ func (c *Config) Propagate() {
 
 // Init creates directories, parses additional config files, opens a database connection and initializes dependencies.
 func (c *Config) Init() error {
+	start := time.Now()
+
 	if err := c.CreateDirectories(); err != nil {
 		return err
 	}
@@ -192,7 +194,7 @@ func (c *Config) Init() error {
 	}
 
 	if cpuName := cpuid.CPU.BrandName; cpuName != "" {
-		log.Debugf("config: running on %s, %s memory detected", txt.Quote(cpuid.CPU.BrandName), humanize.Bytes(TotalMem))
+		log.Debugf("config: running on %s, %s memory detected", sanitize.Log(cpuid.CPU.BrandName), humanize.Bytes(TotalMem))
 	}
 
 	// Check memory requirements.
@@ -215,7 +217,13 @@ func (c *Config) Init() error {
 
 	c.Propagate()
 
-	return c.connectDb()
+	err := c.connectDb()
+
+	if err == nil {
+		log.Debugf("config: successfully initialized [%s]", time.Since(start))
+	}
+
+	return err
 }
 
 // initStorage initializes storage directories with a random serial.
@@ -298,7 +306,7 @@ func (c *Config) BaseUri(res string) string {
 		return res
 	}
 
-	return strings.TrimRight(u.Path, "/") + res
+	return strings.TrimRight(u.EscapedPath(), "/") + res
 }
 
 // ApiUri returns the api URI.
@@ -328,6 +336,15 @@ func (c *Config) SiteUrl() string {
 	}
 
 	return strings.TrimRight(c.options.SiteUrl, "/") + "/"
+}
+
+// SiteDomain returns the public server domain.
+func (c *Config) SiteDomain() string {
+	if u, err := url.Parse(c.SiteUrl()); err != nil {
+		return "localhost"
+	} else {
+		return u.Hostname()
+	}
 }
 
 // SiteAuthor returns the site author / copyright.
@@ -451,10 +468,12 @@ func (c *Config) LogLevel() logrus.Level {
 
 // Shutdown services and workers.
 func (c *Config) Shutdown() {
+	mutex.People.Cancel()
 	mutex.MainWorker.Cancel()
 	mutex.ShareWorker.Cancel()
 	mutex.SyncWorker.Cancel()
 	mutex.MetaWorker.Cancel()
+	mutex.FacesWorker.Cancel()
 
 	if err := c.CloseDb(); err != nil {
 		log.Errorf("could not close database connection: %s", err)
@@ -478,8 +497,8 @@ func (c *Config) Workers() int {
 		cores = cpuid.CPU.PhysicalCores
 	}
 
-	// Limit number of workers when using SQLite to avoid database locking issues.
-	if c.DatabaseDriver() == SQLite && (cores >= 8 && c.options.Workers <= 0 || c.options.Workers > 4) {
+	// Limit number of workers when using SQLite3 to avoid database locking issues.
+	if c.DatabaseDriver() == SQLite3 && (cores >= 8 && c.options.Workers <= 0 || c.options.Workers > 4) {
 		return 4
 	}
 
@@ -565,7 +584,7 @@ func (c *Config) UpdateHub() {
 
 // initHub initializes PhotoPrism hub config.
 func (c *Config) initHub() {
-	c.hub = hub.NewConfig(c.Version(), c.HubConfigFile(), c.serial)
+	c.hub = hub.NewConfig(c.Version(), c.HubConfigFile(), c.serial, c.options.PartnerID)
 
 	if err := c.hub.Load(); err == nil {
 		// Do nothing.

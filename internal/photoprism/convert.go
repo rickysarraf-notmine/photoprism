@@ -21,11 +21,12 @@ import (
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/internal/thumb"
 	"github.com/photoprism/photoprism/pkg/fs"
-	"github.com/photoprism/photoprism/pkg/txt"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 )
 
 const DefaultAvcEncoder = "libx264" // Default FFmpeg AVC software encoder.
 const IntelQsvEncoder = "h264_qsv"
+const AppleVideoToolbox = "h264_videotoolbox"
 
 // Convert represents a converter that can convert RAW/HEIF images to JPEG.
 type Convert struct {
@@ -82,7 +83,7 @@ func (c *Convert) Start(path string) (err error) {
 	}
 
 	ignore.Log = func(fileName string) {
-		log.Infof("convert: ignoring %s", txt.Quote(filepath.Base(fileName)))
+		log.Infof("convert: ignoring %s", sanitize.Log(filepath.Base(fileName)))
 	}
 
 	err = godirwalk.Walk(path, &godirwalk.Options{
@@ -153,7 +154,7 @@ func (c *Convert) ToJson(f *MediaFile) (jsonName string, err error) {
 
 	log.Debugf("exiftool: extracting metadata from %s", relName)
 
-	cmd := exec.Command(c.conf.ExifToolBin(), "-m", "-api", "LargeFileSupport", "-all", "-struct", "-j", f.FileName())
+	cmd := exec.Command(c.conf.ExifToolBin(), "-n", "-m", "-api", "LargeFileSupport", "-all", "-struct", "-j", f.FileName())
 
 	// Fetch command output.
 	var out bytes.Buffer
@@ -381,6 +382,24 @@ func (c *Convert) AvcConvertCommand(f *MediaFile, avcName, codecName string) (re
 				"-y",
 				avcName,
 			)
+		} else if codecName == AppleVideoToolbox {
+			format := "format=yuv420p"
+
+			result = exec.Command(
+				c.conf.FFmpegBin(),
+				"-i", f.FileName(),
+				"-c:v", codecName,
+				"-c:a", "aac",
+				"-vf", format,
+				"-profile", "high",
+				"-level", "51",
+				"-vsync", "vfr",
+				"-r", "30",
+				"-b:v", c.AvcBitrate(f),
+				"-f", "mp4",
+				"-y",
+				avcName,
+			)
 		} else {
 			format := "format=yuv420p"
 
@@ -403,7 +422,7 @@ func (c *Convert) AvcConvertCommand(f *MediaFile, avcName, codecName string) (re
 			)
 		}
 	} else {
-		return nil, useMutex, fmt.Errorf("convert: file type %s not supported in %s", f.FileType(), txt.Quote(f.BaseName()))
+		return nil, useMutex, fmt.Errorf("convert: file type %s not supported in %s", f.FileType(), sanitize.Log(f.BaseName()))
 	}
 
 	return result, useMutex, nil

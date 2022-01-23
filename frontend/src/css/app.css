@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2018 - 2021 Michael Mayer <hello@photoprism.org>
+Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -20,11 +20,11 @@ Copyright (c) 2018 - 2021 Michael Mayer <hello@photoprism.org>
     offering commercial goods, products, or services without prior written permission.
     In other words, please ask.
 
-Feel free to send an e-mail to hello@photoprism.org if you have questions,
+Feel free to send an e-mail to hello@photoprism.app if you have questions,
 want to support our work, or just want to say hello.
 
 Additional information can be found in our Developer Guide:
-https://docs.photoprism.org/developer-guide/
+https://docs.photoprism.app/developer-guide/
 
 */
 
@@ -43,6 +43,7 @@ https://docs.photoprism.org/developer-guide/
 @import url("maps.css");
 @import url("labels.css");
 @import url("files.css");
+@import url("pages.css");
 @import url("help.css");
 
 @media (min-width: 1750px) {
@@ -145,7 +146,7 @@ main {
 
 #photoprism .text-selectable,
 #photoprism .p-page .text-selectable {
-    user-select: text;
+    user-select: text !important;
 }
 
 #photoprism .p-page pre {
@@ -182,4 +183,25 @@ main {
     padding: 0 0.2rem;
     min-width: 1.1rem;
     height: 1.1rem;
+}
+
+/* Line Height */
+
+.lh-15 {
+    line-height: 1.5rem !important;
+}
+.lh-16 {
+    line-height: 1.6rem !important;
+}
+.lh-17 {
+    line-height: 1.7rem !important;
+}
+.lh-18 {
+    line-height: 1.8rem !important;
+}
+.lh-19 {
+    line-height: 1.9rem !important;
+}
+.lh-20 {
+    line-height: 2.0rem !important;
 }

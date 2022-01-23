@@ -7,6 +7,7 @@ import (
 
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/geo"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
@@ -52,7 +53,7 @@ func (m *Photo) EstimateCountry() {
 		m.PhotoCountry = countryCode
 		m.PlaceSrc = SrcEstimate
 		m.EstimatedAt = TimePointer()
-		log.Debugf("photo: estimated country for %s is %s", m, txt.Quote(m.CountryName()))
+		log.Debugf("photo: estimated country for %s is %s", m, sanitize.Log(m.CountryName()))
 	}
 }
 
@@ -101,7 +102,7 @@ func (m *Photo) EstimateLocation(force bool) {
 			Where("taken_src <> '' AND taken_at BETWEEN CAST(? AS DATETIME) AND CAST(? AS DATETIME)", rangeMin, rangeMax).
 			Order(gorm.Expr("ABS(TIMESTAMPDIFF(SECOND, taken_at, ?))", m.TakenAt)).Limit(2).
 			Preload("Place").Find(&mostRecent).Error
-	case SQLite:
+	case SQLite3:
 		err = UnscopedDb().
 			Where("photo_lat <> 0 AND photo_lng <> 0").
 			Where("place_src <> '' AND place_src <> ? AND place_id IS NOT NULL AND place_id <> '' AND place_id <> 'zz'", SrcEstimate).
@@ -109,7 +110,7 @@ func (m *Photo) EstimateLocation(force bool) {
 			Order(gorm.Expr("ABS(JulianDay(taken_at) - JulianDay(?))", m.TakenAt)).Limit(2).
 			Preload("Place").Find(&mostRecent).Error
 	default:
-		log.Warnf("photo: unsupported sql dialect %s", txt.Quote(DbDialect()))
+		log.Warnf("photo: unsupported sql dialect %s", sanitize.Log(DbDialect()))
 		return
 	}
 
@@ -146,7 +147,7 @@ func (m *Photo) EstimateLocation(force bool) {
 			}
 		}
 	} else if recentPhoto.HasCountry() {
-		log.Debugf("photo: estimated country for %s is %s", m, txt.Quote(m.CountryName()))
+		log.Debugf("photo: estimated country for %s is %s", m, sanitize.Log(m.CountryName()))
 		m.RemoveLocation(SrcEstimate, false)
 		m.RemoveLocationLabels()
 		m.PhotoCountry = recentPhoto.PhotoCountry

@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	TrimTypeString = 32
+	TrimTypeString = 40
 )
 
 // Values is a shortcut for map[string]interface{}
@@ -63,13 +63,18 @@ func Trim(s string, maxLen int) string {
 	if l <= maxLen {
 		return s
 	} else {
-		return s[:l-1]
+		return s[:maxLen]
 	}
 }
 
 // SanitizeTypeString converts a type string to lowercase, omits invalid runes, and shortens it if needed.
 func SanitizeTypeString(s string) string {
 	return Trim(ToASCII(strings.ToLower(s)), TrimTypeString)
+}
+
+// SanitizeTypeCaseSensitive omits invalid runes, ensures a maximum length of 32 characters, and returns the result.
+func SanitizeTypeCaseSensitive(s string) string {
+	return Trim(ToASCII(s), TrimTypeString)
 }
 
 // TypeString returns an entity type string for logging.
