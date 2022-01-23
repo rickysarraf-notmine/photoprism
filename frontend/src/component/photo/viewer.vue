@@ -173,6 +173,8 @@ export default {
     onPlay() {
       if (this.item && this.item.playable) {
         new Photo().find(this.item.uid).then((video) => this.openPlayer(video));
+      } else if (this.item && this.item.sphere) {
+        Event.publish("sphereviewer.open", this.item);
       }
     },
     openPlayer(video) {

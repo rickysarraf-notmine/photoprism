@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/gin-contrib/expvar"
 	"github.com/gin-gonic/gin"
 	"github.com/photoprism/photoprism/internal/api"
 	"github.com/photoprism/photoprism/internal/config"
@@ -183,6 +184,11 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 			WebDAV(conf.ImportPath(), router.Group(conf.BaseUri(WebDAVImport), BasicAuth()), conf)
 			log.Infof("webdav: %s/ enabled, waiting for requests", conf.BaseUri(WebDAVImport))
 		}
+	}
+
+	// Monitoring and debugging endpoints.
+	if conf.EnableExpvar() {
+		router.GET("/debug/vars", expvar.Handler())
 	}
 
 	// Default HTML page for client-side rendering and routing via VueJS.

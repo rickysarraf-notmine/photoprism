@@ -5,6 +5,9 @@ UI:
   Language: de
 Templates:
   Default: index.tmpl
+Folders:
+  DateMode: last
+  SortOrder: added
 Maps:
   Animate: 0
   Style: streets

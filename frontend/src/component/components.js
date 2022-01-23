@@ -28,6 +28,8 @@ https://docs.photoprism.app/developer-guide/
 
 */
 
+import VuePannellum from "vue-pannellum";
+
 import PNotify from "./notify.vue";
 import PNavigation from "./navigation.vue";
 import PScrollTop from "./scroll-top.vue";
@@ -39,6 +41,7 @@ import PPhotoCards from "./photo/cards.vue";
 import PPhotoMosaic from "./photo/mosaic.vue";
 import PPhotoList from "./photo/list.vue";
 import PPhotoClipboard from "./photo/clipboard.vue";
+import PSphereViewer from "./sphere/viewer.vue";
 import PAlbumClipboard from "./album/clipboard.vue";
 import PAlbumToolbar from "./album/toolbar.vue";
 import PLabelClipboard from "./label/clipboard.vue";
@@ -60,12 +63,14 @@ components.install = (Vue) => {
   Vue.component("PPhotoMosaic", PPhotoMosaic);
   Vue.component("PPhotoList", PPhotoList);
   Vue.component("PPhotoClipboard", PPhotoClipboard);
+  Vue.component("PSphereViewer", PSphereViewer);
   Vue.component("PAlbumClipboard", PAlbumClipboard);
   Vue.component("PAlbumToolbar", PAlbumToolbar);
   Vue.component("PLabelClipboard", PLabelClipboard);
   Vue.component("PFileClipboard", PFileClipboard);
   Vue.component("PSubjectClipboard", PSubjectClipboard);
   Vue.component("PAboutFooter", PAboutFooter);
+  Vue.component("VPannellum", VuePannellum);
 };
 
 export default components;

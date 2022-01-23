@@ -2,7 +2,6 @@ package photoprism
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/photoprism/photoprism/internal/entity"
 
@@ -66,7 +65,7 @@ func (m *MediaFile) ReadExifToolJson() error {
 	return m.metaData.JSON(jsonName, "")
 }
 
-// MetaData returns exif meta data of a media file.
+// MetaData returns exif and xmp meta data of a media file.
 func (m *MediaFile) MetaData() (result meta.Data) {
 	m.metaDataOnce.Do(func() {
 		var err error
@@ -77,10 +76,22 @@ func (m *MediaFile) MetaData() (result meta.Data) {
 			err = fmt.Errorf("exif not supported")
 		}
 
+		xmpErr := m.metaData.XMP(m.FileName(), m.FileType())
+		if xmpErr != nil {
+			log.Debug(xmpErr)
+		}
+
+		success, trailerErr := m.metaData.ExifSamsungTrailer(m.FileName(), m.FileType())
+		if trailerErr != nil {
+			log.Debug(trailerErr)
+		} else if success {
+			log.Debugf("metadata: successfully decoded Samsung trailer data for %s", sanitize.Log(m.BaseName()))
+		}
+
 		// Parse regular JSON sidecar files ("img_1234.json")
 		if !m.IsSidecar() {
 			if jsonFiles := fs.FormatJson.FindAll(m.FileName(), []string{Config().SidecarPath(), fs.HiddenPath}, Config().OriginalsPath(), false); len(jsonFiles) == 0 {
-				log.Tracef("metadata: found no additional sidecar file for %s", sanitize.Log(filepath.Base(m.FileName())))
+				log.Tracef("metadata: found no additional sidecar file for %s", sanitize.Log(m.BaseName()))
 			} else {
 				for _, jsonFile := range jsonFiles {
 					jsonErr := m.metaData.JSON(jsonFile, m.BaseName())

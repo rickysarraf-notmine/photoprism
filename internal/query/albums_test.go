@@ -3,6 +3,7 @@ package query
 import (
 	"testing"
 
+	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -67,10 +68,23 @@ func TestAlbumCoverByUID(t *testing.T) {
 }
 
 func TestUpdateAlbumDates(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		if err := UpdateAlbumDates(); err != nil {
+	t.Run("success with mode first", func(t *testing.T) {
+		if err := UpdateAlbumDates(entity.DateModeFirst); err != nil {
 			t.Fatal(err)
 		}
+	})
+	t.Run("success with mode last", func(t *testing.T) {
+		if err := UpdateAlbumDates(entity.DateModeLast); err != nil {
+			t.Fatal(err)
+		}
+	})
+	t.Run("success with mode average", func(t *testing.T) {
+		if err := UpdateAlbumDates(entity.DateModeAverage); err != nil {
+			t.Fatal(err)
+		}
+	})
+	t.Run("fail with invalid mode", func(t *testing.T) {
+		assert.Error(t, UpdateAlbumDates("invalid"))
 	})
 }
 

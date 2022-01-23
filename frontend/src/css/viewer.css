@@ -110,3 +110,18 @@
 #photo-viewer .pswp__container.slideshow {
     transition: transform 0.8s ease-in-out;
 }
+
+/* Photosphere Viewer */
+
+#photoprism .sphere-viewer {
+    z-index: 2147483647;
+    position: absolute;
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    background-color: rgba(0,0,0,0.66);
+}

@@ -920,6 +920,11 @@ func (m *MediaFile) Orientation() int {
 	return 1
 }
 
+// EmbeddedVideoData returns the embedded video data from a Samsung motion photo.
+func (m *MediaFile) EmbeddedVideoData() ([]byte, error) {
+	return m.MetaData().EmbeddedVideoData(m.FileName(), m.FileType())
+}
+
 // Thumbnail returns a thumbnail filename.
 func (m *MediaFile) Thumbnail(path string, sizeName thumb.Name) (filename string, err error) {
 	size, ok := thumb.Sizes[sizeName]

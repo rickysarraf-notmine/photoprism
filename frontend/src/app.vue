@@ -14,6 +14,7 @@
 
     <p-video-viewer></p-video-viewer>
     <p-photo-viewer></p-photo-viewer>
+    <p-sphere-viewer></p-sphere-viewer>
   </div>
 </template>
 
