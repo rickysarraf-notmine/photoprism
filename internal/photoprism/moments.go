@@ -395,6 +395,11 @@ func deleteAlbumIfEmpty(album entity.Album) {
 		} else if count > 0 {
 			log.Infof("moments: %s album %s is below threshold, but will not be deleted", album.AlbumType, sanitize.Log(album.AlbumTitle))
 		} else if count == 0 {
+			if album.HasThumb() {
+				log.Debugf("moments: removing thumbnail for %s album %s", album.AlbumType, sanitize.Log(album.AlbumTitle))
+				album.ResetThumb()
+			}
+
 			log.Infof("moments: empty %s album %s will be deleted (%s)", album.AlbumType, sanitize.Log(album.AlbumTitle), album.AlbumFilter)
 			album.Delete()
 		}

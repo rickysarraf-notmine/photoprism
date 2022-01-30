@@ -517,6 +517,18 @@ func (m *Album) UpdateState(title, slug, stateName, countryCode string) error {
 	return m.Updates(Values{"album_title": m.AlbumTitle, "album_slug": m.AlbumSlug, "album_location": m.AlbumLocation, "album_country": m.AlbumCountry, "album_state": m.AlbumState})
 }
 
+// HasThumb returns whether the album has a configured thumbnail.
+func (m *Album) HasThumb() bool {
+	return m.Thumb != ""
+}
+
+// ResetThumb removes any thumbnail information for the album.
+func (m *Album) ResetThumb() error {
+	m.Thumb = ""
+	m.ThumbSrc = ""
+	return m.Save()
+}
+
 // SaveForm updates the entity using form data and stores it in the database.
 func (m *Album) SaveForm(f form.Album) error {
 	if err := deepcopier.Copy(m).From(f); err != nil {
