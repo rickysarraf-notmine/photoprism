@@ -825,6 +825,12 @@ export class Photo extends RestModel {
     );
   }
 
+  addFace(face) {
+    return Api.post(this.getEntityResource() + "/faces", face).then((response) =>
+      Promise.resolve(response.data)
+    );
+  }
+
   update() {
     const values = this.getValues(true);
 

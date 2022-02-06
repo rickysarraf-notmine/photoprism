@@ -31,7 +31,7 @@
                    class="accent lighten-2">
               <v-btn v-if="!marker.UID" :ripple="false" :depressed="false" class="input-confirm-face"
                      icon flat small absolute :title="$gettext('Confirm face')"
-                     @click.stop.prevent="onConfirm(marker)">
+                     @click.stop.prevent="onConfirm(marker, index)">
                 <v-icon color="white" class="action-confirm-face">library_add_check</v-icon>
               </v-btn>
               <v-btn v-if="marker.UID && !marker.SubjUID && !marker.Invalid" :ripple="false" :depressed="false" class="input-reject"
@@ -189,7 +189,18 @@ export default {
         });
       });
     },
-    onConfirm(marker) {
+    onConfirm(marker, index) {
+      if (this.busy || !marker) return;
+
+      this.busy = true;
+      this.$notify.blockUI();
+
+      this.model.addFace(marker.Face).then((data) => {
+        this.markers[index] = new Marker(data);
+
+        this.$notify.unblockUI();
+        this.busy = false;
+      });
     },
     onReject(marker) {
       if (this.busy || !marker) return;
