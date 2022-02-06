@@ -29,7 +29,12 @@
                    :transition="false"
                    aspect-ratio="1"
                    class="accent lighten-2">
-              <v-btn v-if="!marker.SubjUID && !marker.Invalid" :ripple="false" :depressed="false" class="input-reject"
+              <v-btn v-if="!marker.UID" :ripple="false" :depressed="false" class="input-confirm-face"
+                     icon flat small absolute :title="$gettext('Confirm face')"
+                     @click.stop.prevent="onConfirm(marker)">
+                <v-icon color="white" class="action-confirm-face">library_add_check</v-icon>
+              </v-btn>
+              <v-btn v-if="marker.UID && !marker.SubjUID && !marker.Invalid" :ripple="false" :depressed="false" class="input-reject"
                      icon flat small absolute :title="$gettext('Remove')"
                      @click.stop.prevent="onReject(marker)">
                 <v-icon color="white" class="action-reject">clear</v-icon>
@@ -44,6 +49,14 @@
                          class="action-undo text-xs-center"
                          :title="$gettext('Undo')" @click.stop="onApprove(marker)">
                     <v-icon dark>undo</v-icon>
+                  </v-btn>
+                </v-flex>
+              </v-layout>
+              <v-layout v-else-if="!marker.UID" row wrap align-center>
+                <v-flex xs12 class="text-xs-center pa-0">
+                  <v-btn color="transparent" disabled
+                         large depressed block
+                         class="text-xs-center">
                   </v-btn>
                 </v-flex>
               </v-layout>
@@ -99,11 +112,23 @@
           </v-card>
         </v-flex>
       </v-layout>
+      <div class="text-xs-center mt-3 mb-2">
+        <v-btn
+            color="secondary" round
+            @click.stop="loadAllFaces()"
+        >
+          <translate>Load low quality faces</translate>
+        </v-btn>
+      </div>
     </v-container>
   </div>
 </template>
 
 <script>
+import Util from "common/util";
+import Marker from "model/marker";
+
+const MarkerOverlapThreshold = 0.5;
 
 export default {
   name: 'PTabPhotoPeople',
@@ -131,6 +156,40 @@ export default {
   },
   methods: {
     refresh() {
+    },
+    loadAllFaces() {
+      this.model.loadFaces().then((faces) => {
+        const hex = (v) => parseInt(v * 1000).toString(16).padStart(3, '0');
+
+        faces.forEach(face => {
+          // NB: For some reason y is used for x calculation and vice versa.
+          const x = (face.face.y - face.face.size / 2) / face.cols;
+          const y = (face.face.x - face.face.size / 2) / face.rows;
+          const w = face.face.size / face.cols;
+          const h = face.face.size / face.rows;
+          const area = `${hex(x)}${hex(y)}${hex(w)}${hex(h)}`;
+
+          const values = {
+            Thumb: `${this.model.Hash}-${area}`,
+            X: x,
+            Y: y,
+            W: w,
+            H: h,
+            Q: face.score,
+            Invalid: false,
+            SubjUID: null,
+            Face: face,
+          };
+
+          const has_similar_marker = (marker) => Util.iou(marker, values) > MarkerOverlapThreshold;
+
+          if (!this.markers.some(has_similar_marker)) {
+            this.markers.push(new Marker(values));
+          }
+        });
+      });
+    },
+    onConfirm(marker) {
     },
     onReject(marker) {
       if (this.busy || !marker) return;
