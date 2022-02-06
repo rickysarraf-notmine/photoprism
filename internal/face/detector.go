@@ -68,8 +68,31 @@ type Detector struct {
 	perturb      int
 }
 
+// DetectAll runs the detection algorithm over the provided source image
+// and returns both high and low quality detections.
+func DetectAll(fileName string, minSize int) (faces Faces, err error) {
+	candidateFaces, err := detect(fileName, true, minSize, false)
+
+	if err != nil {
+		return faces, err
+	}
+
+	// Ignore candidates without eyes landmarks as an additional quality filter.
+	for _, face := range candidateFaces {
+		if face.Eyes != nil {
+			faces = append(faces, face)
+		}
+	}
+
+	return faces, nil
+}
+
 // Detect runs the detection algorithm over the provided source image.
 func Detect(fileName string, findLandmarks bool, minSize int) (faces Faces, err error) {
+	return detect(fileName, findLandmarks, minSize, true)
+}
+
+func detect(fileName string, findLandmarks bool, minSize int, ignoreLowQuality bool) (faces Faces, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("faces: %s (panic)\nstack: %s", r, debug.Stack())
@@ -103,7 +126,7 @@ func Detect(fileName string, findLandmarks bool, minSize int) (faces Faces, err 
 		return faces, fmt.Errorf("faces: no result")
 	}
 
-	faces, err = d.Faces(det, params, findLandmarks)
+	faces, err = d.Faces(det, params, findLandmarks, ignoreLowQuality)
 
 	if err != nil {
 		return faces, fmt.Errorf("faces: %s", err)
@@ -175,7 +198,7 @@ func (d *Detector) Detect(fileName string) (faces []pigo.Detection, params pigo.
 }
 
 // Faces adds landmark coordinates to detected faces and returns the results.
-func (d *Detector) Faces(det []pigo.Detection, params pigo.CascadeParams, findLandmarks bool) (results Faces, err error) {
+func (d *Detector) Faces(det []pigo.Detection, params pigo.CascadeParams, findLandmarks bool, ignoreLowQuality bool) (results Faces, err error) {
 	// Sort results by size.
 	sort.Slice(det, func(i, j int) bool {
 		return det[i].Scale > det[j].Scale
@@ -183,7 +206,7 @@ func (d *Detector) Faces(det []pigo.Detection, params pigo.CascadeParams, findLa
 
 	for _, face := range det {
 		// Skip result if quality is too low.
-		if face.Q < QualityThreshold(face.Scale) {
+		if face.Q < QualityThreshold(face.Scale) && ignoreLowQuality {
 			continue
 		}
 
