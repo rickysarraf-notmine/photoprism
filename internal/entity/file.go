@@ -602,6 +602,22 @@ func (m *File) Markers() *Markers {
 	return m.markers
 }
 
+// LatestMarker returns the last created marker.
+func (m *File) LatestMarker() Marker {
+	var latest Marker
+
+	created := time.Time{}
+
+	for _, marker := range *m.markers {
+		if marker.CreatedAt.After(created) {
+			latest = marker
+			created = marker.CreatedAt
+		}
+	}
+
+	return latest
+}
+
 // UnsavedMarkers tests if any marker hasn't been saved yet.
 func (m *File) UnsavedMarkers() bool {
 	if m.markers == nil {
