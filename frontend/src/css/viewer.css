@@ -115,7 +115,7 @@
 
 #photoprism .sphere-viewer {
     z-index: 2147483647;
-    position: absolute;
+    position: fixed;
     box-sizing: border-box;
     border: none;
     outline: none;
