@@ -93,13 +93,21 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 			return
 		}
 
+		// Check that we have only one embedding. This duplicates the check in AddFace, but it's important
+		// to have it here as well, so that we can report the error to the user.
+		if !embeddings.One() {
+			log.Errorf("markers: unexpected embeddings count %d for file %s and crop area %s", embeddings.Count(), file.FileUID, f.CropArea())
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "region does not contain a face (invalid embeddings)"})
+			return
+		}
+
 		// Assign the embeddings to the face and add the face to the file, which will create a new marker.
 		f.Embeddings = embeddings
 		file.AddFace(f, "")
 
 		// It is expected that adding the new face to the file will result in a new unsaved marker.
 		if !file.UnsavedMarkers() {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "cannot create marker for face"})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "face marker was not created"})
 			return
 		}
 
