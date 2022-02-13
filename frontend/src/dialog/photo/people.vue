@@ -139,6 +139,7 @@
 </template>
 
 <script>
+import Notify from "common/notify";
 import Util from "common/util";
 import File from "model/file";
 import Marker from "model/marker";
@@ -176,34 +177,42 @@ export default {
   methods: {
     refresh() {
     },
+    markerFromFace(face) {
+      // Create a Marker object from the backend "Face" object.
+      // NB: For some reason y is used for x calculation and vice versa.
+      const x = (face.face.y - face.face.size / 2) / face.cols;
+      const y = (face.face.x - face.face.size / 2) / face.rows;
+      const w = face.face.size / face.cols;
+      const h = face.face.size / face.rows;
+
+      const hex = (v) => parseInt(v * 1000).toString(16).padStart(3, '0');
+      const area = `${hex(x)}${hex(y)}${hex(w)}${hex(h)}`;
+
+      const values = {
+        Thumb: `${this.model.Hash}-${area}`,
+        X: x,
+        Y: y,
+        W: w,
+        H: h,
+        Q: face.score,
+        Invalid: false,
+        SubjUID: null,
+        Face: face,
+      };
+
+      return new Marker(values);
+    },
+    markerExists(face_marker) {
+      const has_similar_marker = (marker) => Util.iou(marker, face_marker) > MarkerOverlapThreshold;
+      return this.markers.some(has_similar_marker);
+    },
     loadAllFaces() {
       this.model.loadFaces().then((faces) => {
-        const hex = (v) => parseInt(v * 1000).toString(16).padStart(3, '0');
-
         faces.forEach(face => {
-          // NB: For some reason y is used for x calculation and vice versa.
-          const x = (face.face.y - face.face.size / 2) / face.cols;
-          const y = (face.face.x - face.face.size / 2) / face.rows;
-          const w = face.face.size / face.cols;
-          const h = face.face.size / face.rows;
-          const area = `${hex(x)}${hex(y)}${hex(w)}${hex(h)}`;
+          const face_marker = this.markerFromFace(face);
 
-          const values = {
-            Thumb: `${this.model.Hash}-${area}`,
-            X: x,
-            Y: y,
-            W: w,
-            H: h,
-            Q: face.score,
-            Invalid: false,
-            SubjUID: null,
-            Face: face,
-          };
-
-          const has_similar_marker = (marker) => Util.iou(marker, values) > MarkerOverlapThreshold;
-
-          if (!this.markers.some(has_similar_marker)) {
-            this.markers.push(new Marker(values));
+          if (!this.markerExists(face_marker)) {
+            this.markers.push(face_marker);
           }
         });
       });
@@ -212,6 +221,11 @@ export default {
       this.dialog.select = false;
 
       if (this.busy || !face) return;
+
+      if (this.markerExists(this.markerFromFace(face))) {
+        Notify.warn(this.$gettext("Face region already exists"));
+        return;
+      }
 
       this.busy = true;
       this.$notify.blockUI();
