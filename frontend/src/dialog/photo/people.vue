@@ -119,13 +119,28 @@
         >
           <translate>Load low quality faces</translate>
         </v-btn>
+        <v-btn
+            color="secondary" round
+            @click.stop="dialog.select = true"
+        >
+          <translate>Manually select face</translate>
+        </v-btn>
       </div>
     </v-container>
+    <p-people-select-face-dialog
+        lazy
+        :show="dialog.select"
+        :file="mainFile"
+        @cancel="dialog.select = false"
+        @confirm="onSelect"
+    >
+    </p-people-select-face-dialog>
   </div>
 </template>
 
 <script>
 import Util from "common/util";
+import File from "model/file";
 import Marker from "model/marker";
 
 const MarkerOverlapThreshold = 0.5;
@@ -141,6 +156,7 @@ export default {
       busy: false,
       markers: this.model.getMarkers(true),
       imageUrl: this.model.thumbnailUrl("fit_720"),
+      mainFile: new File(this.model.mainFile()),
       disabled: !this.$config.feature("edit"),
       config: this.$config.values,
       readonly: this.$config.get("readonly"),
@@ -151,6 +167,9 @@ export default {
         }
 
         return v.length <= this.$config.get('clip') || this.$gettext("Name too long");
+      },
+      dialog: {
+        select: false,
       },
     };
   },
@@ -189,6 +208,21 @@ export default {
         });
       });
     },
+    onSelect(face) {
+      this.dialog.select = false;
+
+      if (this.busy || !face) return;
+
+      this.busy = true;
+      this.$notify.blockUI();
+
+      this.model.addFace(face).then((data) => {
+        this.markers.push(new Marker(data));
+      }).finally(() => {
+        this.$notify.unblockUI();
+        this.busy = false;
+      });
+    },
     onConfirm(marker, index) {
       if (this.busy || !marker) return;
 
@@ -197,7 +231,7 @@ export default {
 
       this.model.addFace(marker.Face).then((data) => {
         this.markers[index] = new Marker(data);
-
+      }).finally(() => {
         this.$notify.unblockUI();
         this.busy = false;
       });
