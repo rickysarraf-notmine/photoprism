@@ -193,4 +193,18 @@ export default class Util {
       throw new Error("Copy to clipboard does not support in your browser");
     }
   }
+
+  static iou(m1, m2) {
+    const w_intersection = Math.min(m1.X + m1.W, m2.X + m2.W) - Math.max(m1.X, m2.X);
+    const h_intersection = Math.min(m1.Y + m1.H, m2.Y + m2.H) - Math.max(m1.Y, m2.Y);
+
+    if (w_intersection <= 0 || h_intersection <= 0) {
+      return 0;
+    }
+
+    const intersection = w_intersection * h_intersection;
+    const union = m1.W * m1.H + m2.W * m2.H - intersection; // Union = Total Area - Intersection
+
+    return intersection / union;
+  }
 }

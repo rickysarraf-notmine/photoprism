@@ -262,6 +262,13 @@ body.chrome #photoprism .search-results .result {
     right: 4px;
 }
 
+#photoprism .cards-view .input-confirm-face,
+#photoprism .mosaic-view .input-confirm-face {
+    opacity: 0.75;
+    top: 4px;
+    left: 4px;
+}
+
 #photoprism .cards-view .input-hidden,
 #photoprism .mosaic-view .input-hidden {
     visibility: hidden;
