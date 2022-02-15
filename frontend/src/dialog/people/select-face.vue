@@ -42,27 +42,30 @@ export default {
   data() {
     return {
       coordinates: null,
+      image: null,
     };
   },
   methods: {
-    onChange({coordinates}) {
+    onChange({coordinates, image}) {
       this.coordinates = coordinates;
+      this.image = image;
     },
     cancel() {
       this.$emit('cancel');
     },
     confirm() {
       const size = this.coordinates.width;
+      const half_size = parseInt(size / 2);
 
       const face = {
-        cols: this.file.Width,
-        rows: this.file.Height,
+        cols: this.file.Width, // or this.image.width
+        rows: this.file.Height, // or this.image.height
         score: 0,
         face: {
           name: "face",
           size: size,
-          x: this.coordinates.top + size / 2,
-          y: this.coordinates.left + size / 2,
+          x: this.coordinates.top + half_size,
+          y: this.coordinates.left + half_size,
         },
       };
 
