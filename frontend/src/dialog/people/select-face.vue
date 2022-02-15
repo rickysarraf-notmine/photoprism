@@ -53,6 +53,7 @@ export default {
     },
     confirm() {
       const size = this.coordinates.width;
+      const half_size = parseInt(size / 2);
 
       const face = {
         cols: this.file.Width,
@@ -61,8 +62,8 @@ export default {
         face: {
           name: "face",
           size: size,
-          x: this.coordinates.top + size / 2,
-          y: this.coordinates.left + size / 2,
+          x: this.coordinates.top + half_size,
+          y: this.coordinates.left + half_size,
         },
       };
 
