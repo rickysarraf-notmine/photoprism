@@ -42,11 +42,13 @@ export default {
   data() {
     return {
       coordinates: null,
+      image: null,
     };
   },
   methods: {
-    onChange({coordinates}) {
+    onChange({coordinates, image}) {
       this.coordinates = coordinates;
+      this.image = image;
     },
     cancel() {
       this.$emit('cancel');
@@ -56,8 +58,8 @@ export default {
       const half_size = parseInt(size / 2);
 
       const face = {
-        cols: this.file.Width,
-        rows: this.file.Height,
+        cols: this.file.Width, // or this.image.width
+        rows: this.file.Height, // or this.image.height
         score: 0,
         face: {
           name: "face",
