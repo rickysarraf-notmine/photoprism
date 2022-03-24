@@ -163,6 +163,9 @@ func configAction(ctx *cli.Context) error {
 	fmt.Printf("%-25s %f\n", "face-cluster-dist", conf.FaceClusterDist())
 	fmt.Printf("%-25s %f\n", "face-match-dist", conf.FaceMatchDist())
 
+	// Monitoring and debugging.
+	fmt.Printf("%-25s %t\n", "enable-expvar", conf.EnableExpvar())
+
 	// Daemon Mode.
 	fmt.Printf("%-25s %s\n", "pid-filename", conf.PIDFilename())
 	fmt.Printf("%-25s %s\n", "log-filename", conf.LogFilename())

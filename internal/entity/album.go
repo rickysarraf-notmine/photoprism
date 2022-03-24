@@ -21,6 +21,7 @@ import (
 
 const (
 	AlbumDefault = "album"
+	AlbumCountry = "country"
 	AlbumFolder  = "folder"
 	AlbumMoment  = "moment"
 	AlbumMonth   = "month"
@@ -132,7 +133,7 @@ func NewAlbum(albumTitle, albumType string) *Album {
 }
 
 // NewFolderAlbum creates a new folder album.
-func NewFolderAlbum(albumTitle, albumPath, albumFilter string) *Album {
+func NewFolderAlbum(albumTitle, albumPath, albumFilter string, albumSortOrder string) *Album {
 	albumSlug := slug.Make(albumPath)
 
 	if albumTitle == "" || albumSlug == "" || albumPath == "" || albumFilter == "" {
@@ -142,7 +143,7 @@ func NewFolderAlbum(albumTitle, albumPath, albumFilter string) *Album {
 	now := TimeStamp()
 
 	result := &Album{
-		AlbumOrder:  SortOrderAdded,
+		AlbumOrder:  albumSortOrder,
 		AlbumType:   AlbumFolder,
 		AlbumTitle:  albumTitle,
 		AlbumSlug:   albumSlug,
@@ -200,6 +201,27 @@ func NewStateAlbum(albumTitle, albumSlug, albumFilter string) *Album {
 	return result
 }
 
+// NewCountryAlbum creates a new moment.
+func NewCountryAlbum(albumTitle, albumSlug, albumFilter string) *Album {
+	if albumTitle == "" || albumSlug == "" || albumFilter == "" {
+		return nil
+	}
+
+	now := TimeStamp()
+
+	result := &Album{
+		AlbumOrder:  SortOrderNewest,
+		AlbumType:   AlbumCountry,
+		AlbumTitle:  albumTitle,
+		AlbumSlug:   albumSlug,
+		AlbumFilter: albumFilter,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+
+	return result
+}
+
 // NewMonthAlbum creates a new month album.
 func NewMonthAlbum(albumTitle, albumSlug string, year, month int) *Album {
 	albumTitle = strings.TrimSpace(albumTitle)
@@ -227,6 +249,49 @@ func NewMonthAlbum(albumTitle, albumSlug string, year, month int) *Album {
 		AlbumMonth:  month,
 		CreatedAt:   now,
 		UpdatedAt:   now,
+	}
+
+	return result
+}
+
+// FindLabelAlbums finds all label albums (including deletes ones) or returns nil.
+func FindLabelAlbums() (result Albums) {
+	// Both "label" and "country / year" album have the same album type,
+	// so to distinguish between the two we have few options:
+	// - "label" albums do not have a year
+	// - "label" albums do not have a country
+	// - "label" albums should contain the "label:" string as filter
+	if err := UnscopedDb().
+		Where("album_type = ?", AlbumMoment).
+		Where("album_year IS NULL").
+		Find(&result).Error; err != nil {
+
+		log.Errorf("album: %s (not found)", err)
+		return nil
+	}
+
+	return result
+}
+
+// FindCountriesByYearAlbums finds all moment albums (including deleted ones) or returns nil.
+func FindCountriesByYearAlbums() (result Albums) {
+	if err := UnscopedDb().
+		Where("album_type = ?", AlbumMoment).
+		Where("album_year IS NOT NULL").
+		Find(&result).Error; err != nil {
+
+		log.Errorf("album: %s (not found)", err)
+		return nil
+	}
+
+	return result
+}
+
+// FindAlbumByType finds all albums (including deleted ones) with the given type or returns nil.
+func FindAlbumsByType(albumType string) (result Albums) {
+	if err := UnscopedDb().Where("album_type = ?", albumType).Find(&result).Error; err != nil {
+		log.Errorf("album: %s (not found)", err)
+		return nil
 	}
 
 	return result
@@ -450,6 +515,18 @@ func (m *Album) UpdateState(title, slug, stateName, countryCode string) error {
 	m.AlbumTitle = title
 
 	return m.Updates(Values{"album_title": m.AlbumTitle, "album_slug": m.AlbumSlug, "album_location": m.AlbumLocation, "album_country": m.AlbumCountry, "album_state": m.AlbumState})
+}
+
+// HasThumb returns whether the album has a configured thumbnail.
+func (m *Album) HasThumb() bool {
+	return m.Thumb != ""
+}
+
+// ResetThumb removes any thumbnail information for the album.
+func (m *Album) ResetThumb() error {
+	m.Thumb = ""
+	m.ThumbSrc = ""
+	return m.Save()
 }
 
 // SaveForm updates the entity using form data and stores it in the database.

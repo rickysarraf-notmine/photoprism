@@ -10,6 +10,7 @@ const (
 	AvcExt      = ".avc"
 	FujiRawExt  = ".raf"
 	CanonCr3Ext = ".cr3"
+	Mp4Ext      = ".mp4"
 )
 
 // FileExtensions maps file extensions to standard formats

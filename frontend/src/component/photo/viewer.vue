@@ -22,6 +22,11 @@
             <v-icon size="16" color="white">get_app</v-icon>
           </button>
 
+          <button v-if="navigatorCanShare" class="pswp__button action-webshare" style="background: none;"
+                  :title="$gettext('Share')" @click.exact="onWebShare">
+            <v-icon size="16" color="white">share</v-icon>
+          </button>
+
           <button class="pswp__button action-edit hidden-shared-only" style="background: none;" :title="$gettext('Edit')"
                   @click.exact="onEdit">
             <v-icon size="16" color="white">edit</v-icon>
@@ -98,6 +103,7 @@ export default {
     return {
       selection: this.$clipboard.selection,
       config: this.$config.values,
+      navigatorCanShare: navigator.canShare,
       item: new Thumb(),
       subscriptions: [],
       interval: false,
@@ -173,6 +179,8 @@ export default {
     onPlay() {
       if (this.item && this.item.playable) {
         new Photo().find(this.item.uid).then((video) => this.openPlayer(video));
+      } else if (this.item && this.item.sphere) {
+        Event.publish("sphereviewer.open", this.item);
       }
     },
     openPlayer(video) {
@@ -244,6 +252,21 @@ export default {
       Notify.success(this.$gettext("Downloading…"));
 
       new Photo().find(this.item.uid).then(p => p.downloadAll());
+    },
+    onWebShare() {
+      this.onPause();
+
+      if (!this.item || !this.item.download_url) {
+        console.warn("photo viewer: no download url");
+        return;
+      }
+
+      new Photo().find(this.item.uid).then(p => p.webShare()).catch(e => {
+        this.$notify.error("couldn't share photo");
+        console.warn(e);
+      });
+
+      Notify.success(this.$gettext("Downloading & Sharing…"));
     },
     onEdit() {
       this.onPause();

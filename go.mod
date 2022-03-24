@@ -1,6 +1,7 @@
 module github.com/photoprism/photoprism
 
 require (
+	github.com/alfg/mp4 v0.0.0-20210728035756-55ea58c08aeb
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/disintegration/imaging v1.6.2
@@ -15,6 +16,7 @@ require (
 	github.com/dsoprea/go-utility v0.0.0-20200717064901-2fccff4aa15e // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/esimov/pigo v1.4.5
+	github.com/gin-contrib/expvar v0.0.1
 	github.com/gin-contrib/gzip v0.0.5
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-errors/errors v1.4.2 // indirect
@@ -79,6 +81,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/sethgrid/pester v1.1.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect

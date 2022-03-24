@@ -543,4 +543,9 @@ var GlobalFlags = []cli.Flag{
 		EnvVar: "PHOTOPRISM_LOG_FILENAME",
 		Value:  "",
 	},
+	cli.BoolFlag{
+		Name:   "enable-expvar",
+		Usage:  "provide a publicly accessible expvar endpoint",
+		EnvVar: "PHOTOPRISM_ENABLE_EXPVAR",
+	},
 }

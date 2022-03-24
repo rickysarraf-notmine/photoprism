@@ -23,6 +23,8 @@ Additional information can be found in our Developer Guide:
 
 */
 
+import VuePannellum from "vue-pannellum";
+
 import PNotify from "component/notify.vue";
 import PNavigation from "component/navigation.vue";
 import PScrollTop from "component/scroll-top.vue";
@@ -38,6 +40,7 @@ import PAlbumClipboard from "component/album/clipboard.vue";
 import PAlbumToolbar from "component/album/toolbar.vue";
 import PLabelClipboard from "component/label/clipboard.vue";
 import PFileClipboard from "component/file/clipboard.vue";
+import PSphereViewer from "component/sphere/viewer.vue";
 import PSubjectClipboard from "component/subject/clipboard.vue";
 import PAboutFooter from "component/footer.vue";
 
@@ -55,12 +58,14 @@ components.install = (Vue) => {
   Vue.component("PPhotoMosaic", PPhotoMosaic);
   Vue.component("PPhotoList", PPhotoList);
   Vue.component("PPhotoClipboard", PPhotoClipboard);
+  Vue.component("PSphereViewer", PSphereViewer);
   Vue.component("PAlbumClipboard", PAlbumClipboard);
   Vue.component("PAlbumToolbar", PAlbumToolbar);
   Vue.component("PLabelClipboard", PLabelClipboard);
   Vue.component("PFileClipboard", PFileClipboard);
   Vue.component("PSubjectClipboard", PSubjectClipboard);
   Vue.component("PAboutFooter", PAboutFooter);
+  Vue.component("VPannellum", VuePannellum);
 };
 
 export default components;

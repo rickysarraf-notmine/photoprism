@@ -38,6 +38,17 @@ func IndexMain(related *RelatedFiles, ind *Index, opt IndexOptions) (result Inde
 		}
 	}
 
+	if f.IsMotionPhoto() {
+		log.Debugf("index: found motion photo %s", sanitize.Log(f.FileName()))
+
+		if mpFile, err := f.ExtractVideoFromMotionPhoto(); err != nil {
+			log.Errorf("index: %s in %s (extract motion photo video)", err.Error(), sanitize.Log(f.BaseName()))
+		} else {
+			log.Debugf("index: created motion photo video for %s", sanitize.Log(mpFile.BaseName()))
+			related.Files = append(related.Files, mpFile)
+		}
+	}
+
 	if opt.Convert && f.IsMedia() && !f.HasJpeg() {
 		if jpegFile, err := ind.convert.ToJpeg(f); err != nil {
 			result.Err = fmt.Errorf("index: failed converting %s to jpeg (%s)", sanitize.Log(f.BaseName()), err.Error())

@@ -131,6 +131,7 @@ type Options struct {
 	FaceClusterCore       int     `yaml:"-" json:"-" flag:"face-cluster-core"`
 	FaceClusterDist       float64 `yaml:"-" json:"-" flag:"face-cluster-dist"`
 	FaceMatchDist         float64 `yaml:"-" json:"-" flag:"face-match-dist"`
+	EnableExpvar          bool    `yaml:"EnableExpvar" json:"EnableExpvar" flag:"enable-expvar"`
 	PIDFilename           string  `yaml:"PIDFilename" json:"-" flag:"pid-filename"`
 	LogFilename           string  `yaml:"LogFilename" json:"-" flag:"log-filename"`
 }
