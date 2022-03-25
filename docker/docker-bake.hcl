@@ -22,7 +22,7 @@ target "armv7" {
 }
 
 target "arm64" {
-    dockerfile = "docker/photoprism/Dockerfile"
+    dockerfile = "docker/photoprism/bookworm/Dockerfile"
     tags = ["${DOCKER_REPO}:${TAG}-arm64"]
     platforms = ["linux/arm64"]
     # No need, as this is done by the "--push" flag
@@ -30,7 +30,7 @@ target "arm64" {
 }
 
 target "amd64" {
-    dockerfile = "docker/photoprism/Dockerfile"
+    dockerfile = "docker/photoprism/bookworm/Dockerfile"
     tags = ["${DOCKER_REPO}:${TAG}-amd64"]
     platforms = ["linux/amd64"]
     # No need, as this is done by the "--push" flag
