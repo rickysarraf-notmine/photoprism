@@ -1,20 +1,20 @@
 <template>
   <v-container fluid fill-height class="pa-0 p-page p-page-places">
     <div id="map" style="width: 100%; height: 100%;">
-      <div class="p-map-control">
-        <div class="mapboxgl-ctrl mapboxgl-ctrl-group">
-          <v-text-field v-model="filter.q"
+      <div class="map-control">
+        <div class="maplibregl-ctrl maplibregl-ctrl-group">
+          <v-text-field v-model.lazy.trim="filter.q"
+                        solo hide-details clearable flat single-line validate-on-blur
                         class="pa-0 ma-0 input-search"
-                        single-line
-                        solo
-                        flat
                         :label="$gettext('Search')"
                         prepend-inner-icon="search"
-                        clearable
-                        hide-details
                         browser-autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="none"
                         color="secondary-dark"
                         @click:clear="clearQuery"
+                        @blur="formChange"
+                        @change="formChange"
                         @keyup.enter.native="formChange"
           ></v-text-field>
         </div>
@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 import Api from "common/api";
 import Thumb from "model/thumb";
 
@@ -52,6 +52,7 @@ export default {
     '$route'() {
       this.filter.q = this.query();
       this.lastFilter = {};
+
       this.search();
     }
   },
@@ -79,11 +80,11 @@ export default {
         const settings = this.$config.settings();
 
         if (settings && settings.features.private) {
-          filter.public = true;
+          filter.public = "true";
         }
 
         if (settings && settings.features.review && (!this.staticFilter || !("quality" in this.staticFilter))) {
-          filter.quality = 3;
+          filter.quality = "3";
         }
 
         let mapFont = ['Roboto', 'sans-serif'];
@@ -228,6 +229,7 @@ export default {
       });
     },
     formChange() {
+      if (this.loading) return;
       this.search();
     },
     clearQuery() {
@@ -290,17 +292,19 @@ export default {
       });
     },
     renderMap() {
-      this.map = new mapboxgl.Map(this.options);
+      this.map = new maplibregl.Map(this.options);
       this.map.setLanguage(this.$config.values.settings.ui.language.split("-")[0]);
 
-      this.map.addControl(new mapboxgl.NavigationControl({showCompass: true}, 'top-right'));
-      this.map.addControl(new mapboxgl.FullscreenControl({container: document.querySelector('body')}));
-      this.map.addControl(new mapboxgl.GeolocateControl({
+      const controlPos = this.$rtl ? 'top-left' : 'top-right';
+
+      this.map.addControl(new maplibregl.NavigationControl({showCompass: true}), controlPos);
+      this.map.addControl(new maplibregl.FullscreenControl({container: document.querySelector('body')}), controlPos);
+      this.map.addControl(new maplibregl.GeolocateControl({
         positionOptions: {
           enableHighAccuracy: true
         },
         trackUserLocation: true
-      }));
+      }), controlPos);
 
       this.map.on("load", () => this.onMapLoad());
     },
@@ -326,7 +330,7 @@ export default {
           el.style.height = '50px';
 
           el.addEventListener('click', () => this.openPhoto(props.UID));
-          marker = this.markers[id] = new mapboxgl.Marker({
+          marker = this.markers[id] = new maplibregl.Marker({
             element: el
           }).setLngLat(coords);
         } else {

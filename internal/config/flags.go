@@ -98,27 +98,27 @@ var GlobalFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "import-path",
-		Usage:  "optional base `PATH` from which files can be imported to originals",
+		Usage:  "base `PATH` from which files can be imported to originals (optional)",
 		EnvVar: "PHOTOPRISM_IMPORT_PATH",
 	},
 	cli.StringFlag{
 		Name:   "cache-path",
-		Usage:  "optional custom cache `PATH` for sessions and thumbnail files",
+		Usage:  "custom cache `PATH` for sessions and thumbnail files (optional)",
 		EnvVar: "PHOTOPRISM_CACHE_PATH",
 	},
 	cli.StringFlag{
 		Name:   "sidecar-path",
-		Usage:  "optional custom relative or absolute sidecar `PATH`",
+		Usage:  "custom relative or absolute sidecar `PATH` (optional)",
 		EnvVar: "PHOTOPRISM_SIDECAR_PATH",
 	},
 	cli.StringFlag{
 		Name:   "temp-path",
-		Usage:  "optional custom temporary file `PATH`",
+		Usage:  "custom temporary file `PATH` (optional)",
 		EnvVar: "PHOTOPRISM_TEMP_PATH",
 	},
 	cli.StringFlag{
 		Name:   "backup-path",
-		Usage:  "optional custom backup `PATH` for index backup files",
+		Usage:  "custom backup `PATH` for index backup files (optional)",
 		EnvVar: "PHOTOPRISM_BACKUP_PATH",
 	},
 	cli.StringFlag{
@@ -239,24 +239,24 @@ var GlobalFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "app-icon",
-		Usage:  "application `ICON` (logo, app, crisp, mint, bold)",
+		Usage:  "web app `ICON` (logo, app, crisp, mint, bold)",
 		EnvVar: "PHOTOPRISM_APP_ICON",
 	},
 	cli.StringFlag{
 		Name:   "app-name",
-		Usage:  "application `NAME` when installed on a device",
+		Usage:  "web app `NAME` when installed on a device",
 		Value:  "PhotoPrism",
 		EnvVar: "PHOTOPRISM_APP_NAME",
 	},
 	cli.StringFlag{
 		Name:   "app-mode",
-		Usage:  "application `MODE` (fullscreen, standalone, minimal-ui, browser)",
+		Usage:  "web app `MODE` (fullscreen, standalone, minimal-ui, browser)",
 		Value:  "standalone",
 		EnvVar: "PHOTOPRISM_APP_MODE",
 	},
 	cli.StringFlag{
 		Name:   "cdn-url",
-		Usage:  "optional content delivery network `URL`",
+		Usage:  "content delivery network `URL` (optional)",
 		EnvVar: "PHOTOPRISM_CDN_URL",
 	},
 	cli.StringFlag{
@@ -267,7 +267,7 @@ var GlobalFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "site-author",
-		Usage:  "`COPYRIGHT`, artist, or owner name",
+		Usage:  "site `OWNER`, copyright, or artist",
 		EnvVar: "PHOTOPRISM_SITE_AUTHOR",
 	},
 	cli.StringFlag{
@@ -279,18 +279,30 @@ var GlobalFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "site-caption",
 		Usage:  "site `CAPTION`",
-		Value:  "Browse Your Life",
+		Value:  "AI-Powered Photos App",
 		EnvVar: "PHOTOPRISM_SITE_CAPTION",
 	},
 	cli.StringFlag{
 		Name:   "site-description",
-		Usage:  "optional site `DESCRIPTION`",
+		Usage:  "site `DESCRIPTION` (optional)",
 		EnvVar: "PHOTOPRISM_SITE_DESCRIPTION",
 	},
 	cli.StringFlag{
 		Name:   "site-preview",
-		Usage:  "optional preview image `URL`",
+		Usage:  "site preview image `URL` (optional)",
 		EnvVar: "PHOTOPRISM_SITE_PREVIEW",
+	},
+	cli.StringFlag{
+		Name:   "imprint",
+		Usage:  "legal `INFO`, displayed in the page footer",
+		Value:  "",
+		EnvVar: "PHOTOPRISM_IMPRINT",
+	},
+	cli.StringFlag{
+		Name:   "imprint-url",
+		Usage:  "legal info `URL` (optional)",
+		Value:  "",
+		EnvVar: "PHOTOPRISM_IMPRINT_URL",
 	},
 	cli.IntFlag{
 		Name:   "http-port",
@@ -315,18 +327,18 @@ var GlobalFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "database-driver",
-		Usage:  "database `DRIVER` (sqlite or mysql)",
+		Usage:  "database `DRIVER` (sqlite, mysql)",
 		Value:  "sqlite",
 		EnvVar: "PHOTOPRISM_DATABASE_DRIVER",
 	},
 	cli.StringFlag{
 		Name:   "database-dsn",
-		Usage:  "sqlite file name, providing a `DSN` is optional for other drivers",
+		Usage:  "database connection `DSN` (sqlite filename, optional for mysql)",
 		EnvVar: "PHOTOPRISM_DATABASE_DSN",
 	},
 	cli.StringFlag{
 		Name:   "database-server",
-		Usage:  "database server `HOST` with optional port e.g. mariadb:3306",
+		Usage:  "database `HOST` incl. port e.g. \"mariadb:3306\" (or socket path)",
 		EnvVar: "PHOTOPRISM_DATABASE_SERVER",
 	},
 	cli.StringFlag{
@@ -363,19 +375,19 @@ var GlobalFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "darktable-bin",
-		Usage:  "Darktable CLI `COMMAND` for RAW file conversion",
+		Usage:  "Darktable CLI `COMMAND` for RAW image conversion",
 		Value:  "darktable-cli",
 		EnvVar: "PHOTOPRISM_DARKTABLE_BIN",
 	},
 	cli.StringFlag{
 		Name:   "darktable-blacklist",
 		Usage:  "file `EXTENSIONS` incompatible with Darktable",
-		Value:  "cr3,dng",
+		Value:  "dng,cr3",
 		EnvVar: "PHOTOPRISM_DARKTABLE_BLACKLIST",
 	},
 	cli.StringFlag{
 		Name:   "rawtherapee-bin",
-		Usage:  "RawTherapee CLI `COMMAND` for RAW file conversion",
+		Usage:  "RawTherapee CLI `COMMAND` for RAW image conversion",
 		Value:  "rawtherapee-cli",
 		EnvVar: "PHOTOPRISM_RAWTHERAPEE_BIN",
 	},
@@ -387,7 +399,7 @@ var GlobalFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "sips-bin",
-		Usage:  "Sips `COMMAND` for RAW file conversion (macOS only)",
+		Usage:  "Sips `COMMAND` for RAW image conversion (macOS only)",
 		Value:  "sips",
 		EnvVar: "PHOTOPRISM_SIPS_BIN",
 	},
@@ -429,12 +441,12 @@ var GlobalFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "download-token",
-		Usage:  "custom download URL `TOKEN` (default: random)",
+		Usage:  "`SECRET` download URL token for originals (default: random)",
 		EnvVar: "PHOTOPRISM_DOWNLOAD_TOKEN",
 	},
 	cli.StringFlag{
 		Name:   "preview-token",
-		Usage:  "custom thumbnail and streaming URL `TOKEN` (default: random)",
+		Usage:  "`SECRET` thumbnail and video streaming URL token (default: random)",
 		EnvVar: "PHOTOPRISM_PREVIEW_TOKEN",
 	},
 	cli.StringFlag{
@@ -474,49 +486,49 @@ var GlobalFlags = []cli.Flag{
 	},
 	cli.IntFlag{
 		Name:   "face-size",
-		Usage:  "minimum face size in `PIXELS`",
+		Usage:  "minimum face size in `PIXELS` (20-10000)",
 		Value:  face.SizeThreshold,
 		EnvVar: "PHOTOPRISM_FACE_SIZE",
 	},
 	cli.Float64Flag{
 		Name:   "face-score",
-		Usage:  "minimum face `QUALITY` score",
+		Usage:  "minimum face `QUALITY` score (1-100)",
 		Value:  face.ScoreThreshold,
 		EnvVar: "PHOTOPRISM_FACE_SCORE",
 	},
 	cli.IntFlag{
 		Name:   "face-overlap",
-		Usage:  "face area overlap threshold in `PERCENT`",
+		Usage:  "face area overlap threshold in `PERCENT` (1-100)",
 		Value:  face.OverlapThreshold,
 		EnvVar: "PHOTOPRISM_FACE_OVERLAP",
 	},
 	cli.IntFlag{
 		Name:   "face-cluster-size",
-		Usage:  "minimum size of automatically clustered faces in `PIXELS`",
+		Usage:  "minimum size of automatically clustered faces in `PIXELS` (20-10000)",
 		Value:  face.ClusterSizeThreshold,
 		EnvVar: "PHOTOPRISM_FACE_CLUSTER_SIZE",
 	},
 	cli.IntFlag{
 		Name:   "face-cluster-score",
-		Usage:  "minimum `QUALITY` score of automatically clustered faces",
+		Usage:  "minimum `QUALITY` score of automatically clustered faces (1-100)",
 		Value:  face.ClusterScoreThreshold,
 		EnvVar: "PHOTOPRISM_FACE_CLUSTER_SCORE",
 	},
 	cli.IntFlag{
 		Name:   "face-cluster-core",
-		Usage:  "`NUMBER` of faces forming a cluster core",
+		Usage:  "`NUMBER` of faces forming a cluster core (1-100)",
 		Value:  face.ClusterCore,
 		EnvVar: "PHOTOPRISM_FACE_CLUSTER_CORE",
 	},
 	cli.Float64Flag{
 		Name:   "face-cluster-dist",
-		Usage:  "similarity `DISTANCE` of faces forming a cluster core",
+		Usage:  "similarity `DISTANCE` of faces forming a cluster core (0.1-1.5)",
 		Value:  face.ClusterDist,
 		EnvVar: "PHOTOPRISM_FACE_CLUSTER_DIST",
 	},
 	cli.Float64Flag{
 		Name:   "face-match-dist",
-		Usage:  "similarity `OFFSET` for matching faces with existing clusters",
+		Usage:  "similarity `OFFSET` for matching faces with existing clusters (0.1-1.5)",
 		Value:  face.MatchDist,
 		EnvVar: "PHOTOPRISM_FACE_MATCH_DIST",
 	},

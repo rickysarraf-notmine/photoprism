@@ -1,10 +1,14 @@
-FROM photoprism/develop:20220116
+# Debian 12, Codename "Bookworm"
+FROM photoprism/develop:220323-bookworm
 
-# Copy latest entrypoint script
-COPY --chown=root:root /docker/develop/entrypoint.sh /entrypoint.sh
-COPY --chown=root:root /docker/scripts/Makefile /root/Makefile
+## alternative base images
+# FROM photoprism/develop:bullseye # Debian 11, Codename "Bullseye"
+# FROM photoprism/develop:buster   # Debian 10, Codename "Buster"
+# FROM photoprism/develop:impish   # Ubuntu 21.10, Codename "Impish Indri"
 
-# Set up project directory
+# define working directory in container
 WORKDIR "/go/src/github.com/photoprism/photoprism"
 
+# copy project source code to container
 COPY . .
+COPY --chown=root:root /scripts/dist/* /scripts/

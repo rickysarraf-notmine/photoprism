@@ -39,9 +39,9 @@
                  :transition="false"
                  aspect-ratio="1"
                  class="accent lighten-2 clickable"
-                 @touchstart="input.touchStart($event, index)"
-                 @touchend.prevent="onClick($event, index)"
-                 @mousedown="input.mouseDown($event, index)"
+                 @touchstart.passive="input.touchStart($event, index)"
+                 @touchend.stop.prevent="onClick($event, index)"
+                 @mousedown.stop.prevent="input.mouseDown($event, index)"
                  @click.stop.prevent="onClick($event, index)"
                  @mouseover="playLive(photo)"
                  @mouseleave="pauseLive(photo)"
@@ -153,21 +153,19 @@
                   <v-icon size="14" :title="labels.taken">date_range</v-icon>
                   {{ photo.getDateString(true) }}
                 </button>
-                <template v-if="!photo.Description">
-                  <br/>
-                  <button v-if="photo.Type === 'video'" :title="labels.video"
-                          @click.exact="openPhoto(index, true)">
-                    <v-icon size="14">movie</v-icon>
-                    {{ photo.getVideoInfo() }}
-                  </button>
-                  <button v-else :title="labels.camera" class="action-camera-edit"
-                          :data-uid="photo.UID" @click.exact="editPhoto(index)">
-                    <v-icon size="14">photo_camera</v-icon>
-                    {{ photo.getPhotoInfo() }}
-                  </button>
-                </template>
+                <br>
+                <button v-if="photo.Type === 'video'" :title="labels.video"
+                        @click.exact="openPhoto(index, true)">
+                  <v-icon size="14">movie</v-icon>
+                  {{ photo.getVideoInfo() }}
+                </button>
+                <button v-else :title="labels.camera" class="action-camera-edit"
+                        :data-uid="photo.UID" @click.exact="editPhoto(index)">
+                  <v-icon size="14">photo_camera</v-icon>
+                  {{ photo.getPhotoInfo() }}
+                </button>
                 <template v-if="filter.order === 'name' && $config.feature('download')">
-                  <br/>
+                  <br>
                   <button :title="labels.name"
                           @click.exact="downloadFile(index)">
                     <v-icon size="14">insert_drive_file</v-icon>
@@ -175,7 +173,7 @@
                   </button>
                 </template>
                 <template v-if="showLocation && photo.Country !== 'zz'">
-                  <br/>
+                  <br>
                   <button :title="labels.location" class="action-location"
                           :data-uid="photo.UID" @click.exact="openLocation(index)">
                     <v-icon size="14">location_on</v-icon>
@@ -198,12 +196,21 @@ import {Input, InputInvalid, ClickShort, ClickLong} from "common/input";
 export default {
   name: 'PPhotoCards',
   props: {
-    photos: Array,
+    photos: {
+      type: Array,
+      default: () => [],
+    },
     openPhoto: Function,
     editPhoto: Function,
     openLocation: Function,
-    album: Object,
-    filter: Object,
+    album: {
+      type: Object,
+      default: () => {},
+    },
+    filter: {
+      type: Object,
+      default: () => {},
+    },
     context: String,
     selectMode: Boolean,
     disableSelection: Boolean,

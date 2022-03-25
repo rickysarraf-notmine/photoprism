@@ -36,7 +36,7 @@ if [[ -z $(swapon --show) ]]; then
 fi
 
 # set apt defaults
-echo 'Acquire::Retries "10";' > /etc/apt/apt.conf.d/80retry && \
+echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
 echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/80recommends && \
 echo 'APT::Install-Suggests "false";' > /etc/apt/apt.conf.d/80suggests && \
 echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/80forceyes && \
@@ -93,8 +93,8 @@ curl -fsSL https://dl.photoprism.app/docker/demo/Makefile > /opt/photoprism/Make
 chown -Rf photoprism:photoprism /opt/photoprism
 
 # clear package cache
-apt-get autoclean
-apt-get autoremove
+apt-get -y autoclean
+apt-get -y autoremove
 
 # start services using docker-compose
 (cd /opt/photoprism && make install)

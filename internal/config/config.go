@@ -39,7 +39,7 @@ var once sync.Once
 var LowMem = false
 var TotalMem uint64
 
-const MsgSponsor = "Help us make a difference and become a sponsor today!"
+const MsgSponsor = "PhotoPrism® needs your support!"
 const SignUpURL = "https://docs.photoprism.app/funding/"
 const MsgSignUp = "Visit " + SignUpURL + " to learn more."
 const MsgSponsorCommand = "Since running this command puts additional load on our infrastructure," +
@@ -74,6 +74,7 @@ type Config struct {
 	hub      *hub.Config
 	token    string
 	serial   string
+	env      string
 }
 
 func init() {
@@ -118,6 +119,7 @@ func NewConfig(ctx *cli.Context) *Config {
 	c := &Config{
 		options: NewOptions(ctx),
 		token:   rnd.Token(8),
+		env:     os.Getenv("DOCKER_ENV"),
 	}
 
 	if configFile := c.ConfigFile(); c.options.ConfigFile == "" && fs.FileExists(configFile) {
@@ -209,8 +211,8 @@ func (c *Config) Init() error {
 		log.Infof("config: make sure your server has enough swap configured to prevent restarts when there are memory usage spikes")
 	}
 
-	// Set User Agent for HTTP requests.
-	places.UserAgent = fmt.Sprintf("%s/%s", c.Name(), c.Version())
+	// Set HTTP user agent.
+	places.UserAgent = c.UserAgent()
 
 	c.initSettings()
 	c.initHub()
@@ -239,10 +241,11 @@ func (c *Config) initStorage() error {
 	storageName := filepath.Join(c.StoragePath(), serialName)
 	backupName := filepath.Join(c.BackupPath(), serialName)
 
-	if data, err := os.ReadFile(storageName); err == nil {
+	if data, err := os.ReadFile(storageName); err == nil && len(data) == 16 {
 		c.serial = string(data)
-	} else if data, err := os.ReadFile(backupName); err == nil {
+	} else if data, err := os.ReadFile(backupName); err == nil && len(data) == 16 {
 		c.serial = string(data)
+		LogError(os.WriteFile(storageName, []byte(c.serial), os.ModePerm))
 	} else if err := os.WriteFile(storageName, []byte(c.serial), os.ModePerm); err != nil {
 		return fmt.Errorf("failed creating %s: %s", storageName, err)
 	} else if err := os.WriteFile(backupName, []byte(c.serial), os.ModePerm); err != nil {
@@ -284,9 +287,9 @@ func (c *Config) Version() string {
 	return c.options.Version
 }
 
-// UserAgent returns a HTTP user agent string based on app name & version.
+// UserAgent returns an HTTP user agent string based on the app config and version.
 func (c *Config) UserAgent() string {
-	return fmt.Sprintf("%s/%s", c.Name(), c.Version())
+	return fmt.Sprintf("%s/%s (%s)", c.Name(), c.Version(), strings.Join(append(c.Flags(), c.Serial()), "; "))
 }
 
 // Copyright returns the application copyright.
@@ -382,6 +385,24 @@ func (c *Config) SitePreview() string {
 	}
 
 	return c.options.SitePreview
+}
+
+// Imprint returns the legal info text for the page footer.
+func (c *Config) Imprint() string {
+	if !c.Sponsor() || c.Test() {
+		return MsgSponsor
+	}
+
+	return c.options.Imprint
+}
+
+// ImprintUrl returns the legal info url.
+func (c *Config) ImprintUrl() string {
+	if !c.Sponsor() || c.Test() {
+		return SignUpURL
+	}
+
+	return c.options.ImprintUrl
 }
 
 // Debug tests if debug mode is enabled.
@@ -584,7 +605,7 @@ func (c *Config) UpdateHub() {
 
 // initHub initializes PhotoPrism hub config.
 func (c *Config) initHub() {
-	c.hub = hub.NewConfig(c.Version(), c.HubConfigFile(), c.serial, c.options.PartnerID)
+	c.hub = hub.NewConfig(c.Version(), c.HubConfigFile(), c.serial, c.env, c.UserAgent(), c.options.PartnerID)
 
 	if err := c.hub.Load(); err == nil {
 		// Do nothing.

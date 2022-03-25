@@ -146,7 +146,7 @@ func TestConfig_CreateDirectories2(t *testing.T) {
 		if err2 == nil {
 			t.Fatal("error expected")
 		}
-		assert.Contains(t, err2.Error(), "please check configuration and permissions")
+		assert.Contains(t, err2.Error(), "check config and permissions")
 	})
 
 	t.Run("storage path error", func(t *testing.T) {
@@ -163,7 +163,7 @@ func TestConfig_CreateDirectories2(t *testing.T) {
 		if err2 == nil {
 			t.Fatal("error expected")
 		}
-		assert.Contains(t, err2.Error(), "please check configuration and permissions")
+		assert.Contains(t, err2.Error(), "check config and permissions")
 	})
 
 	t.Run("originals path not found", func(t *testing.T) {
@@ -188,7 +188,7 @@ func TestConfig_CreateDirectories2(t *testing.T) {
 		if err2 == nil {
 			t.Fatal("error expected")
 		}
-		assert.Contains(t, err2.Error(), "please check configuration and permissions")
+		assert.Contains(t, err2.Error(), "check config and permissions")
 	})
 
 	t.Run("import path not found", func(t *testing.T) {
@@ -213,7 +213,7 @@ func TestConfig_CreateDirectories2(t *testing.T) {
 		if err2 == nil {
 			t.Fatal("error expected")
 		}
-		assert.Contains(t, err2.Error(), "please check configuration and permissions")
+		assert.Contains(t, err2.Error(), "check config and permissions")
 	})
 
 	t.Run("sidecar path error", func(t *testing.T) {
@@ -230,7 +230,7 @@ func TestConfig_CreateDirectories2(t *testing.T) {
 		if err2 == nil {
 			t.Fatal("error expected")
 		}
-		assert.Contains(t, err2.Error(), "please check configuration and permissions")
+		assert.Contains(t, err2.Error(), "check config and permissions")
 	})
 
 	t.Run("cache path error", func(t *testing.T) {
@@ -247,7 +247,7 @@ func TestConfig_CreateDirectories2(t *testing.T) {
 		if err2 == nil {
 			t.Fatal("error expected")
 		}
-		assert.Contains(t, err2.Error(), "please check configuration and permissions")
+		assert.Contains(t, err2.Error(), "check config and permissions")
 	})
 
 	t.Run("config path error", func(t *testing.T) {
@@ -264,7 +264,7 @@ func TestConfig_CreateDirectories2(t *testing.T) {
 		if err2 == nil {
 			t.Fatal("error expected")
 		}
-		assert.Contains(t, err2.Error(), "please check configuration and permissions")
+		assert.Contains(t, err2.Error(), "check config and permissions")
 	})
 
 	t.Run("temp path error", func(t *testing.T) {
@@ -281,7 +281,7 @@ func TestConfig_CreateDirectories2(t *testing.T) {
 		if err2 == nil {
 			t.Fatal("error expected")
 		}
-		assert.Contains(t, err2.Error(), "please check configuration and permissions")
+		assert.Contains(t, err2.Error(), "check config and permissions")
 	})
 }
 */
@@ -311,21 +311,27 @@ func TestConfig_OriginalsPath2(t *testing.T) {
 	c := NewConfig(CliTestContext())
 	assert.Equal(t, "/go/src/github.com/photoprism/photoprism/storage/testdata/originals", c.OriginalsPath())
 	c.options.OriginalsPath = ""
-	assert.Equal(t, "", c.OriginalsPath())
+	if s := c.OriginalsPath(); s != "" && s != "/photoprism/originals" {
+		t.Errorf("unexpected originals path: %s", s)
+	}
 }
 
 func TestConfig_ImportPath2(t *testing.T) {
 	c := NewConfig(CliTestContext())
 	assert.Equal(t, "/go/src/github.com/photoprism/photoprism/storage/testdata/import", c.ImportPath())
 	c.options.ImportPath = ""
-	assert.Equal(t, "", c.ImportPath())
+	if s := c.ImportPath(); s != "" && s != "/photoprism/import" {
+		t.Errorf("unexpected import path: %s", s)
+	}
 }
 
 func TestConfig_AssetsPath2(t *testing.T) {
 	c := NewConfig(CliTestContext())
 	assert.Equal(t, "/go/src/github.com/photoprism/photoprism/assets", c.AssetsPath())
 	c.options.AssetsPath = ""
-	assert.Equal(t, "", c.AssetsPath())
+	if s := c.AssetsPath(); s != "" && s != "/opt/photoprism/assets" {
+		t.Errorf("unexpected assets path: %s", s)
+	}
 }
 
 func TestConfig_MysqlBin(t *testing.T) {

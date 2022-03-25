@@ -31,6 +31,8 @@ type ClientConfig struct {
 	SiteCaption     string              `json:"siteCaption"`
 	SiteDescription string              `json:"siteDescription"`
 	SitePreview     string              `json:"sitePreview"`
+	Imprint         string              `json:"imprint"`
+	ImprintUrl      string              `json:"imprintUrl"`
 	AppName         string              `json:"appName"`
 	AppMode         string              `json:"appMode"`
 	AppIcon         string              `json:"appIcon"`
@@ -136,6 +138,14 @@ func (c *Config) Flags() (flags []string) {
 		flags = append(flags, "debug")
 	}
 
+	if c.Test() {
+		flags = append(flags, "test")
+	}
+
+	if c.Demo() {
+		flags = append(flags, "demo")
+	}
+
 	if c.Sponsor() {
 		flags = append(flags, "sponsor")
 	}
@@ -206,6 +216,8 @@ func (c *Config) PublicConfig() ClientConfig {
 		SiteCaption:     c.SiteCaption(),
 		SiteDescription: c.SiteDescription(),
 		SitePreview:     c.SitePreview(),
+		Imprint:         c.Imprint(),
+		ImprintUrl:      c.ImprintUrl(),
 		AppName:         c.AppName(),
 		AppMode:         c.AppMode(),
 		AppIcon:         c.AppIcon(),
@@ -274,6 +286,8 @@ func (c *Config) GuestConfig() ClientConfig {
 		SiteCaption:     c.SiteCaption(),
 		SiteDescription: c.SiteDescription(),
 		SitePreview:     c.SitePreview(),
+		Imprint:         c.Imprint(),
+		ImprintUrl:      c.ImprintUrl(),
 		AppName:         c.AppName(),
 		AppMode:         c.AppMode(),
 		AppIcon:         c.AppIcon(),
@@ -337,6 +351,8 @@ func (c *Config) UserConfig() ClientConfig {
 		SiteCaption:     c.SiteCaption(),
 		SiteDescription: c.SiteDescription(),
 		SitePreview:     c.SitePreview(),
+		Imprint:         c.Imprint(),
+		ImprintUrl:      c.ImprintUrl(),
 		AppName:         c.AppName(),
 		AppMode:         c.AppMode(),
 		AppIcon:         c.AppIcon(),

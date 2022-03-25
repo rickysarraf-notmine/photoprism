@@ -1,19 +1,28 @@
-.PHONY: all build dev npm dep dep-go dep-js dep-list dep-tensorflow dep-upgrade dep-upgrade-js \
-		test test-js test-go install generate fmt fmt-go fmt-js upgrade start stop \
-		terminal root-terminal packer-digitalocean acceptance clean tidy;
-.SILENT: ;               # no need for @
-.ONESHELL: ;             # recipes execute in same shell
-.NOTPARALLEL: ;          # wait for target to finish
-.EXPORT_ALL_VARIABLES: ; # send all vars to shell
-
 export GO111MODULE=on
-export GODEBUG=http2client=0
 
 GOIMPORTS=goimports
 BINARY_NAME=photoprism
 
-DOCKER_TAG := $(shell date -u +%Y%m%d)
+# Build Parameters
+BUILD_PATH ?= $(shell realpath "./build")
+BUILD_DATE ?= $(shell date -u +%y%m%d)
+BUILD_VERSION ?= $(shell git describe --always)
+BUILD_TAG ?= $(BUILD_DATE)-$(BUILD_VERSION)
+BUILD_OS ?= $(shell uname -s)
+BUILD_ARCH ?= $(shell scripts/dist/arch.sh)
+JS_BUILD_PATH ?= $(shell realpath "./assets/static/build")
+
+# Installation Parameters
+INSTALL_PATH ?= $(BUILD_PATH)/photoprism-$(BUILD_TAG)-$(shell echo $(BUILD_OS) | tr '[:upper:]' '[:lower:]')-$(BUILD_ARCH)
+DESTDIR ?= $(INSTALL_PATH)
+DESTUID ?= 1000
+DESTGID ?= 1000
+INSTALL_USER ?= $(DESTUID):$(DESTGID)
+INSTALL_MODE ?= u+rwX,a+rX
+INSTALL_MODE_BIN ?= 755
+
 UID := $(shell id -u)
+GID := $(shell id -g)
 HASRICHGO := $(shell which richgo)
 
 ifdef HASRICHGO
@@ -22,10 +31,9 @@ else
     GOTEST=go test
 endif
 
-all: dep build
-dep: dep-tensorflow dep-js dep-go
-build: generate build-js build-go
-install: install-bin install-assets
+all: dep build-js
+dep: dep-tensorflow dep-npm dep-js dep-go
+build: build-go
 test: test-js test-go
 test-go: reset-testdb run-test-go
 test-pkg: reset-testdb run-test-pkg
@@ -39,17 +47,55 @@ acceptance-run-chromium: acceptance-private-restart acceptance-private acceptanc
 acceptance-run-firefox: acceptance-private-restart acceptance-private-firefox acceptance-private-stop acceptance-restart acceptance-firefox acceptance-stop
 test-all: test acceptance-run-chromium
 fmt: fmt-js fmt-go
-upgrade: dep-upgrade-js dep-upgrade
 clean-local: clean-local-config clean-local-cache
-clean-install: clean-local dep build-js install-bin install-assets
-dev: dev-npm dev-go-amd64
-dev-npm:
-	$(info Upgrading NPM in local dev environment...)
-	sudo npm update -g npm
-dev-go-amd64:
-	$(info Installing Go in local AMD64 dev environment...)
-	sudo docker/scripts/install-go.sh amd64
+upgrade: dep-upgrade-js dep-upgrade
+devtools: install-go dep-npm
+fix-permissions:
+	$(info Updating filesystem permissions...)
+	@if [ $(UID) != 0 ]; then\
+		echo "Running \"chown --preserve-root -Rcf $(UID):$(GID) /go /photoprism /opt/photoprism /tmp/photoprism\". Please wait."; \
+		sudo chown --preserve-root -Rcf $(UID):$(GID) /go /photoprism /opt/photoprism /tmp/photoprism || true;\
+		echo "Running \"chmod --preserve-root -Rcf u+rwX /go/src/github.com/photoprism/photoprism/* /photoprism /opt/photoprism /tmp/photoprism\". Please wait.";\
+		sudo chmod --preserve-root -Rcf u+rwX /go/src/github.com/photoprism/photoprism/* /photoprism /opt/photoprism /tmp/photoprism || true;\
+		echo "Done."; \
+	else\
+		echo "Running as root. Nothing to do."; \
+	fi
+clean:
+	rm -f *.log .test*
+	[ ! -f "$(BINARY_NAME)" ] || rm -f $(BINARY_NAME)
+	[ ! -d "node_modules" ] || rm -rf node_modules
+	[ ! -d "frontend/node_modules" ] || rm -rf frontend/node_modules
+	[ ! -d "$(BUILD_PATH)" ] || rm -rf --preserve-root $(BUILD_PATH)
+	[ ! -d "$(JS_BUILD_PATH)" ] || rm -rf --preserve-root $(JS_BUILD_PATH)
+tar.gz:
+	$(info Creating tar.gz archives from the directories in "$(BUILD_PATH)"...)
+	find "$(BUILD_PATH)" -maxdepth 1 -mindepth 1 -type d -exec tar --exclude='.[^/]*' -C {} -czf {}.tar.gz . \;
+install:
+	$(info Installing in "$(DESTDIR)"...)
+	[ ! -d "$(DESTDIR)" ] || rm -rf --preserve-root $(DESTDIR)
+	mkdir --mode=$(INSTALL_MODE) -p $(DESTDIR)
+	env TMPDIR="$(BUILD_PATH)" ./scripts/dist/install-tensorflow.sh $(DESTDIR)
+	rm -rf --preserve-root $(DESTDIR)/include
+	(cd $(DESTDIR) && mkdir -p bin sbin lib assets config config/examples)
+	./scripts/build.sh prod "$(DESTDIR)/bin/$(BINARY_NAME)"
+	[ -f "$(GOBIN)/gosu" ] || go install github.com/tianon/gosu@latest
+	cp $(GOBIN)/gosu $(DESTDIR)/sbin/gosu
+	[ ! -f "$(GOBIN)/exif-read-tool" ] || cp $(GOBIN)/exif-read-tool $(DESTDIR)/bin/exif-read-tool
+	rsync -r -l --safe-links --exclude-from=assets/.buildignore --chmod=a+r,u+rw ./assets/ $(DESTDIR)/assets
+	cp scripts/dist/heif-convert.sh $(DESTDIR)/bin/heif-convert
+	cp internal/config/testdata/*.yml $(DESTDIR)/config/examples
+	chown -R $(INSTALL_USER) $(DESTDIR)
+	chmod -R $(INSTALL_MODE) $(DESTDIR)
+	chmod -R $(INSTALL_MODE_BIN) $(DESTDIR)/bin $(DESTDIR)/lib
+	@echo "PhotoPrism $(BUILD_TAG) has been successfully installed in \"$(DESTDIR)\".\nEnjoy!"
+install-go:
+	sudo scripts/dist/install-go.sh
 	go build -v ./...
+install-tensorflow:
+	sudo scripts/dist/install-tensorflow.sh
+install-darktable:
+	sudo scripts/dist/install-darktable.sh
 acceptance-restart:
 	cp -f storage/acceptance/backup.db storage/acceptance/index.db
 	cp -f storage/acceptance/config/settingsBackup.yml storage/acceptance/config/settings.yml
@@ -75,6 +121,7 @@ stop:
 	go run cmd/photoprism/photoprism.go stop
 terminal:
 	docker-compose exec -u $(UID) photoprism bash
+rootshell: root-terminal
 root-terminal:
 	docker-compose exec -u root photoprism bash
 migrate:
@@ -87,26 +134,16 @@ generate:
 	@if [ ${$(shell git diff --shortstat assets/locales/messages.pot):1:45} == $(POT_UNCHANGED) ]; then\
 		git checkout -- assets/locales/messages.pot;\
 	fi
-install-bin:
-	scripts/build.sh prod ~/.local/bin/$(BINARY_NAME)
-install-assets:
-	$(info Installing assets)
-	mkdir -p ~/.photoprism/storage/config
-	mkdir -p ~/.photoprism/storage/cache
-	mkdir -p ~/.photoprism/storage
-	mkdir -p ~/.photoprism/assets
-	mkdir -p ~/Pictures/Originals
-	mkdir -p ~/Pictures/Import
-	cp -r assets/locales assets/facenet assets/nasnet assets/nsfw assets/profiles assets/static assets/templates ~/.photoprism/assets
-	find ~/.photoprism/assets -name '.*' -type f -delete
 clean-local-assets:
-	rm -rf ~/.photoprism/assets/*
+	rm -rf $(BUILD_PATH)/assets/*
 clean-local-cache:
-	rm -rf ~/.photoprism/storage/cache/*
+	rm -rf $(BUILD_PATH)/storage/cache/*
 clean-local-config:
-	rm -f ~/.photoprism/storage/config/*
+	rm -f $(BUILD_PATH)/config/*
 dep-list:
 	go list -u -m -json all | go-mod-outdated -direct
+dep-npm:
+	sudo npm install -g npm
 dep-js:
 	(cd frontend &&	npm install --silent --legacy-peer-deps)
 dep-go:
@@ -127,9 +164,13 @@ zip-nsfw:
 	(cd assets && zip -r nsfw.zip nsfw -x "*/.*" -x "*/version.txt")
 build-js:
 	(cd frontend &&	env NODE_ENV=production npm run build)
-build-go:
+build-go: build-debug
+build-debug:
 	rm -f $(BINARY_NAME)
 	scripts/build.sh debug $(BINARY_NAME)
+build-prod:
+	rm -f $(BINARY_NAME)
+	scripts/build.sh prod $(BINARY_NAME)
 build-race:
 	rm -f $(BINARY_NAME)
 	scripts/build.sh race $(BINARY_NAME)
@@ -146,7 +187,7 @@ watch-js:
 	(cd frontend &&	env NODE_ENV=development npm run watch)
 test-js:
 	$(info Running JS unit tests...)
-	(cd frontend &&	env NODE_ENV=development BABEL_ENV=test npm run test)
+	(cd frontend && env NODE_ENV=development BABEL_ENV=test npm run test)
 acceptance:
 	$(info Running JS acceptance tests in Chrome...)
 	(cd frontend &&	npm run acceptance && cd ..)
@@ -164,7 +205,7 @@ reset-mariadb:
 	mysql < scripts/sql/reset-mariadb.sql
 reset-testdb:
 	$(info Removing test database files...)
-	find ./internal -type f -name '.test.*' -delete
+	find ./internal -type f -name ".test.*" -delete
 run-test-short:
 	$(info Running short Go unit tests in parallel mode...)
 	$(GOTEST) -parallel 2 -count 1 -cpu 2 -short -timeout 5m ./pkg/... ./internal/...
@@ -172,7 +213,7 @@ run-test-go:
 	$(info Running all Go unit tests...)
 	$(GOTEST) -parallel 1 -count 1 -cpu 1 -tags slow -timeout 20m ./pkg/... ./internal/...
 run-test-pkg:
-	$(info Running all Go unit tests in '/pkg'...)
+	$(info Running all Go unit tests in "/pkg"...)
 	$(GOTEST) -parallel 2 -count 1 -cpu 2 -tags slow -timeout 20m ./pkg/...
 run-test-api:
 	$(info Running all API unit tests...)
@@ -194,56 +235,131 @@ test-coverage:
 	$(info Running all Go unit tests with code coverage report...)
 	go test -parallel 1 -count 1 -cpu 1 -failfast -tags slow -timeout 30m -coverprofile coverage.txt -covermode atomic ./pkg/... ./internal/...
 	go tool cover -html=coverage.txt -o coverage.html
-clean:
-	rm -f $(BINARY_NAME)
-	rm -f *.log
-	rm -rf node_modules
-	rm -rf storage/testdata
-	rm -rf storage/backup
-	rm -rf storage/cache
-	rm -rf frontend/node_modules
-docker-develop:
-	docker pull --platform=amd64 ubuntu:21.10
-	docker pull --platform=arm64 ubuntu:21.10
-	scripts/docker/multiarch.sh develop linux/amd64,linux/arm64 $(DOCKER_TAG)
-docker-preview:
-	scripts/docker/multiarch.sh photoprism linux/amd64,linux/arm64
-docker-release:
-	scripts/docker/multiarch.sh photoprism linux/amd64,linux/arm64 $(DOCKER_TAG)
-docker-armv7-develop:
-	docker pull --platform=arm ubuntu:21.10
-	scripts/docker/arch.sh develop linux/arm armv7 /armv7
-docker-armv7-preview:
+docker-develop: docker-develop-bookworm docker-develop-bookworm-slim docker-develop-armv7
+docker-develop-all: docker-develop docker-develop-bullseye docker-develop-bullseye-slim docker-develop-buster docker-develop-impish
+docker-develop-bookworm:
+	docker pull --platform=amd64 debian:bookworm-slim
+	docker pull --platform=arm64 debian:bookworm-slim
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 bookworm /bookworm "-t photoprism/develop:latest"
+docker-develop-bookworm-slim:
+	docker pull --platform=amd64 debian:bookworm-slim
+	docker pull --platform=arm64 debian:bookworm-slim
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 bookworm-slim /bookworm-slim
+docker-develop-bullseye:
+	docker pull --platform=amd64 golang:1.18-bullseye
+	docker pull --platform=arm64 golang:1.18-bullseye
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 bullseye /bullseye
+docker-develop-bullseye-slim:
+	docker pull --platform=amd64 debian:bullseye-slim
+	docker pull --platform=arm64 debian:bullseye-slim
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 bullseye-slim /bullseye-slim
+docker-develop-armv7:
+	docker pull --platform=arm debian:bullseye-slim
+	scripts/docker/buildx.sh develop linux/arm armv7 /armv7
+docker-develop-buster:
+	docker pull --platform=amd64 golang:buster
+	docker pull --platform=arm64 golang:buster
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 buster /buster
+docker-develop-impish:
+	docker pull --platform=amd64 ubuntu:impish
+	docker pull --platform=arm64 ubuntu:impish
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 impish /impish
+docker-preview: docker-preview-bookworm
+docker-preview-all: docker-preview docker-preview-bullseye docker-preview-buster docker-preview-impish
+docker-preview-arm: docker-preview-arm64 docker-preview-armv7
+docker-preview-bookworm:
+	docker pull --platform=amd64 photoprism/develop:bookworm
+	docker pull --platform=amd64 photoprism/develop:bookworm-slim
+	docker pull --platform=arm64 photoprism/develop:bookworm
+	docker pull --platform=arm64 photoprism/develop:bookworm-slim
+	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 preview /bookworm
+docker-preview-armv7:
 	docker pull --platform=arm photoprism/develop:armv7
-	scripts/docker/arch.sh photoprism linux/arm armv7-preview /armv7
-docker-armv7-release:
+	docker pull --platform=arm debian:bookworm-slim
+	scripts/docker/buildx.sh photoprism linux/arm preview-armv7 /armv7
+docker-preview-arm64:
+	docker pull --platform=arm64 photoprism/develop:bookworm
+	docker pull --platform=arm64 photoprism/develop:bookworm-slim
+	scripts/docker/buildx.sh photoprism linux/arm64 preview-arm64 /bookworm
+docker-preview-bullseye:
+	docker pull --platform=amd64 photoprism/develop:bullseye
+	docker pull --platform=amd64 photoprism/develop:bullseye-slim
+	docker pull --platform=arm64 photoprism/develop:bullseye
+	docker pull --platform=arm64 photoprism/develop:bullseye-slim
+	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 preview-bullseye /bullseye
+docker-preview-buster:
+	docker pull --platform=amd64 photoprism/develop:buster
+	docker pull --platform=arm64 photoprism/develop:buster
+	docker pull --platform=amd64 debian:buster-slim
+	docker pull --platform=arm64 debian:buster-slim
+	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 preview-buster /buster
+docker-preview-impish:
+	docker pull --platform=amd64 photoprism/develop:latest
+	docker pull --platform=arm64 photoprism/develop:latest
+	docker pull --platform=amd64 ubuntu:impish
+	docker pull --platform=arm64 ubuntu:impish
+	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 preview-impish /impish
+docker-release: docker-release-bookworm
+docker-release-all: docker-release docker-release-bullseye docker-release-buster docker-release-impish
+docker-release-arm: docker-release-arm64 docker-release-armv7
+docker-release-bookworm:
+	docker pull --platform=amd64 photoprism/develop:bookworm
+	docker pull --platform=amd64 photoprism/develop:bookworm-slim
+	docker pull --platform=arm64 photoprism/develop:bookworm
+	docker pull --platform=arm64 photoprism/develop:bookworm-slim
+	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 bookworm /bookworm  "-t photoprism/photoprism:latest"
+docker-release-armv7:
 	docker pull --platform=arm photoprism/develop:armv7
-	scripts/docker/arch.sh photoprism linux/arm armv7 /armv7
+	docker pull --platform=arm debian:bookworm-slim
+	scripts/docker/buildx.sh photoprism linux/arm armv7 /armv7
+docker-release-arm64:
+	docker pull --platform=arm64 photoprism/develop:bookworm
+	docker pull --platform=arm64 photoprism/develop:bookworm-slim
+	scripts/docker/buildx.sh photoprism linux/arm64 arm64 /bookworm
+docker-release-bullseye:
+	docker pull --platform=amd64 photoprism/develop:bullseye
+	docker pull --platform=amd64 photoprism/develop:bullseye-slim
+	docker pull --platform=arm64 photoprism/develop:bullseye
+	docker pull --platform=arm64 photoprism/develop:bullseye-slim
+	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 bullseye /bullseye
+docker-release-buster:
+	docker pull --platform=amd64 photoprism/develop:buster
+	docker pull --platform=arm64 photoprism/develop:buster
+	docker pull --platform=amd64 debian:buster-slim
+	docker pull --platform=arm64 debian:buster-slim
+	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 buster /buster
+docker-release-impish:
+	docker pull --platform=amd64 photoprism/develop:impish
+	docker pull --platform=arm64 photoprism/develop:impish
+	docker pull --platform=amd64 ubuntu:impish
+	docker pull --platform=arm64 ubuntu:impish
+	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 impish /impish
 docker-local:
 	scripts/docker/build.sh photoprism
 docker-pull:
 	docker pull photoprism/photoprism:preview photoprism/photoprism:latest
 docker-ddns:
 	docker pull golang:alpine
-	scripts/docker/multiarch.sh ddns linux/amd64,linux/arm64 $(DOCKER_TAG)
+	scripts/docker/buildx-multi.sh ddns linux/amd64,linux/arm64 $(BUILD_DATE)
 docker-goproxy:
 	docker pull golang:alpine
-	scripts/docker/multiarch.sh goproxy linux/amd64,linux/arm64 $(DOCKER_TAG)
+	scripts/docker/buildx-multi.sh goproxy linux/amd64,linux/arm64 $(BUILD_DATE)
 docker-demo:
-	scripts/docker/build.sh demo $(DOCKER_TAG)
-	scripts/docker/push.sh demo $(DOCKER_TAG)
+	docker pull photoprism/photoprism:preview
+	scripts/docker/build.sh demo $(BUILD_DATE)
+	scripts/docker/push.sh demo $(BUILD_DATE)
 docker-demo-local:
 	scripts/docker/build.sh photoprism
-	scripts/docker/build.sh demo $(DOCKER_TAG)
-	scripts/docker/push.sh demo $(DOCKER_TAG)
+	scripts/docker/build.sh demo $(BUILD_DATE)
+	scripts/docker/push.sh demo $(BUILD_DATE)
 docker-dummy-webdav:
 	docker pull --platform=amd64 golang:1
 	docker pull --platform=arm64 golang:1
-	scripts/docker/multiarch.sh dummy-webdav linux/amd64,linux/arm64 $(DOCKER_TAG)
+	scripts/docker/buildx-multi.sh dummy-webdav linux/amd64,linux/arm64 $(BUILD_DATE)
 docker-dummy-oidc:
 	docker pull --platform=amd64 golang:1
 	docker pull --platform=arm64 golang:1
-	scripts/docker/multiarch.sh dummy-oidc linux/amd64,linux/arm64 $(DOCKER_TAG)
+	scripts/docker/buildx-multi.sh dummy-oidc linux/amd64,linux/arm64 $(BUILD_DATE)
 packer-digitalocean:
 	$(info Buildinng DigitalOcean marketplace image...)
 	(cd ./docker/examples/cloud && packer build digitalocean.json)
@@ -258,4 +374,8 @@ fmt-go:
 	gofmt -w -s pkg internal cmd
 	goimports -w pkg internal cmd
 tidy:
-	go mod tidy
+	go mod tidy -go=1.16 && go mod tidy -go=1.17
+.PHONY: all build dev dep-npm dep dep-go dep-js dep-list dep-tensorflow dep-upgrade dep-upgrade-js test test-js test-go \
+    install generate fmt fmt-go fmt-js upgrade start stop terminal root-terminal packer-digitalocean acceptance clean tidy \
+    docker-develop docker-preview docker-preview-all docker-preview-arm docker-release docker-release-all docker-release-arm \
+    install-go install-darktable install-tensorflow devtools tar.gz fix-permissions rootshell;

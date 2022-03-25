@@ -1,30 +1,25 @@
 /*
 
-Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.org>
+Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
 
     This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    it under Version 3 of the GNU Affero General Public License (the "AGPL"):
+    <https://docs.photoprism.app/license/agpl>
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    The AGPL is supplemented by our Trademark and Brand Guidelines,
+    which describe how our Brand Assets may be used:
+    <https://photoprism.app/trademark>
 
-    PhotoPrism® is a registered trademark of Michael Mayer.  You may use it as required
-    to describe our software, run your own server, for educational purposes, but not for
-    offering commercial goods, products, or services without prior written permission.
-    In other words, please ask.
-
-Feel free to send an e-mail to hello@photoprism.org if you have questions,
+Feel free to send an e-mail to hello@photoprism.app if you have questions,
 want to support our work, or just want to say hello.
 
 Additional information can be found in our Developer Guide:
-https://docs.photoprism.app/developer-guide/
+<https://docs.photoprism.app/developer-guide/>
 
 */
 
@@ -144,6 +139,122 @@ export default class Util {
     const now = new Date();
     console.log(`${label}: ${now.getTime() - start.getTime()}ms`);
     start = now;
+  }
+
+  static codecName(value) {
+    if (!value || typeof value !== "string") {
+      return "";
+    }
+
+    switch (value) {
+      case "avc1":
+        return "Advanced Video Coding (AVC) / H.264";
+      case "hvc1":
+        return "High Efficiency Video Coding (HEVC) / H.265";
+      case "mjpg":
+        return "Motion JPEG (MJPEG)";
+      case "heic":
+        return "High Efficiency Image File Format (HEIC)";
+      case "1":
+        return "Uncompressed";
+      case "2":
+        return "CCITT 1D";
+      case "3":
+        return "T4/Group 3 Fax";
+      case "4":
+        return "T6/Group 4 Fax";
+      case "5":
+        return "LZW";
+      case "jpeg":
+      case "6":
+      case "7":
+      case "99":
+        return "JPEG";
+      case "8":
+        return "Adobe Deflate";
+      case "9":
+        return "JBIG B&W";
+      case "10":
+        return "JBIG Color";
+      case "262":
+        return "Kodak 262";
+      case "32766":
+        return "Next";
+      case "32767":
+        return "Sony ARW";
+      case "32769":
+        return "Packed RAW";
+      case "32770":
+        return "Samsung SRW";
+      case "32771":
+        return "CCIRLEW";
+      case "32772":
+        return "Samsung SRW 2";
+      case "32773":
+        return "PackBits";
+      case "32809":
+        return "Thunderscan";
+      case "32867":
+        return "Kodak KDC";
+      case "32895":
+        return "IT8CTPAD";
+      case "32896":
+        return "IT8LW";
+      case "32897":
+        return "IT8MP";
+      case "32898":
+        return "IT8BL";
+      case "32908":
+        return "PixarFilm";
+      case "32909":
+        return "PixarLog";
+      case "32946":
+        return "Deflate";
+      case "32947":
+        return "DCS";
+      case "33003":
+        return "Aperio JPEG 2000 YCbCr";
+      case "33005":
+        return "Aperio JPEG 2000 RGB";
+      case "34661":
+        return "JBIG";
+      case "34676":
+        return "SGILog";
+      case "34677":
+        return "SGILog24";
+      case "34712":
+        return "JPEG 2000";
+      case "34713":
+        return "Nikon NEF";
+      case "34715":
+        return "JBIG2 TIFF FX";
+      case "34718":
+        return "Microsoft DI Binary";
+      case "34719":
+        return "Microsoft DI Progressive";
+      case "34720":
+        return "Microsoft DI Vector";
+      case "34887":
+        return "ESRI Lerc";
+      case "34892":
+        return "Lossy JPEG";
+      case "34925":
+        return "LZMA2";
+      case "34926":
+        return "Zstd";
+      case "34927":
+        return "WebP";
+      case "34933":
+        return "PNG";
+      case "34934":
+        return "JPEG XR";
+      case "65000":
+        return "Kodak DCR";
+      case "65535":
+        return "Pentax PEF";
+      default:
+        return value.toUpperCase();
+    }
   }
 
   static JSFileFromPhoto(blob, photo) {

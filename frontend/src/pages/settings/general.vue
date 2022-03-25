@@ -411,7 +411,7 @@ export default {
         return false;
       }
 
-      this.$earlyAccess().then(() => {
+      this.$sponsorFeatures().then(() => {
         this.currentTheme = value;
         this.onChange();
       }).catch(() => {
@@ -437,7 +437,7 @@ export default {
         return false;
       }
 
-      this.$earlyAccess().then(() => {
+      this.$sponsorFeatures().then(() => {
         this.currentMapsStyle = value;
         this.onChange();
       }).catch(() => {

@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="show" lazy persistent max-width="500" class="p-account-edit-dialog" @keydown.esc="cancel">
+  <v-dialog :value="show" lazy persistent max-width="500" class="p-account-edit-dialog" @keydown.esc="cancel">
     <v-card raised elevation="24">
       <v-card-title primary-title>
         <v-layout v-if="scope === 'sharing'" row wrap>
@@ -274,7 +274,11 @@ export default {
   props: {
     show: Boolean,
     scope: String,
-    model: Object,
+    model: {
+      type: Object,
+      default: () => {
+      },
+    },
   },
   data() {
     const thumbs = this.$config.values.thumbs;
@@ -366,7 +370,7 @@ export default {
     },
     sizes(thumbs) {
       const result = [
-        {"text": this.$gettext("Original"), "value": ""}
+        {"text": this.$gettext("Originals"), "value": ""},
       ];
 
       for (let i = 0; i < thumbs.length; i++) {
