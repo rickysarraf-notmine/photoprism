@@ -160,5 +160,21 @@ func Albums(f form.SearchAlbums) (results AlbumResults, err error) {
 		return results, result.Error
 	}
 
+	// Update the counts for smart albums. This is a very suboptimal way of doing it, but it's the easiest.
+	for idx := range results {
+		album := &results[idx]
+
+		if album.AlbumType == entity.AlbumDefault && album.AlbumFilter != "" {
+			f := form.SearchPhotos{Filter: album.AlbumFilter}
+
+			_, count, err := Photos(f)
+			if err != nil {
+				return results, err
+			}
+
+			album.PhotoCount = count
+		}
+	}
+
 	return results, nil
 }
