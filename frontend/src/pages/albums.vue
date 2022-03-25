@@ -166,7 +166,7 @@
                     /{{ album.Path | truncate(100) }}
                   </button>
                 </div>
-                <div v-if="['album', 'folder'].includes(album.Type)" class="caption mb-2">
+                <div v-if="['album', 'country', 'folder', 'month', 'state'].includes(album.Type)" class="caption mb-2">
                   <button v-if="album.PhotoCount === 1" @click.exact="edit(album)">
                     <translate>Contains one picture.</translate>
                   </button>
