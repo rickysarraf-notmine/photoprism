@@ -86,6 +86,12 @@ func (f *SearchPhotos) ParseQueryString() error {
 		return err
 	}
 
+	if f.Filter != "" {
+		if err := Unserialize(f, f.Filter); err != nil {
+			return err
+		}
+	}
+
 	if f.Path == "" && f.Folder != "" {
 		f.Path = f.Folder
 		f.Folder = ""
@@ -99,12 +105,6 @@ func (f *SearchPhotos) ParseQueryString() error {
 	if f.Subjects == "" && f.People != "" {
 		f.Subjects = f.People
 		f.People = ""
-	}
-
-	if f.Filter != "" {
-		if err := Unserialize(f, f.Filter); err != nil {
-			return err
-		}
 	}
 
 	return nil
