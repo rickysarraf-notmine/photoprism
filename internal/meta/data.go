@@ -76,6 +76,10 @@ type Data struct {
 	MicroVideo        bool             `meta:"MicroVideo"`
 	MicroVideoVersion int              `meta:"MicroVideoVersion"`
 	MicroVideoOffset  int              `meta:"MicroVideoOffset"`
+
+	// New, face region related properties
+	Regions   []Region   `meta:"RegionInfo"`
+	RegionsMP []RegionMP `meta:"RegionInfoMP"`
 }
 
 // DirectoryEntry represents the "Directory" exif metadata type.
@@ -84,6 +88,28 @@ type DirectoryEntry struct {
 	Semantic string
 	Length   int
 	Padding  int
+}
+
+// Region represents a face region in MWG format.
+type Region struct {
+	Area Area
+	Name string
+	Type string
+}
+
+// Area describes the face area in MWG format.
+type Area struct {
+	H    float32
+	W    float32
+	X    float32 // face center
+	Y    float32 // face center
+	Unit string
+}
+
+// RegionMP represents a face region in WLPG format.
+type RegionMP struct {
+	PersonDisplayName string
+	Rectangle         string
 }
 
 // New returns a new metadata struct.
