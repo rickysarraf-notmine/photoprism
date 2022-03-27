@@ -8,6 +8,13 @@ import (
 	"github.com/photoprism/photoprism/internal/face"
 )
 
+const (
+	IPTCShapeRectangle = "rectangle"
+	IPTCShapeCircle    = "circle"
+	IPTCUnitPixel      = "pixel"
+	IPTCUnitRelative   = "relative"
+)
+
 // HasFaces returns whether the media contains face region metadata.
 func (m *MediaFile) HasFaces() bool {
 	if len(m.MetaData().Regions) > 0 {
@@ -15,6 +22,9 @@ func (m *MediaFile) HasFaces() bool {
 		return true
 	} else if len(m.MetaData().RegionsMP) > 0 {
 		// Microsoft Windows Live Photo Gallery (WLPG)
+		return true
+	} else if len(m.MetaData().RegionsIPTC) > 0 {
+		// IPTC
 		return true
 	}
 
@@ -25,6 +35,14 @@ func (m *MediaFile) HasFaces() bool {
 func (m *MediaFile) Faces() face.Faces {
 	faces := face.Faces{}
 
+	faces = append(faces, m.facesIPTC()...)
+	faces = append(faces, m.facesMWG()...)
+	faces = append(faces, m.facesWLPG()...)
+
+	return faces
+}
+
+func (m *MediaFile) facesMWG() (faces face.Faces) {
 	fittingFn := math.Min // or math.Max
 
 	if len(m.MetaData().Regions) > 0 {
@@ -47,6 +65,12 @@ func (m *MediaFile) Faces() face.Faces {
 			faces = append(faces, face)
 		}
 	}
+
+	return faces
+}
+
+func (m *MediaFile) facesWLPG() (faces face.Faces) {
+	fittingFn := math.Min // or math.Max
 
 	if len(m.MetaData().RegionsMP) > 0 {
 		for _, region := range m.MetaData().RegionsMP {
@@ -91,6 +115,70 @@ func (m *MediaFile) Faces() face.Faces {
 					Row:   int(y * float64(m.Height())),
 					Col:   int(x * float64(m.Width())),
 					Scale: int(fittingFn(h*float64(m.Height()), w*float64(m.Width()))),
+				},
+			}
+
+			faces = append(faces, face)
+		}
+	}
+
+	return faces
+}
+
+func (m *MediaFile) facesIPTC() (faces face.Faces) {
+	fittingFn := math.Min // or math.Max
+
+	if len(m.MetaData().RegionsIPTC) > 0 {
+		for _, region := range m.MetaData().RegionsIPTC {
+			if len(region.Person) == 0 {
+				continue
+			}
+
+			shape := strings.ToLower(region.Boundary.Shape)
+			unit := strings.ToLower(region.Boundary.Unit)
+
+			var x, y, w, h, wScale, hScale float64
+
+			switch shape {
+			case IPTCShapeRectangle:
+				x = region.Boundary.X
+				y = region.Boundary.Y
+				w = region.Boundary.W
+				h = region.Boundary.H
+
+				x += w / 2
+				y += h / 2
+			case IPTCShapeCircle:
+				x = region.Boundary.X
+				y = region.Boundary.Y
+				w = region.Boundary.Rx * 2
+				h = region.Boundary.Rx * 2
+			default:
+				// Polygon is not supported
+				log.Warnf("faces: %s IPTC face regions are not supported (%s)", shape, m.FileName())
+				continue
+			}
+
+			switch unit {
+			case IPTCUnitPixel:
+				hScale = 1
+				wScale = 1
+			case IPTCUnitRelative:
+				hScale = float64(m.Height())
+				wScale = float64(m.Width())
+			default:
+				log.Warnf("faces: %s IPTC face regions are not supported (%s)", unit, m.FileName())
+				continue
+			}
+
+			face := face.Face{
+				Rows: m.Height(),
+				Cols: m.Width(),
+				Area: face.Area{
+					Name:  region.Person[0],
+					Row:   int(y * hScale),
+					Col:   int(x * wScale),
+					Scale: int(fittingFn(h*hScale, w*wScale)),
 				},
 			}
 
