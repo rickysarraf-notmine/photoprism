@@ -78,8 +78,9 @@ type Data struct {
 	MicroVideoOffset  int              `meta:"MicroVideoOffset"`
 
 	// New, face region related properties
-	Regions   []Region   `meta:"RegionInfo"`
-	RegionsMP []RegionMP `meta:"RegionInfoMP"`
+	Regions     []Region     `meta:"RegionInfo"`
+	RegionsIPTC []RegionIPTC `meta:"ImageRegion"`
+	RegionsMP   []RegionMP   `meta:"RegionInfoMP"`
 }
 
 // DirectoryEntry represents the "Directory" exif metadata type.
@@ -104,6 +105,21 @@ type Area struct {
 	X    float32 // face center
 	Y    float32 // face center
 	Unit string
+}
+
+type RegionIPTC struct {
+	Person   []string `json:"PersonInImage"`
+	Boundary Boundary `json:"RegionBoundary"`
+}
+
+type Boundary struct {
+	Shape string  `json:"RbShape"`
+	Unit  string  `json:"RbUnit"`
+	H     float64 `json:"RbH"`
+	W     float64 `json:"RbW"`
+	X     float64 `json:"RbX"`
+	Y     float64 `json:"RbY"`
+	Rx    float64 `json:"RbRx"`
 }
 
 // RegionMP represents a face region in WLPG format.
