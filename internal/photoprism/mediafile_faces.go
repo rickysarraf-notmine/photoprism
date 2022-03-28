@@ -31,13 +31,13 @@ func (m *MediaFile) HasFaces() bool {
 	return false
 }
 
-// Faces returns all face region metadata for the given media.
+// Faces returns all unique metadata-based face regions for the given media.
 func (m *MediaFile) Faces() face.Faces {
 	faces := face.Faces{}
 
-	faces = append(faces, m.facesIPTC()...)
-	faces = append(faces, m.facesMWG()...)
-	faces = append(faces, m.facesWLPG()...)
+	faces.AppendIfNotContains(m.facesIPTC()...)
+	faces.AppendIfNotContains(m.facesMWG()...)
+	faces.AppendIfNotContains(m.facesWLPG()...)
 
 	return faces
 }
