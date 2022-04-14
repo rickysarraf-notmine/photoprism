@@ -37,7 +37,7 @@ export default {
   methods: {
     onOpen(ev, item) {
       this.show = true;
-      this.source = item.download_url;
+      this.source = item.DownloadUrl;
 
       // Enable closing the photosphere viewer on mobile using the back button by creating a new
       // history state, which will be poped from the history stack when the back button is pressed.

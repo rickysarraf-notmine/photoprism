@@ -2,7 +2,14 @@ import { timeZonesNames } from "@vvo/tzdb";
 import { $gettext } from "common/vm";
 import { Info } from "luxon";
 import { config } from "app/session";
-import { MediaAnimated, MediaImage, MediaLive, MediaRaw, MediaSphere, MediaVideo } from "model/photo";
+import {
+  MediaAnimated,
+  MediaImage,
+  MediaLive,
+  MediaRaw,
+  MediaSphere,
+  MediaVideo,
+} from "model/photo";
 
 export const TimeZones = () =>
   [

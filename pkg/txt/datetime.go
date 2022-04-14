@@ -381,7 +381,7 @@ func IsTime(s string) bool {
 		return true
 	}
 
-	return Time(s) != DefaultTime
+	return DateFromFilePath(s) != DefaultTime
 }
 
 // Year tries to find a matching year for a given string e.g. from a file oder directory name.

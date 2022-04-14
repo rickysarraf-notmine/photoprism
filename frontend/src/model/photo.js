@@ -362,7 +362,7 @@ export class Photo extends RestModel {
   }
 
   isSphere() {
-    return this.Type === TypeSphere;
+    return this.Type === MediaSphere;
   }
 
   videoParams() {
