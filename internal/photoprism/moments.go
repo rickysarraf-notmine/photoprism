@@ -223,7 +223,7 @@ func (w *Moments) Start() (err error) {
 				Public:  true,
 			}
 
-			if a := entity.FindAlbumBySlug(mom.Slug(), entity.AlbumCountry); a != nil {
+			if a, err := entity.FindAlbumBySlug(mom.Slug(), entity.AlbumCountry); err == nil {
 				if err := a.UpdateSlug(mom.Title(), mom.Slug()); err != nil {
 					log.Errorf("moments: %s (update slug)", err.Error())
 				}
