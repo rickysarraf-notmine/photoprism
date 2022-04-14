@@ -112,6 +112,11 @@ func (photo *Photo) IsPlayable() bool {
 	}
 }
 
+// IsSphere returns true if the photo is a photosphere image.
+func (photo *Photo) IsSphere() bool {
+	return photo.PhotoType == entity.MediaSphere
+}
+
 // ShareBase returns a meaningful file name for sharing.
 func (photo *Photo) ShareBase(seq int) string {
 	var name string
