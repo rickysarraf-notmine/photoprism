@@ -114,6 +114,7 @@ describe("model/folder", () => {
       Root: "",
       UID: "dqbevau2zlhxrxww",
       Title: "Halloween Party",
+      UpdatedAt: "2021-08-10",
     };
     const folder = new Folder(values);
     assert.equal(

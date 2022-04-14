@@ -23,6 +23,7 @@ const (
 	MediaLive     = "live"
 	MediaVideo    = string(fs.MediaVideo)
 	MediaRaw      = string(fs.MediaRaw)
+	MediaSphere   = "sphere"
 	TypeMeta      = "meta"
 )
 
@@ -80,4 +81,13 @@ const (
 	SortOrderSlug      = "slug"
 	SortOrderCategory  = "category"
 	SortOrderSimilar   = "similar"
+	SortOrderRandom    = "random"
+)
+
+// Date Modes
+
+const (
+	DateModeLast    = "last"
+	DateModeFirst   = "first"
+	DateModeAverage = "average"
 )

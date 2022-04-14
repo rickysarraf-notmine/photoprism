@@ -64,6 +64,23 @@ type Data struct {
 	Albums       []string      `meta:"-"`
 	Error        error         `meta:"-"`
 	exif         map[string]string
+
+	// New, motion photo related properties
+	IsPhotosphere     bool             `meta:"IsPhotosphere"`
+	MotionPhoto       bool             `meta:"MotionPhoto"`
+	Directory         []DirectoryEntry `meta:"Directory"`
+	EmbeddedVideoType string           `meta:"EmbeddedVideoType"`
+	MicroVideo        bool             `meta:"MicroVideo"`
+	MicroVideoVersion int              `meta:"MicroVideoVersion"`
+	MicroVideoOffset  int              `meta:"MicroVideoOffset"`
+}
+
+// DirectoryEntry represents the "Directory" exif metadata type.
+type DirectoryEntry struct {
+	Mime     string
+	Semantic string
+	Length   int
+	Padding  int
 }
 
 // NewData creates a new metadata struct.

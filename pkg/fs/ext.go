@@ -10,6 +10,7 @@ const (
 	AvcExt      = ".avc"
 	FujiRawExt  = ".raf"
 	CanonCr3Ext = ".cr3"
+	Mp4Ext      = ".mp4"
 )
 
 // NormalizeExt returns the file extension without dot and in lowercase.

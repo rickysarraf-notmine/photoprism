@@ -413,6 +413,18 @@ func (ind *Index) MediaFile(m *MediaFile, o IndexOptions, originalName, photoUID
 				file.InstanceID = metaData.InstanceID
 			}
 		}
+
+		// Update photo type only if not manually modified.
+		if photo.TypeSrc == entity.SrcAuto && m.IsMotionPhoto() {
+			// Change the src type to prevent the (non-primary) generated video file from changing it
+			photo.PhotoType = entity.TypeLive
+			photo.TypeSrc = entity.SrcDefault
+		}
+
+		if m.IsPhotosphere() {
+			photo.PhotoType = entity.TypeSphere
+		}
+
 	case m.IsXMP():
 		if metaData, err := meta.XMP(m.FileName()); err == nil {
 			// Update basic metadata.

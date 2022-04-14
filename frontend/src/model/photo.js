@@ -46,6 +46,7 @@ export const MediaAnimated = "animated";
 export const MediaVideo = "video";
 export const MediaLive = "live";
 export const MediaRaw = "raw";
+export const MediaSphere = "sphere";
 export const YearUnknown = -1;
 export const MonthUnknown = -1;
 export const DayUnknown = -1;
@@ -358,6 +359,10 @@ export class Photo extends RestModel {
     }
 
     return this.Files.findIndex((f) => f.Video) !== -1;
+  }
+
+  isSphere() {
+    return this.Type === TypeSphere;
   }
 
   videoParams() {
@@ -862,6 +867,18 @@ export class Photo extends RestModel {
     return result;
   }
 
+  loadFaces() {
+    return Api.get(this.getEntityResource() + "/faces").then((response) =>
+      Promise.resolve(response.data)
+    );
+  }
+
+  addFace(face) {
+    return Api.post(this.getEntityResource() + "/faces", face).then((response) =>
+      Promise.resolve(response.data)
+    );
+  }
+
   update() {
     const values = this.getValues(true);
 
@@ -937,6 +954,20 @@ export class Photo extends RestModel {
 
       return Promise.resolve(this.setValues(resp.data));
     });
+  }
+
+  webShare() {
+    // Fetches the photo in the browser and opens the native share dialog
+    return fetch(this.getDownloadUrl())
+      .then((res) => res.blob())
+      .then((blob) => {
+        const filesArray = [Util.JSFileFromPhoto(blob, this.mainFile())];
+        const shareData = {
+          files: filesArray,
+          title: this.getTitle(),
+        };
+        return navigator.share(shareData);
+      });
   }
 
   static batchSize() {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/photoprism/photoprism/internal/hub/overpass"
 	"github.com/photoprism/photoprism/internal/hub/places"
 	"github.com/photoprism/photoprism/pkg/s2"
 	"github.com/photoprism/photoprism/pkg/sanitize"
@@ -70,6 +71,19 @@ func (l *Location) QueryPlaces() error {
 	l.LocState = s.State()
 	l.LocCountry = s.CountryCode()
 	l.LocKeywords = s.Keywords()
+
+	// Fallback to the Overpass API in case the Places API does not provide state information.
+	// In case there is no state data for the given location in Overpass, check whether there are nearby
+	// city and state borders. This should help with locations where the OSM data is incomplete or ones,
+	// which are very close to the state border (such as piers).
+	if !l.Unknown() && l.LocState == "" {
+		if state := overpass.CacheGet(l.LocCity); state != "" {
+			l.LocState = state
+		} else if state := overpass.FindState(l.S2Token()); state != "" {
+			l.LocState = state
+			overpass.CacheSet(l.LocCity, state)
+		}
+	}
 
 	return nil
 }

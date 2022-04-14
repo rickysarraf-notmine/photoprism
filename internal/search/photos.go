@@ -72,6 +72,17 @@ func searchPhotos(f form.SearchPhotos, resultCols string) (results PhotoResults,
 		s = s.Order("photos.photo_path, photos.photo_name, files.time_index")
 	case entity.SortOrderDefault, entity.SortOrderImported, entity.SortOrderAdded:
 		s = s.Order("files.media_id")
+	case entity.SortOrderRandom:
+		switch entity.DbDialect() {
+		case entity.MySQL:
+			s = s.Order("RAND()")
+		case entity.SQLite3:
+			s = s.Order("RANDOM()")
+		default:
+			err := fmt.Errorf("unknown sql dialect %s", entity.DbDialect())
+			log.Errorf("photos: %s", err)
+			return results, 0, err
+		}
 	default:
 		return PhotoResults{}, 0, fmt.Errorf("invalid sort order")
 	}

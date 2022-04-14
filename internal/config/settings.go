@@ -30,6 +30,12 @@ type TemplateSettings struct {
 	Default string `json:"default" yaml:"Default"`
 }
 
+// FoldersSettings represents folder-related settings.
+type FoldersSettings struct {
+	DateMode  string `json:"datemode" yaml:"DateMode"`
+	SortOrder string `json:"sortorder" yaml:"SortOrder"`
+}
+
 // MapsSettings represents maps settings (for places).
 type MapsSettings struct {
 	Animate int    `json:"animate" yaml:"Animate"`
@@ -95,6 +101,7 @@ type DownloadSettings struct {
 type Settings struct {
 	UI        UISettings       `json:"ui" yaml:"UI"`
 	Search    SearchSettings   `json:"search" yaml:"Search"`
+	Folders   FoldersSettings  `json:"folders" yaml:"Folders"`
 	Maps      MapsSettings     `json:"maps" yaml:"Maps"`
 	Features  FeatureSettings  `json:"features" yaml:"Features"`
 	Import    ImportSettings   `json:"import" yaml:"Import"`
@@ -116,6 +123,10 @@ func NewSettings(c *Config) *Settings {
 		},
 		Search: SearchSettings{
 			BatchSize: 0,
+		},
+		Folders: FoldersSettings{
+			DateMode:  entity.DateModeLast,
+			SortOrder: entity.SortOrderAdded,
 		},
 		Maps: MapsSettings{
 			Animate: 0,
