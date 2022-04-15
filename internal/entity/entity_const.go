@@ -25,6 +25,7 @@ const (
 	MediaVideo    = string(media.Video)
 	MediaRaw      = string(media.Raw)
 	MediaText     = string(media.Text)
+	MediaSphere   = string(media.Sphere)
 )
 
 // Storage root folders.
@@ -68,4 +69,13 @@ const (
 	SortOrderSlug      = "slug"
 	SortOrderCategory  = "category"
 	SortOrderSimilar   = "similar"
+	SortOrderRandom    = "random"
+)
+
+// Date Modes
+
+const (
+	DateModeLast    = "last"
+	DateModeFirst   = "first"
+	DateModeAverage = "average"
 )

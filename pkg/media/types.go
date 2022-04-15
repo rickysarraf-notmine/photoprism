@@ -7,6 +7,7 @@ const (
 	Vector   Type = "vector"
 	Animated Type = "animated"
 	Live     Type = "live"
+	Sphere   Type = "sphere"
 	Video    Type = "video"
 	Sidecar  Type = "sidecar"
 	Text     Type = "text"

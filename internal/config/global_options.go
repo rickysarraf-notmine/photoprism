@@ -127,6 +127,9 @@ type Options struct {
 	FaceMatchDist         float64       `yaml:"-" json:"-" flag:"face-match-dist"`
 	PIDFilename           string        `yaml:"PIDFilename" json:"-" flag:"pid-filename"`
 	LogFilename           string        `yaml:"LogFilename" json:"-" flag:"log-filename"`
+
+	// New config options
+	EnableExpvar bool `yaml:"EnableExpvar" json:"EnableExpvar" flag:"enable-expvar"`
 }
 
 // NewOptions creates a new configuration entity by using two methods:

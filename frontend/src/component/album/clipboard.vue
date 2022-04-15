@@ -112,7 +112,7 @@ export default {
   },
   data() {
     return {
-      deletable: ["album", "moment", "state"],
+      deletable: ["album"],
       features: this.$config.settings().features,
       expanded: false,
       dialog: {

@@ -138,14 +138,14 @@ func TestDateFromFilePath(t *testing.T) {
 
 	t.Run("/2020/1212/20130518_142022_3D657EBD.jpg", func(t *testing.T) {
 		result := DateFromFilePath("/2020/1212/20130518_142022_3D657EBD.jpg")
-		//assert.False(t, result.IsZero())
-		assert.True(t, result.IsZero())
+		assert.False(t, result.IsZero())
+		assert.Equal(t, "2013-05-18 00:00:00 +0000 UTC", result.String())
 	})
 
 	t.Run("20130518_142022_3D657EBD.jpg", func(t *testing.T) {
 		result := DateFromFilePath("20130518_142022_3D657EBD.jpg")
-		//assert.False(t, result.IsZero())
-		assert.True(t, result.IsZero())
+		assert.False(t, result.IsZero())
+		assert.Equal(t, "2013-05-18 00:00:00 +0000 UTC", result.String())
 	})
 
 	t.Run("telegram_2020_01_30_09_57_18.jpg", func(t *testing.T) {
@@ -318,38 +318,40 @@ func TestDateFromFilePath(t *testing.T) {
 
 	t.Run("n >6", func(t *testing.T) {
 		result := DateFromFilePath("2020-01-30_09-87-18-23.jpg")
-		assert.Equal(t, "0001-01-01 00:00:00 +0000 UTC", result.String())
+		assert.Equal(t, "2020-01-30 00:00:00 +0000 UTC", result.String())
 	})
 
 	t.Run("year < yearmin", func(t *testing.T) {
 		result := DateFromFilePath("1020-01-30_09-57-18.jpg")
 		assert.Equal(t, "0001-01-01 00:00:00 +0000 UTC", result.String())
 	})
+
 	t.Run("hour > hourmax", func(t *testing.T) {
 		result := DateFromFilePath("2020-01-30_25-57-18.jpg")
-		assert.Equal(t, "0001-01-01 00:00:00 +0000 UTC", result.String())
+		assert.Equal(t, "2020-01-30 00:00:00 +0000 UTC", result.String())
 	})
+
 	t.Run("invalid days", func(t *testing.T) {
 		result := DateFromFilePath("2020-01-00.jpg")
 		assert.Equal(t, "0001-01-01 00:00:00 +0000 UTC", result.String())
 	})
 	t.Run("IMG-20191120-WA0001.jpg", func(t *testing.T) {
 		result := DateFromFilePath("IMG-20191120-WA0001.jpg")
-		assert.Equal(t, "0001-01-01 00:00:00 +0000 UTC", result.String())
+		assert.Equal(t, "2019-11-20 00:00:00 +0000 UTC", result.String())
 	})
 	t.Run("VID-20191120-WA0001.jpg", func(t *testing.T) {
 		result := DateFromFilePath("VID-20191120-WA0001.jpg")
-		assert.Equal(t, "0001-01-01 00:00:00 +0000 UTC", result.String())
+		assert.Equal(t, "2019-11-20 00:00:00 +0000 UTC", result.String())
 	})
 }
 
 func TestIsTime(t *testing.T) {
 	t.Run("/2020/1212/20130518_142022_3D657EBD.jpg", func(t *testing.T) {
-		assert.False(t, IsTime("/2020/1212/20130518_142022_3D657EBD.jpg"))
+		assert.True(t, IsTime("/2020/1212/20130518_142022_3D657EBD.jpg"))
 	})
 
 	t.Run("telegram_2020_01_30_09_57_18.jpg", func(t *testing.T) {
-		assert.False(t, IsTime("telegram_2020_01_30_09_57_18.jpg"))
+		assert.True(t, IsTime("telegram_2020_01_30_09_57_18.jpg"))
 	})
 
 	t.Run("", func(t *testing.T) {
@@ -357,11 +359,11 @@ func TestIsTime(t *testing.T) {
 	})
 
 	t.Run("Screenshot 2019_05_21 at 10.45.52.png", func(t *testing.T) {
-		assert.False(t, IsTime("Screenshot 2019_05_21 at 10.45.52.png"))
+		assert.True(t, IsTime("Screenshot 2019_05_21 at 10.45.52.png"))
 	})
 
 	t.Run("telegram_2020-01-30_09-57-18.jpg", func(t *testing.T) {
-		assert.False(t, IsTime("telegram_2020-01-30_09-57-18.jpg"))
+		assert.True(t, IsTime("telegram_2020-01-30_09-57-18.jpg"))
 	})
 
 	t.Run("2013-05-18", func(t *testing.T) {
@@ -387,6 +389,11 @@ func TestIsTime(t *testing.T) {
 	t.Run("2020-01-30_09-57-18", func(t *testing.T) {
 		assert.True(t, IsTime("2020-01-30_09-57-18"))
 	})
+
+	t.Run("IMG-20191120-WA0001.jpg", func(t *testing.T) {
+		assert.True(t, IsTime("IMG-20191120-WA0001.jpg"))
+	})
+
 }
 
 func TestYear(t *testing.T) {

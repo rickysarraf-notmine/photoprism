@@ -36,6 +36,11 @@
         <v-icon>cloud_upload</v-icon>
       </v-btn>
 
+      <v-btn v-if="filter.q != ''" icon class="action-add" :title="$gettext('Create Smart Album')"
+              @click.prevent="createSmartAlbum">
+        <v-icon>add_photo_alternate</v-icon>
+      </v-btn>
+
       <v-btn icon class="p-expand-search" :title="$gettext('Expand Search')"
              @click.stop="searchExpanded = !searchExpanded">
         <v-icon>{{ searchExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}</v-icon>
@@ -152,6 +157,7 @@
   </v-form>
 </template>
 <script>
+import Album from "model/album";
 import Event from "pubsub-js";
 import * as options from "options/options";
 
@@ -200,6 +206,7 @@ export default {
           {value: 'name', text: this.$gettext('Sort by file name')},
           {value: 'similar', text: this.$gettext('Group by similarity')},
           {value: 'relevance', text: this.$gettext('Most relevant')},
+          {value: 'random', text: this.$gettext('Random')},
         ],
       },
     };
@@ -252,7 +259,12 @@ export default {
     },
     showUpload() {
       Event.publish("dialog.upload");
-    }
+    },
+    createSmartAlbum() {
+      const album = new Album({"Title": this.filter.q, "Filter": this.filter.q});
+
+      album.save();
+    },
   },
 };
 </script>

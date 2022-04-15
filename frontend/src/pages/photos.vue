@@ -12,7 +12,7 @@
     <v-container v-else fluid class="pa-0">
       <p-scroll-top></p-scroll-top>
 
-      <p-photo-clipboard :refresh="refresh" :selection="selection" :context="context"></p-photo-clipboard>
+      <p-photo-clipboard :refresh="refresh" :selection="selection" :context="context" :album="labelAlbum"></p-photo-clipboard>
 
       <p-photo-mosaic v-if="settings.view === 'mosaic'"
                       :context="context"
@@ -42,7 +42,8 @@
 </template>
 
 <script>
-import {Photo, MediaLive, MediaRaw, MediaVideo, MediaAnimated} from "model/photo";
+import Label from "model/label";
+import {Photo, MediaLive, MediaRaw, MediaSphere, MediaVideo, MediaAnimated} from "model/photo";
 import Thumb from "model/thumb";
 import Viewer from "common/viewer";
 import Event from "pubsub-js";
@@ -108,6 +109,7 @@ export default {
       },
       filter: filter,
       lastFilter: {},
+      labelAlbum: null,
       routeName: routeName,
       loading: true,
       viewer: {
@@ -160,6 +162,12 @@ export default {
   },
   created() {
     this.search();
+
+    // find all used filters to determine whether we have a label album opened (and exclude the sort order)
+    const nonEmptyFilters = Object.keys(this.filter).filter(p => p != "order" && this.filter[p]);
+    if (nonEmptyFilters.length == 1 && nonEmptyFilters.includes("label")) {
+      Label.search({q: this.filter.label, count: 1}).then(response => this.labelAlbum = response.models[0]);
+    }
 
     this.subscriptions.push(Event.subscribe("import.completed", (ev, data) => this.onImportCompleted(ev, data)));
     this.subscriptions.push(Event.subscribe("photos", (ev, data) => this.onUpdate(ev, data)));
@@ -238,6 +246,8 @@ export default {
         } else {
           this.$viewer.show(Thumb.fromPhotos(this.results), index);
         }
+      } else if (showMerged && selected.Type == MediaSphere) {
+        this.$viewer.showSphere(Thumb.fromPhoto(selected));
       } else if (showMerged) {
         this.$viewer.show(Thumb.fromFiles([selected]), 0);
       } else {

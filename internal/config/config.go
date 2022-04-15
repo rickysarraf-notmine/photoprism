@@ -483,6 +483,11 @@ func (c *Config) UploadNSFW() bool {
 	return c.options.UploadNSFW
 }
 
+// EnableExpvar tests if the expvar endpoint should be enabled.
+func (c *Config) EnableExpvar() bool {
+	return c.options.EnableExpvar
+}
+
 // AdminPassword returns the initial admin password.
 func (c *Config) AdminPassword() string {
 	return c.options.AdminPassword
