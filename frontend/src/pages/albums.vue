@@ -1,6 +1,6 @@
 <template>
   <div v-infinite-scroll="loadMore" class="p-page p-page-albums" style="user-select: none"
-       :infinite-scroll-disabled="scrollDisabled" :infinite-scroll-distance="1200"
+       :infinite-scroll-disabled="scrollDisabled" :infinite-scroll-distance="scrollDistance"
        :infinite-scroll-listen-for-event="'scrollRefresh'">
 
     <v-form ref="form" class="p-albums-search" lazy-validation dense @submit.prevent="updateQuery">
@@ -15,8 +15,6 @@
                       prepend-inner-icon="search"
                       color="secondary-dark"
                       @input="onChangeQuery"
-                      @change="updateQuery"
-                      @blur="updateQuery"
                       @keyup.enter.native="updateQuery"
                       @click:clear="clearQuery"
         ></v-text-field>
@@ -249,6 +247,7 @@ export default {
       results: [],
       loading: true,
       scrollDisabled: true,
+      scrollDistance: window.innerHeight*2,
       batchSize: Album.batchSize(),
       offset: 0,
       page: 0,
@@ -485,7 +484,7 @@ export default {
       });
     },
     onChangeQuery(val) {
-      this.q = String(val);
+      this.q = val ? String(val) : '';
     },
     clearQuery() {
       this.q = '';

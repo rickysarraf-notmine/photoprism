@@ -2,6 +2,7 @@ package face
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/photoprism/photoprism/pkg/clusters"
@@ -26,34 +27,39 @@ func NewEmbedding(inference []float32) Embedding {
 	return result
 }
 
-// Blacklisted tests if the face embedding is blacklisted.
-func (m Embedding) Blacklisted() bool {
-	return Blacklist.Contains(m, BlacklistRadius)
+// Kind returns the type of face e.g. regular, kids, or ignored.
+func (m Embedding) Kind() Kind {
+	if m.KidsFace() {
+		return KidsFace
+	} else if m.Ignored() {
+		return IgnoredFace
+	}
+
+	return RegularFace
 }
 
-// Child tests if the face embedding belongs to a child.
-func (m Embedding) Child() bool {
-	return Children.Contains(m, ChildrenRadius)
+// SkipMatching checks if the face embedding seems unsuitable for matching.
+func (m Embedding) SkipMatching() bool {
+	return m.KidsFace() || m.Ignored()
 }
 
-// Unsuitable tests if the face embedding is unsuitable for clustering and matching.
-func (m Embedding) Unsuitable() bool {
-	return m.Child() || m.Blacklisted()
+// CanMatch tests if the face embedding is not blacklisted.
+func (m Embedding) CanMatch() bool {
+	return !m.Ignored()
 }
 
-// Distance calculates the distance to another face embedding.
-func (m Embedding) Distance(other Embedding) float64 {
-	return clusters.EuclideanDistance(m, other)
+// Dist calculates the distance to another face embedding.
+func (m Embedding) Dist(other Embedding) float64 {
+	if len(other) == 0 || len(m) != len(other) {
+		return -1
+	}
+
+	return clusters.EuclideanDist(m, other)
 }
 
 // Magnitude returns the face embedding vector length (magnitude).
 func (m Embedding) Magnitude() float64 {
-	return m.Distance(NullEmbedding)
-}
-
-// NotBlacklisted tests if the face embedding is not blacklisted.
-func (m Embedding) NotBlacklisted() bool {
-	return !m.Blacklisted()
+	return m.Dist(NullEmbedding)
 }
 
 // JSON returns the face embedding as JSON bytes.
@@ -72,14 +78,14 @@ func (m Embedding) JSON() []byte {
 }
 
 // UnmarshalEmbedding parses a single face embedding JSON.
-func UnmarshalEmbedding(s string) (result Embedding) {
-	if !strings.HasPrefix(s, "[") {
-		return nil
+func UnmarshalEmbedding(s string) (result Embedding, err error) {
+	if s == "" {
+		return result, fmt.Errorf("cannot unmarshal embedding, empty string provided")
+	} else if !strings.HasPrefix(s, "[") {
+		return result, fmt.Errorf("cannot unmarshal embedding, invalid json provided")
 	}
 
-	if err := json.Unmarshal([]byte(s), &result); err != nil {
-		log.Errorf("faces: %s", err)
-	}
+	err = json.Unmarshal([]byte(s), &result)
 
-	return result
+	return result, err
 }

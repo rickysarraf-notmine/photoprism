@@ -278,8 +278,8 @@ func TestFile_Panorama(t *testing.T) {
 		assert.True(t, file.Panorama())
 	})
 	t.Run("1999", func(t *testing.T) {
-		file := &File{Photo: nil, FileType: "jpg", FileSidecar: false, FileWidth: 1999, FileHeight: 1000}
-		assert.False(t, file.Panorama())
+		file := &File{Photo: nil, FileType: "jpg", FileSidecar: false, FileWidth: 1910, FileHeight: 1000}
+		assert.True(t, file.Panorama())
 	})
 	t.Run("2000", func(t *testing.T) {
 		file := &File{Photo: nil, FileType: "jpg", FileSidecar: false, FileWidth: 2000, FileHeight: 1000}
@@ -331,9 +331,9 @@ func TestFile_SetProjection(t *testing.T) {
 	})
 	t.Run("Sanitize", func(t *testing.T) {
 		m := &File{}
-		m.SetProjection(" 幸福 Hanzi are logograms developed for the writing of Chinese! ")
-		assert.Equal(t, "hanzi are logograms developed for the wr", m.FileProjection)
-		assert.Equal(t, TrimTypeString, len(m.FileProjection))
+		m.SetProjection(" 幸福 Hanzi are logograms developed for the writing of Chinese! Expressions in an index may not ...!")
+		assert.Equal(t, "hanzi are logograms developed for the writing of chinese! expres", m.FileProjection)
+		assert.Equal(t, ClipStringType, len(m.FileProjection))
 	})
 }
 
@@ -667,5 +667,108 @@ func TestFile_SetColorProfile(t *testing.T) {
 		assert.Equal(t, "", m.ColorProfile())
 		assert.True(t, m.HasColorProfile(colors.Default))
 		assert.False(t, m.HasColorProfile(colors.ProfileDisplayP3))
+	})
+}
+
+func TestFile_SetFPS(t *testing.T) {
+	t.Run("FileDuration", func(t *testing.T) {
+		m := File{FileDuration: time.Second * 60}
+
+		assert.Equal(t, time.Minute, m.FileDuration)
+		assert.Equal(t, 0.0, m.FileFPS)
+		assert.Equal(t, 0, m.FileFrames)
+
+		m.SetFPS(10)
+
+		assert.Equal(t, time.Minute, m.FileDuration)
+		assert.Equal(t, 10.0, m.FileFPS)
+		assert.Equal(t, 600, m.FileFrames)
+
+		m.SetFPS(20)
+
+		assert.Equal(t, time.Minute, m.FileDuration)
+		assert.Equal(t, 20.0, m.FileFPS)
+		assert.Equal(t, 600, m.FileFrames)
+
+		m.FileFrames = 0
+		m.SetFPS(20)
+
+		assert.Equal(t, time.Minute, m.FileDuration)
+		assert.Equal(t, 20.0, m.FileFPS)
+		assert.Equal(t, 1200, m.FileFrames)
+	})
+}
+
+func TestFile_SetFrames(t *testing.T) {
+	t.Run("FileDuration", func(t *testing.T) {
+		m := File{FileDuration: time.Second * 60}
+
+		assert.Equal(t, time.Minute, m.FileDuration)
+		assert.Equal(t, 0.0, m.FileFPS)
+		assert.Equal(t, 0, m.FileFrames)
+
+		m.SetFrames(120)
+
+		assert.Equal(t, time.Minute, m.FileDuration)
+		assert.Equal(t, 2.0, m.FileFPS)
+		assert.Equal(t, 120, m.FileFrames)
+
+		m.SetFrames(30)
+
+		assert.Equal(t, time.Minute, m.FileDuration)
+		assert.Equal(t, 2.0, m.FileFPS)
+		assert.Equal(t, 30, m.FileFrames)
+
+		m.FileFPS = 0
+		m.SetFrames(30)
+
+		assert.Equal(t, time.Minute, m.FileDuration)
+		assert.Equal(t, 0.5, m.FileFPS)
+		assert.Equal(t, 30, m.FileFrames)
+	})
+}
+
+func TestFile_SetDuration(t *testing.T) {
+	t.Run("FileFPS", func(t *testing.T) {
+		m := File{FileFPS: 20}
+
+		assert.Equal(t, time.Duration(0), m.FileDuration)
+		assert.Equal(t, 20.0, m.FileFPS)
+		assert.Equal(t, 0, m.FileFrames)
+
+		m.SetDuration(time.Second * 10)
+
+		assert.Equal(t, time.Second*10, m.FileDuration)
+		assert.Equal(t, 20.0, m.FileFPS)
+		assert.Equal(t, 200, m.FileFrames)
+
+		m.SetDuration(time.Minute)
+
+		assert.Equal(t, time.Minute, m.FileDuration)
+		assert.Equal(t, 20.0, m.FileFPS)
+		assert.Equal(t, 200, m.FileFrames)
+	})
+	t.Run("FileFrames", func(t *testing.T) {
+		m := File{FileFrames: 600}
+
+		assert.Equal(t, time.Duration(0), m.FileDuration)
+		assert.Equal(t, 0.0, m.FileFPS)
+		assert.Equal(t, 600, m.FileFrames)
+
+		m.SetDuration(time.Minute)
+
+		assert.Equal(t, time.Minute, m.FileDuration)
+		assert.Equal(t, 10.0, m.FileFPS)
+		assert.Equal(t, 600, m.FileFrames)
+
+		m.FileFPS = 0
+		m.FileFrames = 0
+
+		m.SetDuration(time.Hour)
+		m.SetFrames(216000)
+
+		assert.Equal(t, time.Hour, m.FileDuration)
+		assert.Equal(t, 60.0, m.FileFPS)
+		assert.Equal(t, 216000, m.FileFrames)
 	})
 }

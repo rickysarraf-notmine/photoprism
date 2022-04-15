@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/photoprism/photoprism/internal/entity"
-
 	"github.com/photoprism/photoprism/internal/meta"
+
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/sanitize"
 )
@@ -67,11 +67,11 @@ func (m *MediaFile) ReadExifToolJson() error {
 
 // MetaData returns exif and xmp meta data of a media file.
 func (m *MediaFile) MetaData() (result meta.Data) {
-	m.metaDataOnce.Do(func() {
+	m.metaOnce.Do(func() {
 		var err error
 
 		if m.ExifSupported() {
-			err = m.metaData.Exif(m.FileName(), m.FileType())
+			err = m.metaData.Exif(m.FileName(), m.FileType(), Config().ExifBruteForce())
 		} else {
 			err = fmt.Errorf("exif not supported")
 		}

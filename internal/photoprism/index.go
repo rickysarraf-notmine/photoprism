@@ -76,7 +76,7 @@ func (ind *Index) Cancel() {
 }
 
 // Start indexes media files in the "originals" folder.
-func (ind *Index) Start(opt IndexOptions) fs.Done {
+func (ind *Index) Start(o IndexOptions) fs.Done {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("index: %s (panic)\nstack: %s", r, debug.Stack())
@@ -91,7 +91,7 @@ func (ind *Index) Start(opt IndexOptions) fs.Done {
 	}
 
 	originalsPath := ind.originalsPath()
-	optionsPath := filepath.Join(originalsPath, opt.Path)
+	optionsPath := filepath.Join(originalsPath, o.Path)
 
 	if !fs.PathExists(optionsPath) {
 		event.Error(fmt.Sprintf("index: %s does not exist", sanitize.Log(optionsPath)))
@@ -131,6 +131,7 @@ func (ind *Index) Start(opt IndexOptions) fs.Done {
 	defer ind.files.Done()
 
 	filesIndexed := 0
+	skipRaw := ind.conf.DisableRaw()
 	ignore := fs.NewIgnoreList(fs.IgnoreFile, true, false)
 
 	if err := ignore.Dir(originalsPath); err != nil {
@@ -181,25 +182,28 @@ func (ind *Index) Start(opt IndexOptions) fs.Done {
 
 			mf, err := NewMediaFile(fileName)
 
+			// Check if file exists and is not empty.
 			if err != nil {
-				log.Error(err)
+				log.Errorf("index: %s", err)
 				return nil
 			}
 
-			if mf.FileSize() == 0 {
-				log.Infof("index: skipped empty file %s", sanitize.Log(mf.BaseName()))
+			// Ignore RAW images?
+			if mf.IsRaw() && skipRaw {
+				log.Infof("index: skipped raw %s", sanitize.Log(mf.RootRelName()))
 				return nil
 			}
 
-			if ind.files.Indexed(relName, entity.RootOriginals, mf.modTime, opt.Rescan) {
+			// Skip?
+			if ind.files.Indexed(relName, entity.RootOriginals, mf.modTime, o.Rescan) {
 				return nil
 			}
 
+			// Find related files to index.
 			related, err := mf.RelatedFiles(ind.conf.Settings().StackSequences())
 
 			if err != nil {
 				log.Warnf("index: %s", err.Error())
-
 				return nil
 			}
 
@@ -210,7 +214,7 @@ func (ind *Index) Start(opt IndexOptions) fs.Done {
 					continue
 				}
 
-				if f.FileSize() == 0 || ind.files.Indexed(f.RootRelName(), f.Root(), f.ModTime(), opt.Rescan) {
+				if f.FileSize() == 0 || ind.files.Indexed(f.RootRelName(), f.Root(), f.ModTime(), o.Rescan) {
 					done[f.FileName()] = fs.Found
 					continue
 				}
@@ -232,7 +236,7 @@ func (ind *Index) Start(opt IndexOptions) fs.Done {
 			jobs <- IndexJob{
 				FileName: mf.FileName(),
 				Related:  related,
-				IndexOpt: opt,
+				IndexOpt: o,
 				Ind:      ind,
 			}
 

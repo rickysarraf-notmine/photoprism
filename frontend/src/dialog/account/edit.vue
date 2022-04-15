@@ -150,7 +150,10 @@
                 :disabled="!model.AccSync || readonly"
                 hide-details
                 color="secondary-dark"
+                on-icon="radio_button_checked"
+                off-icon="radio_button_unchecked"
                 :label="$gettext('Download remote files')"
+                @change="onChangeSync('download')"
             ></v-checkbox>
           </v-flex>
           <v-flex xs12 sm6 class="px-2">
@@ -168,7 +171,10 @@
                 :disabled="!model.AccSync"
                 hide-details
                 color="secondary-dark"
+                on-icon="radio_button_checked"
+                off-icon="radio_button_unchecked"
                 :label="$gettext('Upload local files')"
+                @change="onChangeSync('upload')"
             ></v-checkbox>
           </v-flex>
           <v-flex xs12 sm6 class="px-2">
@@ -247,6 +253,30 @@
                 item-text="text"
                 item-value="value"
                 :items="items.types">
+            </v-select>
+          </v-flex>
+          <v-flex xs12 sm6 class="px-2">
+            <v-select
+                v-model="model.AccTimeout"
+                :label="$gettext('Timeout')"
+                browser-autocomplete="off"
+                hide-details
+                color="secondary-dark"
+                item-text="text"
+                item-value="value"
+                :items="options.Timeouts()">
+            </v-select>
+          </v-flex>
+          <v-flex xs12 sm6 class="px-2">
+            <v-select
+                v-model="model.RetryLimit"
+                :label="$gettext('Retry Limit')"
+                browser-autocomplete="off"
+                hide-details
+                color="secondary-dark"
+                item-text="text"
+                item-value="value"
+                :items="options.RetryLimits()">
             </v-select>
           </v-flex>
         </v-layout>
@@ -381,7 +411,14 @@ export default {
 
       return result;
     },
+    onChangeSync(dir) {
+      switch (dir) {
+        case 'upload': this.model.SyncDownload = !this.model.SyncUpload; break;
+        default: this.model.SyncUpload = !this.model.SyncDownload;
+      }
+    },
     onChange() {
+      this.onChangeSync();
       this.paths = [{"abs": "/"}];
 
       this.loading = true;

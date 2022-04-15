@@ -21,7 +21,7 @@ import (
 var IndexCommand = cli.Command{
 	Name:      "index",
 	Usage:     "Indexes original media files",
-	ArgsUsage: "[ORIGINALS SUB-FOLDER]",
+	ArgsUsage: "[originals folder]",
 	Flags:     indexFlags,
 	Action:    indexAction,
 }
@@ -69,12 +69,8 @@ func indexAction(ctx *cli.Context) error {
 	var indexed fs.Done
 
 	if w := service.Index(); w != nil {
-		opt := photoprism.IndexOptions{
-			Path:    subPath,
-			Rescan:  ctx.Bool("force"),
-			Convert: conf.Settings().Index.Convert && conf.SidecarWritable(),
-			Stack:   true,
-		}
+		convert := conf.Settings().Index.Convert && conf.SidecarWritable()
+		opt := photoprism.NewIndexOptions(subPath, ctx.Bool("force"), convert, true, false)
 
 		indexed = w.Start(opt)
 	}

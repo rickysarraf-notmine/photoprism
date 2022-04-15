@@ -48,15 +48,15 @@ func MapKey(takenAt time.Time, cellId string) string {
 type Photo struct {
 	ID               uint         `gorm:"primary_key" yaml:"-"`
 	UUID             string       `gorm:"type:VARBINARY(42);index;" json:"DocumentID,omitempty" yaml:"DocumentID,omitempty"`
-	TakenAt          time.Time    `gorm:"type:datetime;index:idx_photos_taken_uid;" json:"TakenAt" yaml:"TakenAt"`
-	TakenAtLocal     time.Time    `gorm:"type:datetime;" yaml:"-"`
+	TakenAt          time.Time    `gorm:"type:DATETIME;index:idx_photos_taken_uid;" json:"TakenAt" yaml:"TakenAt"`
+	TakenAtLocal     time.Time    `gorm:"type:DATETIME;" yaml:"-"`
 	TakenSrc         string       `gorm:"type:VARBINARY(8);" json:"TakenSrc" yaml:"TakenSrc,omitempty"`
 	PhotoUID         string       `gorm:"type:VARBINARY(42);unique_index;index:idx_photos_taken_uid;" json:"UID" yaml:"UID"`
 	PhotoType        string       `gorm:"type:VARBINARY(8);default:'image';" json:"Type" yaml:"Type"`
 	TypeSrc          string       `gorm:"type:VARBINARY(8);" json:"TypeSrc" yaml:"TypeSrc,omitempty"`
 	PhotoTitle       string       `gorm:"type:VARCHAR(200);" json:"Title" yaml:"Title"`
 	TitleSrc         string       `gorm:"type:VARBINARY(8);" json:"TitleSrc" yaml:"TitleSrc,omitempty"`
-	PhotoDescription string       `gorm:"type:TEXT;" json:"Description" yaml:"Description,omitempty"`
+	PhotoDescription string       `gorm:"type:VARCHAR(4096);" json:"Description" yaml:"Description,omitempty"`
 	DescriptionSrc   string       `gorm:"type:VARBINARY(8);" json:"DescriptionSrc" yaml:"DescriptionSrc,omitempty"`
 	PhotoPath        string       `gorm:"type:VARBINARY(500);index:idx_photos_path_name;" json:"Path" yaml:"-"`
 	PhotoName        string       `gorm:"type:VARBINARY(255);index:idx_photos_path_name;" json:"Name" yaml:"-"`
@@ -116,7 +116,7 @@ func (Photo) TableName() string {
 func NewPhoto(stackable bool) Photo {
 	m := Photo{
 		PhotoTitle:   UnknownTitle,
-		PhotoType:    TypeImage,
+		PhotoType:    MediaImage,
 		PhotoCountry: UnknownCountry.ID,
 		CameraID:     UnknownCamera.ID,
 		LensID:       UnknownLens.ID,
@@ -442,7 +442,7 @@ func (m *Photo) IndexKeywords() error {
 		kw := FirstOrCreateKeyword(NewKeyword(w))
 
 		if kw == nil {
-			log.Errorf("index keyword should not be nil - bug?")
+			log.Errorf("index keyword should not be nil - possible bug")
 			continue
 		}
 
@@ -462,7 +462,7 @@ func (m *Photo) IndexKeywords() error {
 func (m *Photo) PreloadFiles() {
 	q := Db().
 		Table("files").
-		Select(`files.*`).
+		Select("files.*").
 		Where("files.photo_id = ? AND files.deleted_at IS NULL", m.ID).
 		Order("files.file_name DESC")
 
@@ -562,7 +562,7 @@ func (m *Photo) AddLabels(labels classify.Labels) {
 		labelEntity := FirstOrCreateLabel(NewLabel(classifyLabel.Title(), classifyLabel.Priority))
 
 		if labelEntity == nil {
-			log.Errorf("index: label %s should not be nil - bug? (%s)", sanitize.Log(classifyLabel.Title()), m)
+			log.Errorf("index: label %s should not be nil - possible bug (%s)", sanitize.Log(classifyLabel.Title()), m)
 			continue
 		}
 
@@ -572,13 +572,13 @@ func (m *Photo) AddLabels(labels classify.Labels) {
 		}
 
 		if err := labelEntity.UpdateClassify(classifyLabel); err != nil {
-			log.Errorf("index: %s", err)
+			log.Errorf("index: failed updating label %s (%s)", sanitize.Log(classifyLabel.Title()), err)
 		}
 
 		photoLabel := FirstOrCreatePhotoLabel(NewPhotoLabel(m.ID, labelEntity.ID, classifyLabel.Uncertainty, classifyLabel.Source))
 
 		if photoLabel == nil {
-			log.Errorf("index: photo-label %d should not be nil - bug? (%s)", labelEntity.ID, m)
+			log.Errorf("index: photo-label %d should not be nil - possible bug (%s)", labelEntity.ID, m)
 			continue
 		}
 
@@ -597,7 +597,7 @@ func (m *Photo) AddLabels(labels classify.Labels) {
 
 // SetDescription changes the photo description if not empty and from the same source.
 func (m *Photo) SetDescription(desc, source string) {
-	newDesc := txt.Clip(desc, txt.ClipDescription)
+	newDesc := txt.Clip(desc, txt.ClipLongText)
 
 	if newDesc == "" {
 		return
@@ -860,7 +860,7 @@ func (m *Photo) PrimaryFile() (*File, error) {
 }
 
 // SetPrimary sets a new primary file.
-func (m *Photo) SetPrimary(fileUID string) error {
+func (m *Photo) SetPrimary(fileUID string) (err error) {
 	if m.PhotoUID == "" {
 		return fmt.Errorf("photo uid is empty")
 	}
@@ -869,7 +869,7 @@ func (m *Photo) SetPrimary(fileUID string) error {
 
 	if fileUID != "" {
 		// Do nothing.
-	} else if err := Db().Model(File{}).
+	} else if err = Db().Model(File{}).
 		Where("photo_uid = ? AND file_type = 'jpg' AND file_missing = 0 AND file_error = ''", m.PhotoUID).
 		Order("file_width DESC, file_hdr DESC").Limit(1).
 		Pluck("file_uid", &files).Error; err != nil {
@@ -884,14 +884,20 @@ func (m *Photo) SetPrimary(fileUID string) error {
 		return fmt.Errorf("file uid is empty")
 	}
 
-	Db().Model(File{}).Where("photo_uid = ? AND file_uid <> ?", m.PhotoUID, fileUID).UpdateColumn("file_primary", 0)
-
-	if err := Db().Model(File{}).Where("photo_uid = ? AND file_uid = ?", m.PhotoUID, fileUID).UpdateColumn("file_primary", 1).Error; err != nil {
+	if err = Db().Model(File{}).
+		Where("photo_uid = ? AND file_uid <> ?", m.PhotoUID, fileUID).
+		UpdateColumn("file_primary", 0).Error; err != nil {
+		return err
+	} else if err = Db().Model(File{}).Where("photo_uid = ? AND file_uid = ?", m.PhotoUID, fileUID).
+		UpdateColumn("file_primary", 1).Error; err != nil {
 		return err
 	} else if m.PhotoQuality < 0 {
 		m.PhotoQuality = 0
-		return m.UpdateQuality()
+		err = m.UpdateQuality()
 	}
+
+	// Regenerate file search index.
+	File{PhotoID: m.ID, PhotoUID: m.PhotoUID}.RegenerateIndex()
 
 	return nil
 }

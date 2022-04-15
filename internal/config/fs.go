@@ -11,31 +11,46 @@ import (
 	"github.com/photoprism/photoprism/pkg/sanitize"
 )
 
-func findExecutable(configBin, defaultBin string) (result string) {
+// binPaths stores known executable paths.
+var binPaths = make(map[string]string, 8)
+
+// findExecutable searches binaries by their name.
+func findExecutable(configBin, defaultBin string) (binPath string) {
+	// Cached?
+	cacheKey := defaultBin + configBin
+	if cached, ok := binPaths[cacheKey]; ok {
+		return cached
+	}
+
+	// Default if config value is empty.
 	if configBin == "" {
-		result = defaultBin
+		binPath = defaultBin
 	} else {
-		result = configBin
+		binPath = configBin
 	}
 
-	if path, err := exec.LookPath(result); err == nil {
-		result = path
+	// Search.
+	if path, err := exec.LookPath(binPath); err == nil {
+		binPath = path
 	}
 
-	if !fs.FileExists(result) {
-		result = ""
+	// Exists?
+	if !fs.FileExists(binPath) {
+		binPath = ""
+	} else {
+		binPaths[cacheKey] = binPath
 	}
 
-	return result
+	return binPath
 }
 
 // CreateDirectories creates directories for storing photos, metadata and cache files.
 func (c *Config) CreateDirectories() error {
 	createError := func(path string, err error) (result error) {
 		if fs.FileExists(path) {
-			result = fmt.Errorf("%s is a file, not a folder: please check your configuration", sanitize.Log(path))
+			result = fmt.Errorf("directory path %s is a file, please check your configuration", sanitize.Log(path))
 		} else {
-			result = fmt.Errorf("cannot create %s, check config and permissions", sanitize.Log(path))
+			result = fmt.Errorf("failed to create the directory %s, check configuration and permissions", sanitize.Log(path))
 		}
 
 		log.Debug(err)
@@ -44,7 +59,7 @@ func (c *Config) CreateDirectories() error {
 	}
 
 	notFoundError := func(name string) error {
-		return fmt.Errorf("%s path not found, run 'photoprism config' to check configuration options", name)
+		return fmt.Errorf("invalid %s path, check configuration and permissions", sanitize.Log(name))
 	}
 
 	if c.AssetsPath() == "" {
@@ -137,16 +152,17 @@ func (c *Config) CreateDirectories() error {
 		return createError(filepath.Dir(c.LogFilename()), err)
 	}
 
-	return nil
-}
+	if c.DarktableEnabled() {
+		if cachePath, err := c.CreateDarktableCachePath(); err != nil {
+			return fmt.Errorf("could not create darktable cache path %s", sanitize.Log(cachePath))
+		}
 
-// ConfigFile returns the config file name.
-func (c *Config) ConfigFile() string {
-	if c.options.ConfigFile == "" || !fs.FileExists(c.options.ConfigFile) {
-		return filepath.Join(c.ConfigPath(), "options.yml")
+		if configPath, err := c.CreateDarktableConfigPath(); err != nil {
+			return fmt.Errorf("could not create darktable cache path %s", sanitize.Log(configPath))
+		}
 	}
 
-	return c.options.ConfigFile
+	return nil
 }
 
 // ConfigPath returns the config path.
@@ -162,13 +178,23 @@ func (c *Config) ConfigPath() string {
 	return fs.Abs(c.options.ConfigPath)
 }
 
+// OptionsYaml returns the config options YAML filename.
+func (c *Config) OptionsYaml() string {
+	return filepath.Join(c.ConfigPath(), "options.yml")
+}
+
+// DefaultsYaml returns the default options YAML filename.
+func (c *Config) DefaultsYaml() string {
+	return c.options.DefaultsYaml
+}
+
 // HubConfigFile returns the backend api config file name.
 func (c *Config) HubConfigFile() string {
 	return filepath.Join(c.ConfigPath(), "hub.yml")
 }
 
-// SettingsFile returns the user settings file name.
-func (c *Config) SettingsFile() string {
+// SettingsYaml returns the settings YAML filename.
+func (c *Config) SettingsYaml() string {
 	return filepath.Join(c.ConfigPath(), "settings.yml")
 }
 
@@ -190,7 +216,7 @@ func (c *Config) LogFilename() string {
 	return fs.Abs(c.options.LogFilename)
 }
 
-// CaseInsensitive tests if the storage path is case-insensitive.
+// CaseInsensitive checks if the storage path is case-insensitive.
 func (c *Config) CaseInsensitive() (result bool, err error) {
 	storagePath := c.StoragePath()
 	return fs.CaseInsensitive(storagePath)
@@ -216,21 +242,6 @@ func (c *Config) ImportPath() string {
 	return fs.Abs(c.options.ImportPath)
 }
 
-// ExifToolBin returns the exiftool executable file name.
-func (c *Config) ExifToolBin() string {
-	return findExecutable(c.options.ExifToolBin, "exiftool")
-}
-
-// ExifToolJson tests if creating JSON metadata sidecar files with Exiftool is enabled.
-func (c *Config) ExifToolJson() bool {
-	return !c.DisableExifTool()
-}
-
-// BackupYaml tests if creating YAML files is enabled.
-func (c *Config) BackupYaml() bool {
-	return !c.DisableBackups()
-}
-
 // SidecarPath returns the storage path for generated sidecar files (relative or absolute).
 func (c *Config) SidecarPath() string {
 	if c.options.SidecarPath == "" {
@@ -240,12 +251,12 @@ func (c *Config) SidecarPath() string {
 	return c.options.SidecarPath
 }
 
-// SidecarPathIsAbs tests if sidecar path is absolute.
+// SidecarPathIsAbs checks if sidecar path is absolute.
 func (c *Config) SidecarPathIsAbs() bool {
 	return filepath.IsAbs(c.SidecarPath())
 }
 
-// SidecarWritable tests if sidecar files can be created.
+// SidecarWritable checks if sidecar files can be created.
 func (c *Config) SidecarWritable() bool {
 	return !c.ReadOnly() || c.SidecarPathIsAbs()
 }

@@ -220,7 +220,7 @@ func resetIndexDb(conf *config.Config) {
 	tables.Drop(conf.Db())
 
 	log.Infoln("restoring default schema")
-	entity.MigrateDb(true, false)
+	entity.InitDb(true, false, nil)
 
 	if conf.AdminPassword() != "" {
 		log.Infoln("restoring initial admin password")

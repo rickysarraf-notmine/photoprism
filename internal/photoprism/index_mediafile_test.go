@@ -40,6 +40,11 @@ func TestIndex_MediaFile(t *testing.T) {
 
 		words := mediaFile.metaData.Keywords.String()
 
+		t.Logf("size in megapixel: %d", mediaFile.Megapixels())
+
+		exceeds, actual := mediaFile.ExceedsResolution(conf.ResolutionLimit())
+		t.Logf("megapixel limit exceeded: %t, %d / %d MP", exceeds, actual, conf.ResolutionLimit())
+
 		assert.Contains(t, words, "marienkäfer")
 		assert.Contains(t, words, "burst")
 		assert.Contains(t, words, "flash")

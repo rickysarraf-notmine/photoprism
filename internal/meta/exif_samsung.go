@@ -45,7 +45,7 @@ type trailerEntry struct {
 // 	- https://gist.github.com/HikerBoricua/54aec42ee47f2ecb374ec3208b3a98ee
 // 	- https://github.com/exiftool/exiftool/blob/57f44297961839f40e70d682865c41828b7f71b5/lib/Image/ExifTool/JPEG.pm#L277-L279
 // 	- https://github.com/exiftool/exiftool/blob/57f44297961839f40e70d682865c41828b7f71b5/lib/Image/ExifTool/Samsung.pm#L1300-L1322
-func (metadata *Data) ExifSamsungTrailer(fileName string, fileType fs.FileFormat) (bool, error) {
+func (metadata *Data) ExifSamsungTrailer(fileName string, fileType fs.Format) (bool, error) {
 	if !metadata.isSamsungMedia(fileType) {
 		return false, nil
 	}
@@ -64,7 +64,7 @@ func (metadata *Data) ExifSamsungTrailer(fileName string, fileType fs.FileFormat
 }
 
 // EmbeddedVideoData returns the embedded video data from a Samsung motion photo.
-func (metadata Data) EmbeddedVideoData(fileName string, fileType fs.FileFormat) ([]byte, error) {
+func (metadata Data) EmbeddedVideoData(fileName string, fileType fs.Format) ([]byte, error) {
 	if !metadata.isSamsungMedia(fileType) {
 		return nil, nil
 	}
@@ -82,7 +82,7 @@ func (metadata Data) EmbeddedVideoData(fileName string, fileType fs.FileFormat) 
 	return trailerEntries[typeEmbeddedVideoType].Data, nil
 }
 
-func (metadata Data) isSamsungMedia(fileType fs.FileFormat) bool {
+func (metadata Data) isSamsungMedia(fileType fs.Format) bool {
 	if fileType != fs.FormatJpeg {
 		return false
 	}

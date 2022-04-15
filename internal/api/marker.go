@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/dustin/go-humanize/english"
 	"github.com/gin-gonic/gin"
@@ -16,6 +17,18 @@ import (
 	"github.com/photoprism/photoprism/internal/query"
 	"github.com/photoprism/photoprism/internal/service"
 )
+
+// Checks if background worker runs less than once per hour.
+func wakeupIntervalTooHigh(c *gin.Context) bool {
+	if conf := service.Config(); conf.Unsafe() {
+		return false
+	} else if i := conf.WakeupInterval(); i > time.Hour {
+		Abort(c, http.StatusForbidden, i18n.ErrWakeupInterval, i.String())
+		return true
+	} else {
+		return false
+	}
+}
 
 // findFileMarker returns a file and marker entity matching the api request.
 func findFileMarker(c *gin.Context) (file *entity.File, marker *entity.Marker, err error) {
@@ -40,18 +53,16 @@ func findFileMarker(c *gin.Context) (file *entity.File, marker *entity.Marker, e
 		return nil, nil, fmt.Errorf("bad request")
 	} else if marker, err = query.MarkerByUID(uid); err != nil {
 		AbortEntityNotFound(c)
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("uid %s %s", uid, err)
 	} else if marker.FileUID == "" {
 		AbortEntityNotFound(c)
 		return nil, marker, fmt.Errorf("marker file missing")
 	}
 
 	// Find file.
-	if f, err := query.FileByUID(marker.FileUID); err != nil {
+	if file, err = query.FileByUID(marker.FileUID); err != nil {
 		AbortEntityNotFound(c)
-		return nil, marker, err
-	} else {
-		file = &f
+		return file, marker, fmt.Errorf("file %s %s", marker.FileUID, err)
 	}
 
 	return file, marker, nil
@@ -67,6 +78,12 @@ func findFileMarker(c *gin.Context) (file *entity.File, marker *entity.Marker, e
 //   id: int Marker ID as returned by the API
 func UpdateMarker(router *gin.RouterGroup) {
 	router.PUT("/markers/:marker_uid", func(c *gin.Context) {
+		// Abort if workers runs less than once per hour.
+		if wakeupIntervalTooHigh(c) {
+			return
+		}
+
+		// Abort if another update is running.
 		if err := mutex.People.Start(); err != nil {
 			AbortBusy(c)
 			return
@@ -77,7 +94,7 @@ func UpdateMarker(router *gin.RouterGroup) {
 		file, marker, err := findFileMarker(c)
 
 		if err != nil {
-			log.Debugf("marker: %s (find)", err)
+			log.Debugf("faces: %s (find marker to update)", err)
 			return
 		}
 
@@ -85,18 +102,18 @@ func UpdateMarker(router *gin.RouterGroup) {
 		f, err := form.NewMarker(*marker)
 
 		if err != nil {
-			log.Errorf("marker: %s (new form)", err)
+			log.Errorf("faces: %s (create marker update form)", err)
 			AbortSaveFailed(c)
 			return
 		} else if err := c.BindJSON(&f); err != nil {
-			log.Errorf("marker: %s (update form)", err)
+			log.Errorf("faces: %s (set updated marker values)", err)
 			AbortBadRequest(c)
 			return
 		}
 
 		// Update marker from form values.
 		if changed, err := marker.SaveForm(f); err != nil {
-			log.Errorf("marker: %s", err)
+			log.Errorf("faces: %s (update marker)", err)
 			AbortSaveFailed(c)
 			return
 		} else if changed {
@@ -145,6 +162,12 @@ func UpdateMarker(router *gin.RouterGroup) {
 //   id: int Marker ID as returned by the API
 func ClearMarkerSubject(router *gin.RouterGroup) {
 	router.DELETE("/markers/:marker_uid/subject", func(c *gin.Context) {
+		// Abort if workers runs less than once per hour.
+		if wakeupIntervalTooHigh(c) {
+			return
+		}
+
+		// Abort if another update is running.
 		if err := mutex.People.Start(); err != nil {
 			AbortBusy(c)
 			return
@@ -155,12 +178,12 @@ func ClearMarkerSubject(router *gin.RouterGroup) {
 		file, marker, err := findFileMarker(c)
 
 		if err != nil {
-			log.Debugf("api: %s (clear marker subject)", err)
+			log.Debugf("faces: %s (find marker to clear subject)", err)
 			return
 		}
 
 		if err := marker.ClearSubject(entity.SrcManual); err != nil {
-			log.Errorf("faces: %s (clear subject)", err)
+			log.Errorf("faces: %s (clear marker subject)", err)
 			AbortSaveFailed(c)
 			return
 		} else if err := query.UpdateSubjectCovers(); err != nil {

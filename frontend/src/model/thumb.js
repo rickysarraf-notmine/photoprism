@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
+Copyright (c) 2018 - 2022 PhotoPrism UG. All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
     it under Version 3 of the GNU Affero General Public License (the "AGPL"):
@@ -15,7 +15,7 @@ Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
     which describe how our Brand Assets may be used:
     <https://photoprism.app/trademark>
 
-Feel free to send an e-mail to hello@photoprism.app if you have questions,
+Feel free to send an email to hello@photoprism.app if you have questions,
 want to support our work, or just want to say hello.
 
 Additional information can be found in our Developer Guide:
@@ -33,21 +33,22 @@ const thumbs = window.__CONFIG__.thumbs;
 export class Thumb extends Model {
   getDefaults() {
     return {
-      uid: "",
-      title: "",
-      taken: "",
-      description: "",
-      favorite: false,
-      playable: false,
-      sphere: false,
-      original_w: 0,
-      original_h: 0,
-      download_url: "",
+      UID: "",
+      Title: "",
+      TakenAtLocal: "",
+      Description: "",
+      Favorite: false,
+      Playable: false,
+      Sphere: false,
+      DownloadUrl: "",
+      Width: 0,
+      Height: 0,
+      Thumbs: {},
     };
   }
 
   getId() {
-    return this.uid;
+    return this.UID;
   }
 
   hasId() {
@@ -55,27 +56,28 @@ export class Thumb extends Model {
   }
 
   toggleLike() {
-    this.favorite = !this.favorite;
+    this.Favorite = !this.Favorite;
 
-    if (this.favorite) {
-      return Api.post("photos/" + this.uid + "/like");
+    if (this.Favorite) {
+      return Api.post("photos/" + this.UID + "/like");
     } else {
-      return Api.delete("photos/" + this.uid + "/like");
+      return Api.delete("photos/" + this.UID + "/like");
     }
   }
 
   static thumbNotFound() {
     const result = {
-      uid: "",
-      title: $gettext("Not Found"),
-      taken: "",
-      description: "",
-      favorite: false,
-      playable: false,
-      sphere: false,
-      original_w: 0,
-      original_h: 0,
-      download_url: "",
+      UID: "",
+      Title: $gettext("Not Found"),
+      TakenAtLocal: "",
+      Description: "",
+      Favorite: false,
+      Playable: false,
+      Sphere: false,
+      DownloadUrl: "",
+      Width: 0,
+      Height: 0,
+      Thumbs: {},
     };
 
     for (let i = 0; i < thumbs.length; i++) {
@@ -112,23 +114,24 @@ export class Thumb extends Model {
     }
 
     const result = {
-      uid: photo.UID,
-      title: photo.Title,
-      taken: photo.getDateString(),
-      description: photo.Description,
-      favorite: photo.Favorite,
-      playable: photo.isPlayable(),
-      sphere: photo.isSphere(),
-      download_url: this.downloadUrl(photo),
-      original_w: photo.Width,
-      original_h: photo.Height,
+      UID: photo.UID,
+      Title: photo.Title,
+      TakenAtLocal: photo.getDateString(),
+      Description: photo.Description,
+      Favorite: photo.Favorite,
+      Playable: photo.isPlayable(),
+      Sphere: photo.isSphere(),
+      DownloadUrl: this.downloadUrl(photo),
+      Width: photo.Width,
+      Height: photo.Height,
+      Thumbs: {},
     };
 
     for (let i = 0; i < thumbs.length; i++) {
       let t = thumbs[i];
       let size = photo.calculateSize(t.w, t.h);
 
-      result[t.size] = {
+      result.Thumbs[t.size] = {
         src: photo.thumbnailUrl(t.size),
         w: size.width,
         h: size.height,
@@ -144,23 +147,24 @@ export class Thumb extends Model {
     }
 
     const result = {
-      uid: photo.UID,
-      title: photo.Title,
-      taken: photo.getDateString(),
-      description: photo.Description,
-      favorite: photo.Favorite,
-      playable: photo.isPlayable(),
-      sphere: photo.isSphere(),
-      download_url: this.downloadUrl(file),
-      original_w: file.Width,
-      original_h: file.Height,
+      UID: photo.UID,
+      Title: photo.Title,
+      TakenAtLocal: photo.getDateString(),
+      Description: photo.Description,
+      Favorite: photo.Favorite,
+      Playable: photo.isPlayable(),
+      Sphere: photo.isSphere(),
+      DownloadUrl: this.downloadUrl(file),
+      Width: file.Width,
+      Height: file.Height,
+      Thumbs: {},
     };
 
     for (let i = 0; i < thumbs.length; i++) {
       let t = thumbs[i];
       let size = this.calculateSize(file, t.w, t.h);
 
-      result[t.size] = {
+      result.Thumbs[t.size] = {
         src: this.thumbnailUrl(file, t.size),
         w: size.width,
         h: size.height,
@@ -193,7 +197,7 @@ export class Thumb extends Model {
       for (let j = 0; j < p.Files.length; j++) {
         let f = p.Files[j];
 
-        if (!f || f.Type !== "jpg") {
+        if (!f || f.FileType !== "jpg") {
           continue;
         }
 

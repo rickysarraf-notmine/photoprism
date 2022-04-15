@@ -24,7 +24,7 @@ ARG BUILD_TAG
 ENV PHOTOPRISM_ARCH=$TARGETARCH \
     DOCKER_TAG=$BUILD_TAG \
     DOCKER_ENV="prod" \
-    PATH="/usr/local/sbin:/usr/sbin:/sbin:/bin:/scripts:/opt/photoprism/bin:/usr/local/bin:/usr/bin" \
+    PATH="/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/scripts:/opt/photoprism/bin" \
     TMPDIR="/tmp" \
     DEBIAN_FRONTEND="noninteractive" \
     TF_CPP_MIN_LOG_LEVEL="2" \
@@ -62,13 +62,13 @@ ENV PHOTOPRISM_ARCH=$TARGETARCH \
     PHOTOPRISM_DISABLE_TENSORFLOW="false" \
     PHOTOPRISM_DISABLE_FACES="false" \
     PHOTOPRISM_DISABLE_CLASSIFICATION="false" \
-    PHOTOPRISM_DARKTABLE_PRESETS="false" \
+    PHOTOPRISM_RAW_PRESETS="false" \
     PHOTOPRISM_THUMB_FILTER="lanczos" \
     PHOTOPRISM_THUMB_UNCACHED="false" \
     PHOTOPRISM_THUMB_SIZE=2048 \
     PHOTOPRISM_THUMB_SIZE_UNCACHED=7680 \
     PHOTOPRISM_JPEG_SIZE=7680 \
-    PHOTOPRISM_JPEG_QUALITY=92 \
+    PHOTOPRISM_JPEG_QUALITY=85 \
     PHOTOPRISM_WORKERS=0 \
     PHOTOPRISM_WAKEUP_INTERVAL=900 \
     PHOTOPRISM_AUTO_INDEX=300 \
@@ -127,6 +127,7 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
       /photoprism/storage/cache \
     && \
     echo "ALL ALL=(ALL) NOPASSWD:SETENV: /scripts/entrypoint-init.sh" >> /etc/sudoers.d/init && \
+    cp /scripts/heif-convert.sh /usr/local/bin/heif-convert && \
     /scripts/cleanup.sh
 
 # define default directory and user

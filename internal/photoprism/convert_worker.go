@@ -7,6 +7,7 @@ import (
 )
 
 type ConvertJob struct {
+	force   bool
 	file    *MediaFile
 	convert *Convert
 }
@@ -23,18 +24,19 @@ func ConvertWorker(jobs <-chan ConvertJob) {
 			continue
 		case job.convert == nil:
 			continue
-		case job.file.IsVideo():
+		case job.file.IsAnimated():
 			_, _ = job.convert.ToJson(job.file)
 
-			if _, err := job.convert.ToJpeg(job.file); err != nil {
+			// Create JPEG preview and AVC encoded version for videos.
+			if _, err := job.convert.ToJpeg(job.file, job.force); err != nil {
 				logError(err, job)
 			} else if metaData := job.file.MetaData(); metaData.CodecAvc() {
 				continue
-			} else if _, err := job.convert.ToAvc(job.file, job.convert.conf.FFmpegEncoder()); err != nil {
+			} else if _, err := job.convert.ToAvc(job.file, job.convert.conf.FFmpegEncoder(), false, false); err != nil {
 				logError(err, job)
 			}
 		default:
-			if _, err := job.convert.ToJpeg(job.file); err != nil {
+			if _, err := job.convert.ToJpeg(job.file, job.force); err != nil {
 				logError(err, job)
 			}
 		}

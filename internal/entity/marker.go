@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize/english"
-
 	"github.com/jinzhu/gorm"
 
 	"github.com/photoprism/photoprism/internal/crop"
@@ -73,7 +72,7 @@ func (m *Marker) BeforeCreate(scope *gorm.Scope) error {
 // NewMarker creates a new entity.
 func NewMarker(file File, area crop.Area, subjUID, markerSrc, markerType string, size, score int) *Marker {
 	if file.FileHash == "" {
-		log.Errorf("markers: file hash is empty - you might have found a bug")
+		log.Errorf("markers: file hash is empty - possible bug")
 		return nil
 	}
 
@@ -134,8 +133,8 @@ func (m *Marker) UpdateFile(file *File) (updated bool) {
 
 	if !updated || m.MarkerUID == "" {
 		return false
-	} else if res := UnscopedDb().Model(m).UpdateColumns(Values{"file_uid": m.FileUID, "thumb": m.Thumb}); res.Error != nil {
-		log.Errorf("marker %s: %s (set file)", m.MarkerUID, res.Error)
+	} else if err := UnscopedDb().Model(m).UpdateColumns(Values{"file_uid": m.FileUID, "thumb": m.Thumb}).Error; err != nil {
+		log.Errorf("faces: failed assigning marker %s to file %s (%s)", m.MarkerUID, m.FileUID, err)
 		return false
 	} else {
 		return true
@@ -233,7 +232,7 @@ func (m *Marker) SetFace(f *Face, dist float64) (updated bool, err error) {
 	} else if reported, err := f.ResolveCollision(m.Embeddings()); err != nil {
 		return false, err
 	} else if reported {
-		log.Warnf("marker %s: face %s has ambiguous subjects %s <> %s, subject source %s", sanitize.Log(m.MarkerUID), sanitize.Log(f.ID), sanitize.Log(m.SubjUID), sanitize.Log(f.SubjUID), SrcString(m.SubjSrc))
+		log.Warnf("faces: marker %s face %s has ambiguous subjects %s <> %s, subject source %s", sanitize.Log(m.MarkerUID), sanitize.Log(f.ID), sanitize.Log(m.SubjUID), sanitize.Log(f.SubjUID), SrcString(m.SubjSrc))
 		return false, nil
 	} else {
 		return false, nil
@@ -273,7 +272,7 @@ func (m *Marker) SetFace(f *Face, dist float64) (updated bool, err error) {
 				continue
 			}
 
-			if d := e.Distance(faceEmbedding); d < m.FaceDist || m.FaceDist < 0 {
+			if d := e.Dist(faceEmbedding); d < m.FaceDist || m.FaceDist < 0 {
 				m.FaceDist = d
 			}
 		}
@@ -429,10 +428,10 @@ func (m *Marker) Subject() (subj *Subject) {
 	// Create subject?
 	if m.SubjSrc != SrcAuto && m.MarkerName != "" && m.SubjUID == "" {
 		if subj = NewSubject(m.MarkerName, SubjPerson, m.SubjSrc); subj == nil {
-			log.Errorf("marker %s: invalid subject %s", sanitize.Log(m.MarkerUID), sanitize.Log(m.MarkerName))
+			log.Errorf("faces: marker %s has invalid subject %s", sanitize.Log(m.MarkerUID), sanitize.Log(m.MarkerName))
 			return nil
 		} else if subj = FirstOrCreateSubject(subj); subj == nil {
-			log.Debugf("marker %s: invalid subject %s", sanitize.Log(m.MarkerUID), sanitize.Log(m.MarkerName))
+			log.Debugf("faces: marker %s has invalid subject %s", sanitize.Log(m.MarkerUID), sanitize.Log(m.MarkerName))
 			return nil
 		} else {
 			m.subject = subj
@@ -458,9 +457,9 @@ func (m *Marker) ClearSubject(src string) error {
 		// Find and (soft) delete unused subjects.
 		start := time.Now()
 		if count, err := DeleteOrphanPeople(); err != nil {
-			log.Errorf("marker %s: %s while removing unused subjects [%s]", sanitize.Log(m.MarkerUID), err, time.Since(start))
+			log.Errorf("faces: %s while clearing subject of marker %s [%s]", err, sanitize.Log(m.MarkerUID), time.Since(start))
 		} else if count > 0 {
-			log.Debugf("marker %s: removed %s [%s]", sanitize.Log(m.MarkerUID), english.Plural(count, "person", "people"), time.Since(start))
+			log.Debugf("faces: %s marked as missing while clearing subject of marker %s [%s]", english.Plural(count, "person", "people"), sanitize.Log(m.MarkerUID), time.Since(start))
 		}
 	}()
 
@@ -473,7 +472,7 @@ func (m *Marker) ClearSubject(src string) error {
 	} else if resolved, err := m.face.ResolveCollision(m.Embeddings()); err != nil {
 		return err
 	} else if resolved {
-		log.Debugf("marker %s: resolved ambiguous subjects for face %s", sanitize.Log(m.MarkerUID), sanitize.Log(m.face.ID))
+		log.Debugf("faces: marker %s resolved ambiguous subjects for face %s", sanitize.Log(m.MarkerUID), sanitize.Log(m.face.ID))
 	}
 
 	// Clear references.
@@ -499,21 +498,23 @@ func (m *Marker) Face() (f *Face) {
 	// Add face if size
 	if m.SubjSrc != SrcAuto && m.FaceID == "" {
 		if m.Size < face.ClusterSizeThreshold || m.Score < face.ClusterScoreThreshold {
-			log.Debugf("marker %s: skipped adding face due to low-quality (size %d, score %d)", sanitize.Log(m.MarkerUID), m.Size, m.Score)
+			log.Debugf("faces: marker %s skipped adding face due to low-quality (size %d, score %d)", sanitize.Log(m.MarkerUID), m.Size, m.Score)
 			return nil
-		} else if emb := m.Embeddings(); emb.Empty() {
-			log.Warnf("marker %s: found no face embeddings", sanitize.Log(m.MarkerUID))
+		}
+
+		if emb := m.Embeddings(); emb.Empty() {
+			log.Warnf("faces: marker %s has no face embeddings", sanitize.Log(m.MarkerUID))
 			return nil
 		} else if f = NewFace(m.SubjUID, m.SubjSrc, emb); f == nil {
-			log.Warnf("marker %s: failed assigning face", sanitize.Log(m.MarkerUID))
+			log.Warnf("faces: failed assigning face to marker %s", sanitize.Log(m.MarkerUID))
 			return nil
-		} else if f.Unsuitable() {
-			log.Infof("marker %s: face %s is unsuitable for clustering and matching", sanitize.Log(m.MarkerUID), f.ID)
+		} else if f.SkipMatching() {
+			log.Infof("faces: skipped matching marker %s, embedding %s not distinct enough", sanitize.Log(m.MarkerUID), f.ID)
 		} else if f = FirstOrCreateFace(f); f == nil {
-			log.Warnf("marker %s: failed assigning face", sanitize.Log(m.MarkerUID))
+			log.Warnf("faces: failed matching marker %s with subject %s", sanitize.Log(m.MarkerUID), SubjNames.Log(m.SubjUID))
 			return nil
 		} else if err := f.MatchMarkers(Faceless); err != nil {
-			log.Errorf("marker %s: %s while matching with faces", sanitize.Log(m.MarkerUID), err)
+			log.Errorf("faces: failed matching marker %s with subject %s (%s)", sanitize.Log(m.MarkerUID), SubjNames.Log(m.SubjUID), err)
 		}
 
 		m.face = f
@@ -696,37 +697,19 @@ func FindMarker(markerUid string) *Marker {
 	return &result
 }
 
-// FindFaceMarker finds the best marker for a given face
-func FindFaceMarker(faceId string) *Marker {
-	if faceId == "" {
-		return nil
-	}
-
-	var result Marker
-
-	if err := Db().Where("face_id = ?", faceId).
-		Where("thumb <> '' AND marker_invalid = 0").
-		Order("face_dist ASC, q DESC").First(&result).Error; err != nil {
-		log.Warnf("markers: found no marker for face %s", sanitize.Log(faceId))
-		return nil
-	}
-
-	return &result
-}
-
 // CreateMarkerIfNotExists updates a marker in the database or creates a new one if needed.
 func CreateMarkerIfNotExists(m *Marker) (*Marker, error) {
 	result := Marker{}
 
 	if m.MarkerUID != "" {
 		return m, nil
-	} else if Db().Where(`file_uid = ? AND marker_type = ? AND thumb = ?`, m.FileUID, m.MarkerType, m.Thumb).
+	} else if Db().Where("file_uid = ? AND marker_type = ? AND thumb = ?", m.FileUID, m.MarkerType, m.Thumb).
 		First(&result).Error == nil {
 		return &result, nil
 	} else if err := m.Create(); err != nil {
 		return m, err
 	} else {
-		log.Debugf("markers: added %s marker %s for %s", TypeString(m.MarkerType), sanitize.Log(m.MarkerUID), sanitize.Log(m.FileUID))
+		log.Debugf("markers: added %s %s for file %s", TypeString(m.MarkerType), sanitize.Log(m.MarkerUID), sanitize.Log(m.FileUID))
 	}
 
 	return m, nil

@@ -2,7 +2,7 @@
 
 Package search performs common index search queries.
 
-Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
+Copyright (c) 2018 - 2022 PhotoPrism UG. All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
     it under Version 3 of the GNU Affero General Public License (the "AGPL"):
@@ -17,7 +17,7 @@ Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
     which describe how our Brand Assets may be used:
     <https://photoprism.app/trademark>
 
-Feel free to send an e-mail to hello@photoprism.app if you have questions,
+Feel free to send an email to hello@photoprism.app if you have questions,
 want to support our work, or just want to say hello.
 
 Additional information can be found in our Developer Guide:
@@ -41,9 +41,6 @@ const MaxResults = 25000
 // Radius is about 1 km.
 const Radius = 0.009
 
-// Cols represents a list of database columns.
-type Cols []string
-
 // Query searches given an originals path and a db instance.
 type Query struct {
 	db *gorm.DB
@@ -62,4 +59,11 @@ func Db() *gorm.DB {
 // UnscopedDb returns an unscoped database connection instance.
 func UnscopedDb() *gorm.DB {
 	return entity.Db().Unscoped()
+}
+
+// Log logs the error if any and keeps quiet otherwise.
+func Log(action string, err error) {
+	if err != nil {
+		log.Errorf("search: %s (%s)", err, action)
+	}
 }

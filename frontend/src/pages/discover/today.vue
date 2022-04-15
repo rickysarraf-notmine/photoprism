@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import {Photo, TypeLive, TypeRaw, TypeVideo} from "model/photo";
+import {Photo, MediaLive, MediaRaw, MediaVideo} from "model/photo";
 import Thumb from "model/thumb";
 
 export default {
@@ -155,11 +155,11 @@ export default {
         const selected = this_.results[index];
 
         // Don't open as stack when a RAW has only one JPEG.
-        if (selected.Type === TypeRaw && selected.jpegFiles().length < 2) {
+        if (selected.Type === MediaRaw && selected.jpegFiles().length < 2) {
           showMerged = false;
         }
 
-        if (showMerged && selected.Type === TypeLive || selected.Type === TypeVideo) {
+        if (showMerged && selected.Type === MediaLive || selected.Type === MediaVideo) {
           if (selected.isPlayable()) {
             this_.$viewer.play({video: selected});
           } else {

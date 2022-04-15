@@ -37,6 +37,7 @@ type ClientConfig struct {
 	AppMode         string              `json:"appMode"`
 	AppIcon         string              `json:"appIcon"`
 	Debug           bool                `json:"debug"`
+	Trace           bool                `json:"trace"`
 	Test            bool                `json:"test"`
 	Demo            bool                `json:"demo"`
 	Sponsor         bool                `json:"sponsor"`
@@ -77,6 +78,7 @@ type ClientDisable struct {
 	Places         bool `json:"places"`
 	ExifTool       bool `json:"exiftool"`
 	FFmpeg         bool `json:"ffmpeg"`
+	Raw            bool `json:"raw"`
 	Darktable      bool `json:"darktable"`
 	Rawtherapee    bool `json:"rawtherapee"`
 	Sips           bool `json:"sips"`
@@ -181,6 +183,7 @@ func (c *Config) PublicConfig() ClientConfig {
 	result := ClientConfig{
 		Settings: Settings{
 			UI:       settings.UI,
+			Search:   settings.Search,
 			Maps:     settings.Maps,
 			Features: settings.Features,
 			Share:    settings.Share,
@@ -192,6 +195,7 @@ func (c *Config) PublicConfig() ClientConfig {
 			Places:         c.DisablePlaces(),
 			ExifTool:       true,
 			FFmpeg:         true,
+			Raw:            true,
 			Darktable:      true,
 			Rawtherapee:    true,
 			Sips:           true,
@@ -224,6 +228,7 @@ func (c *Config) PublicConfig() ClientConfig {
 		Version:         c.Version(),
 		Copyright:       c.Copyright(),
 		Debug:           c.Debug(),
+		Trace:           c.Trace(),
 		Test:            c.Test(),
 		Demo:            c.Demo(),
 		Sponsor:         c.Sponsor(),
@@ -251,6 +256,7 @@ func (c *Config) GuestConfig() ClientConfig {
 	result := ClientConfig{
 		Settings: Settings{
 			UI:       settings.UI,
+			Search:   settings.Search,
 			Maps:     settings.Maps,
 			Features: settings.Features,
 			Share:    settings.Share,
@@ -262,6 +268,7 @@ func (c *Config) GuestConfig() ClientConfig {
 			Places:         c.DisablePlaces(),
 			ExifTool:       true,
 			FFmpeg:         true,
+			Raw:            true,
 			Darktable:      true,
 			Rawtherapee:    true,
 			Sips:           true,
@@ -294,6 +301,7 @@ func (c *Config) GuestConfig() ClientConfig {
 		Version:         c.Version(),
 		Copyright:       c.Copyright(),
 		Debug:           c.Debug(),
+		Trace:           c.Trace(),
 		Test:            c.Test(),
 		Demo:            c.Demo(),
 		Sponsor:         c.Sponsor(),
@@ -327,6 +335,7 @@ func (c *Config) UserConfig() ClientConfig {
 			Places:         c.DisablePlaces(),
 			ExifTool:       c.DisableExifTool(),
 			FFmpeg:         c.DisableFFmpeg(),
+			Raw:            c.DisableRaw(),
 			Darktable:      c.DisableDarktable(),
 			Rawtherapee:    c.DisableRawtherapee(),
 			Sips:           c.DisableSips(),
@@ -359,6 +368,7 @@ func (c *Config) UserConfig() ClientConfig {
 		Version:         c.Version(),
 		Copyright:       c.Copyright(),
 		Debug:           c.Debug(),
+		Trace:           c.Trace(),
 		Test:            c.Test(),
 		Demo:            c.Demo(),
 		Sponsor:         c.Sponsor(),
@@ -401,8 +411,8 @@ func (c *Config) UserConfig() ClientConfig {
 		Table("photos").
 		Select("SUM(photo_type = 'video' AND photo_quality >= 0 AND photo_private = 0) AS videos, " +
 			"SUM(photo_type = 'live' AND photo_quality >= 0 AND photo_private = 0) AS live, " +
-			"SUM(photo_quality = -1) AS hidden, SUM(photo_type IN ('image','raw') AND photo_private = 0 AND photo_quality >= 0) AS photos, " +
-			"SUM(photo_type IN ('image','raw','live') AND photo_quality < 3 AND photo_quality >= 0 AND photo_private = 0) AS review, " +
+			"SUM(photo_quality = -1) AS hidden, SUM(photo_type IN ('image','raw','animated') AND photo_private = 0 AND photo_quality >= 0) AS photos, " +
+			"SUM(photo_type IN ('image','raw','live','animated') AND photo_quality < 3 AND photo_quality >= 0 AND photo_private = 0) AS review, " +
 			"SUM(photo_favorite = 1 AND photo_private = 0 AND photo_quality >= 0) AS favorites, " +
 			"SUM(photo_private = 1 AND photo_quality >= 0) AS private").
 		Where("photos.id NOT IN (SELECT photo_id FROM files WHERE file_primary = 1 AND (file_missing = 1 OR file_error <> ''))").
@@ -427,9 +437,7 @@ func (c *Config) UserConfig() ClientConfig {
 
 	c.Db().
 		Table("files").
-		Select("COUNT(*) AS files").
-		Where("file_missing = 0").
-		Where("deleted_at IS NULL").
+		Select("COUNT(media_id) AS files").
 		Take(&result.Count)
 
 	c.Db().

@@ -2,7 +2,7 @@
 
 Package i18n contains PhotoPrism status and error message strings.
 
-Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
+Copyright (c) 2018 - 2022 PhotoPrism UG. All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
     it under Version 3 of the GNU Affero General Public License (the "AGPL"):
@@ -17,7 +17,7 @@ Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
     which describe how our Brand Assets may be used:
     <https://photoprism.app/trademark>
 
-Feel free to send an e-mail to hello@photoprism.app if you have questions,
+Feel free to send an email to hello@photoprism.app if you have questions,
 want to support our work, or just want to say hello.
 
 Additional information can be found in our Developer Guide:
@@ -43,14 +43,17 @@ func gettext(s string) string {
 	return gotext.Get(s)
 }
 
-func Msg(id Message, params ...interface{}) string {
-	msg := gotext.Get(Messages[id])
-
+// msgParams replaces message params with the actual values.
+func msgParams(msg string, params ...interface{}) string {
 	if strings.Contains(msg, "%") {
 		msg = fmt.Sprintf(msg, params...)
 	}
 
 	return msg
+}
+
+func Msg(id Message, params ...interface{}) string {
+	return msgParams(gotext.Get(Messages[id]), params...)
 }
 
 func Error(id Message, params ...interface{}) error {

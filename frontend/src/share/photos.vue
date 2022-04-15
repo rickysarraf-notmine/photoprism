@@ -1,6 +1,6 @@
 <template>
   <div v-infinite-scroll="loadMore" class="p-page p-page-album-photos" style="user-select: none"
-       :infinite-scroll-disabled="scrollDisabled" :infinite-scroll-distance="1200"
+       :infinite-scroll-disabled="scrollDisabled" :infinite-scroll-distance="scrollDistance"
        :infinite-scroll-listen-for-event="'scrollRefresh'">
 
     <v-form ref="form" lazy-validation
@@ -87,12 +87,13 @@
 </template>
 
 <script>
-import {Photo, TypeLive, TypeRaw, TypeVideo} from "model/photo";
+import {Photo, MediaLive, MediaRaw, MediaVideo, MediaAnimated} from "model/photo";
 import Album from "model/album";
-import Event from "pubsub-js";
 import Thumb from "model/thumb";
+import Event from "pubsub-js";
 import Notify from "common/notify";
 import download from "common/download";
+import Viewer from "common/viewer";
 
 export default {
   name: 'PPageAlbumPhotos',
@@ -110,6 +111,7 @@ export default {
     const view = this.viewType();
     const filter = {country: country, camera: camera, order: order, q: q};
     const settings = {view: view};
+    const batchSize = Photo.batchSize();
 
     return {
       subscriptions: [],
@@ -120,7 +122,8 @@ export default {
       uid: uid,
       results: [],
       scrollDisabled: true,
-      batchSize: Photo.batchSize(),
+      scrollDistance: window.innerHeight*2,
+      batchSize: batchSize,
       offset: 0,
       page: 0,
       selection: this.$clipboard.selection,
@@ -133,6 +136,9 @@ export default {
       viewer: {
         results: [],
         loading: false,
+        complete: false,
+        dirty: false,
+        batchSize: batchSize > 160 ? 480 : batchSize * 3
       },
     };
   },
@@ -225,18 +231,18 @@ export default {
       Event.publish("dialog.edit", {selection: selection, album: this.album, index: index});
     },
     openPhoto(index, showMerged) {
-      if (this.loading || this.viewer.loading || !this.results[index]) {
+      if (this.loading || !this.listen || this.viewer.loading || !this.results[index]) {
         return false;
       }
 
       const selected = this.results[index];
 
       // Don't open as stack when user is selecting pictures, or a RAW has only one JPEG.
-      if (this.selection.length > 0 || selected.Type === TypeRaw && selected.jpegFiles().length < 2) {
+      if (this.selection.length > 0 || selected.Type === MediaRaw && selected.jpegFiles().length < 2) {
         showMerged = false;
       }
 
-      if (showMerged && selected.Type === TypeLive || selected.Type === TypeVideo) {
+      if (showMerged && selected.Type === MediaLive || selected.Type === MediaVideo|| selected.Type === MediaAnimated) {
         if (selected.isPlayable()) {
           this.$viewer.play({video: selected, album: this.album});
         } else {
@@ -245,61 +251,20 @@ export default {
       } else if (showMerged) {
         this.$viewer.show(Thumb.fromFiles([selected]), 0);
       } else {
-        this.viewerResults().then((results) => {
-          const thumbsIndex = results.findIndex(result => result.UID === selected.UID);
-
-          if (thumbsIndex < 0) {
-            this.$viewer.show(Thumb.fromPhotos(this.results), index);
-          } else {
-            this.$viewer.show(Thumb.fromPhotos(results), thumbsIndex);
-          }
-        });
+        Viewer.show(this, index);
       }
 
       return true;
     },
-    viewerResults() {
-      if (this.complete || this.loading || this.viewer.loading) {
-        return Promise.resolve(this.results);
-      }
-
-      if (this.viewer.results.length >= this.results.length) {
-        return Promise.resolve(this.viewer.results);
-      }
-
-      this.viewer.loading = true;
-
-      const params = {
-        count: Photo.limit(),
-        offset: 0,
-        album: this.uid,
-        filter: this.model.Filter ? this.model.Filter : "",
-        merged: true,
-      };
-
-      Object.assign(params, this.lastFilter);
-
-      if (this.staticFilter) {
-        Object.assign(params, this.staticFilter);
-      }
-
-      return Photo.search(params).then(resp => {
-        // Success.
-        this.viewer.loading = false;
-        this.viewer.results = resp.models;
-        return Promise.resolve(this.viewer.results);
-      }, () => {
-        // Error.
-        this.viewer.loading = false;
-        this.viewer.results = [];
-        return Promise.resolve(this.results);
-      });
-    },
     loadMore() {
-      if (this.scrollDisabled) return;
+      if (this.scrollDisabled || this.$scrollbar.disabled()) return;
 
       this.scrollDisabled = true;
       this.listen = false;
+
+      if (this.dirty) {
+        this.viewer.dirty = true;
+      }
 
       const count = this.dirty ? (this.page + 2) * this.batchSize : this.batchSize;
       const offset = this.dirty ? 0 : this.offset;
@@ -350,10 +315,6 @@ export default {
         this.dirty = false;
         this.loading = false;
         this.listen = true;
-
-        if (offset === 0) {
-          this.viewerResults();
-        }
       });
     },
     updateQuery() {
@@ -430,6 +391,7 @@ export default {
         this.offset = this.batchSize;
         this.results = response.models;
         this.viewer.results = [];
+        this.viewer.complete = false;
         this.complete = (response.count < this.batchSize);
         this.scrollDisabled = this.complete;
 
@@ -454,8 +416,6 @@ export default {
         this.dirty = false;
         this.loading = false;
         this.listen = true;
-
-        this.viewerResults();
       });
     },
     findAlbum() {

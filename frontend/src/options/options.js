@@ -2,7 +2,14 @@ import { timeZonesNames } from "@vvo/tzdb";
 import { $gettext } from "common/vm";
 import { Info } from "luxon";
 import { config } from "app/session";
-import { TypeImage, TypeLive, TypeRaw, TypeSphere, TypeVideo } from "model/photo";
+import {
+  MediaAnimated,
+  MediaImage,
+  MediaLive,
+  MediaRaw,
+  MediaSphere,
+  MediaVideo,
+} from "model/photo";
 
 export const TimeZones = () =>
   [
@@ -355,23 +362,73 @@ export const MapsStyle = () => [
 export const PhotoTypes = () => [
   {
     text: $gettext("Image"),
-    value: TypeImage,
+    value: MediaImage,
+  },
+  {
+    text: $gettext("Animated"),
+    value: MediaAnimated,
   },
   {
     text: $gettext("Raw"),
-    value: TypeRaw,
+    value: MediaRaw,
   },
   {
     text: $gettext("Live"),
-    value: TypeLive,
+    value: MediaLive,
   },
   {
     text: $gettext("Video"),
-    value: TypeVideo,
+    value: MediaVideo,
   },
   {
     text: $gettext("Photosphere"),
-    value: TypeSphere,
+    value: MediaSphere,
+  },
+];
+
+export const Timeouts = () => [
+  {
+    text: $gettext("Default"),
+    value: "",
+  },
+  {
+    text: $gettext("High"),
+    value: "high",
+  },
+  {
+    text: $gettext("Low"),
+    value: "low",
+  },
+  {
+    text: $gettext("None"),
+    value: "none",
+  },
+];
+
+export const RetryLimits = () => [
+  {
+    text: "None",
+    value: -1,
+  },
+  {
+    text: "1",
+    value: 1,
+  },
+  {
+    text: "2",
+    value: 2,
+  },
+  {
+    text: "3",
+    value: 3,
+  },
+  {
+    text: "4",
+    value: 4,
+  },
+  {
+    text: "5",
+    value: 5,
   },
 ];
 

@@ -1,5 +1,7 @@
 package entity
 
+import "github.com/photoprism/photoprism/pkg/fs"
+
 // Panorama Projection Types
 // TODO: Move to separate package.
 
@@ -12,20 +14,20 @@ const (
 	ProjPseudocylindricalCompromise = "pseudocylindrical-compromise"
 )
 
-// Content Types
-
+// Media Types.
 const (
-	TypeDefault = ""
-	TypeImage   = "image"
-	TypeLive    = "live"
-	TypeVideo   = "video"
-	TypeRaw     = "raw"
-	TypeText    = "text"
-	TypeSphere  = "sphere"
+	MediaUnknown  = ""
+	MediaImage    = string(fs.MediaImage)
+	MediaVector   = string(fs.MediaVector)
+	MediaAnimated = "animated"
+	MediaLive     = "live"
+	MediaVideo    = string(fs.MediaVideo)
+	MediaRaw      = string(fs.MediaRaw)
+	MediaSphere   = "sphere"
+	TypeMeta      = "meta"
 )
 
-// Root Directories Types
-
+// Root Dirs.
 const (
 	RootUnknown   = ""
 	RootOriginals = "/"
@@ -35,8 +37,7 @@ const (
 	RootPath      = "/"
 )
 
-// Unknown Values
-
+// Defaults.
 const (
 	UnknownYear  = -1
 	UnknownMonth = -1
@@ -65,9 +66,11 @@ const (
 // Sort Orders
 
 const (
+	SortOrderDefault   = ""
 	SortOrderRelevance = "relevance"
 	SortOrderCount     = "count"
 	SortOrderAdded     = "added"
+	SortOrderImported  = "imported"
 	SortOrderEdited    = "edited"
 	SortOrderNewest    = "newest"
 	SortOrderOldest    = "oldest"

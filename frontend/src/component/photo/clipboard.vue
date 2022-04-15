@@ -27,7 +27,7 @@
             small
             :title="$gettext('Share')"
             color="share"
-            :disabled="selection.length === 0"
+            :disabled="selection.length === 0 || busy"
             class="action-share"
             @click.stop="dialog.share = true"
         >
@@ -52,7 +52,7 @@
             small
             :title="$gettext('Approve')"
             color="share"
-            :disabled="selection.length === 0"
+            :disabled="selection.length === 0 || busy"
             class="action-approve"
             @click.stop="batchApprove"
         >
@@ -63,7 +63,7 @@
             small
             :title="$gettext('Edit')"
             color="edit"
-            :disabled="selection.length === 0"
+            :disabled="selection.length === 0 || busy"
             class="action-edit"
             @click.stop="edit"
         >
@@ -74,7 +74,7 @@
             small
             :title="$gettext('Change private flag')"
             color="private"
-            :disabled="selection.length === 0"
+            :disabled="selection.length === 0 || busy"
             class="action-private"
             @click.stop="batchPrivate"
         >
@@ -84,6 +84,7 @@
             v-if="context !== 'archive' && features.download" fab dark
             small
             :title="$gettext('Download')"
+            :disabled="busy"
             color="download"
             class="action-download"
             @click.stop="download()"
@@ -95,7 +96,7 @@
             small
             :title="$gettext('Add to album')"
             color="album"
-            :disabled="selection.length === 0"
+            :disabled="selection.length === 0 || busy"
             class="action-album"
             @click.stop="dialog.album = true"
         >
@@ -106,7 +107,7 @@
             small
             color="remove"
             :title="$gettext('Archive')"
-            :disabled="selection.length === 0"
+            :disabled="selection.length === 0 || busy"
             class="action-archive"
             @click.stop="archivePhotos"
         >
@@ -117,7 +118,7 @@
             small
             color="restore"
             :title="$gettext('Restore')"
-            :disabled="selection.length === 0"
+            :disabled="selection.length === 0 || busy"
             class="action-restore"
             @click.stop="batchRestore"
         >
@@ -128,7 +129,7 @@
             small
             :title="$gettext('Remove from album')"
             color="remove"
-            :disabled="selection.length === 0"
+            :disabled="selection.length === 0 || busy"
             class="action-remove"
             @click.stop="removeFromAlbum"
         >
@@ -150,7 +151,7 @@
             small
             :title="$gettext('Delete')"
             color="remove"
-            :disabled="selection.length === 0"
+            :disabled="selection.length === 0 || busy"
             class="action-delete"
             @click.stop="deletePhotos"
         >
@@ -200,6 +201,7 @@ export default {
   },
   data() {
     return {
+      busy: false,
       config: this.$config.values,
       features: this.$config.settings().features,
       expanded: false,
@@ -220,7 +222,17 @@ export default {
       this.expanded = false;
     },
     batchApprove() {
-      Api.post("batch/photos/approve", {"photos": this.selection}).then(() => this.onApproved());
+      if (this.busy) {
+        return;
+      }
+
+      this.busy = true;
+
+      Api.post("batch/photos/approve", {"photos": this.selection})
+        .then(() => this.onApproved())
+        .finally(() => {
+          this.busy = false;
+        });
     },
     onApproved() {
       Notify.success(this.$gettext("Selection approved"));
@@ -234,9 +246,18 @@ export default {
       }
     },
     batchArchive() {
+      if (this.busy) {
+        return;
+      }
+
+      this.busy = true;
       this.dialog.archive = false;
 
-      Api.post("batch/photos/archive", {"photos": this.selection}).then(() => this.onArchived());
+      Api.post("batch/photos/archive", {"photos": this.selection})
+        .then(() => this.onArchived())
+        .finally(() => {
+          this.busy = false;
+        });
     },
     onArchived() {
       Notify.success(this.$gettext("Selection archived"));
@@ -268,9 +289,22 @@ export default {
       this.clearClipboard();
     },
     addToAlbum(ppid) {
+      if (!ppid) {
+        return;
+      }
+
+      if (this.busy) {
+        return;
+      }
+      
+      this.busy = true;
       this.dialog.album = false;
 
-      Api.post(`albums/${ppid}/photos`, {"photos": this.selection}).then(() => this.onAdded());
+      Api.post(`albums/${ppid}/photos`, {"photos": this.selection})
+        .then(() => this.onAdded())
+        .finally(() => {
+          this.busy = false;
+        });
     },
     onAdded() {
       this.clearClipboard();
@@ -281,22 +315,51 @@ export default {
         return;
       }
 
+      if (this.busy) {
+        return;
+      }
+
+      this.busy = true;
+
       const uid = this.album.UID;
 
       this.dialog.album = false;
 
-      Api.delete(`albums/${uid}/photos`, {"data": {"photos": this.selection}}).then(() => this.onRemoved());
+      Api.delete(`albums/${uid}/photos`, {"data": {"photos": this.selection}})
+        .then(() => this.onRemoved())
+        .finally(() => {
+          this.busy = false;
+        });
     },
     onRemoved() {
       this.clearClipboard();
     },
     download() {
+      if (this.busy) {
+        return;
+      }
+
+      this.busy = true;
+
       switch (this.selection.length) {
-        case 0: return;
-        case 1: new Photo().find(this.selection[0]).then(p => p.downloadAll()); break;
-        default: Api.post("zip", {"photos": this.selection}).then(r => {
-          this.onDownload(`${this.$config.apiUri}/zip/${r.data.filename}?t=${this.$config.downloadToken()}`);
-        });
+        case 0: 
+          this.busy = false;
+          return;
+        case 1:
+          new Photo().find(this.selection[0])
+            .then(p => p.downloadAll())
+            .finally(() => {
+              this.busy = false;
+            });
+          break;
+        default: 
+          Api.post("zip", {"photos": this.selection})
+            .then(r => {
+              this.onDownload(`${this.$config.apiUri}/zip/${r.data.filename}?t=${this.$config.downloadToken()}`);
+            })
+            .finally(() => {
+              this.busy = false;
+            });
       }
 
       Notify.success(this.$gettext("Downloading…"));

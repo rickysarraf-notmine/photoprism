@@ -3,8 +3,8 @@ UI:
   Zoom: false
   Theme: onyx
   Language: de
-Templates:
-  Default: index.tmpl
+Search:
+  BatchSize: 0
 Folders:
   DateMode: last
   SortOrder: added
@@ -47,3 +47,6 @@ Share:
   Title: ""
 Download:
   Name: file
+  Raw: false
+Templates:
+  Default: index.tmpl

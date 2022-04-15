@@ -11,30 +11,6 @@ func TestConfig_FindExecutable(t *testing.T) {
 	assert.Equal(t, "", findExecutable("yyy", "xxx"))
 }
 
-func TestConfig_SidecarJson(t *testing.T) {
-	c := NewConfig(CliTestContext())
-
-	assert.Equal(t, true, c.ExifToolJson())
-	assert.Equal(t, c.DisableExifTool(), !c.ExifToolJson())
-
-	c.options.DisableExifTool = true
-
-	assert.Equal(t, false, c.ExifToolJson())
-	assert.Equal(t, c.DisableExifTool(), !c.ExifToolJson())
-}
-
-func TestConfig_SidecarYaml(t *testing.T) {
-	c := NewConfig(CliTestContext())
-
-	assert.Equal(t, true, c.BackupYaml())
-	assert.Equal(t, c.DisableBackups(), !c.BackupYaml())
-
-	c.options.DisableBackups = true
-
-	assert.Equal(t, false, c.BackupYaml())
-	assert.Equal(t, c.DisableBackups(), !c.BackupYaml())
-}
-
 func TestConfig_SidecarPath(t *testing.T) {
 	c := NewConfig(CliTestContext())
 
@@ -109,7 +85,7 @@ func TestConfig_CreateDirectories(t *testing.T) {
 		defer testConfigMutex.Unlock()
 
 		c := &Config{
-			options: NewTestOptions(),
+			options: NewTestOptions("config"),
 			token:   rnd.Token(8),
 		}
 
@@ -285,13 +261,6 @@ func TestConfig_CreateDirectories2(t *testing.T) {
 	})
 }
 */
-
-func TestConfig_ConfigFile2(t *testing.T) {
-	c := NewConfig(CliTestContext())
-	assert.Contains(t, c.ConfigFile(), "options.yml")
-	c.options.ConfigFile = "/go/src/github.com/photoprism/photoprism/internal/config/testdata/config.yml"
-	assert.Equal(t, "/go/src/github.com/photoprism/photoprism/internal/config/testdata/config.yml", c.ConfigFile())
-}
 
 func TestConfig_PIDFilename2(t *testing.T) {
 	c := NewConfig(CliTestContext())

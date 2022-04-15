@@ -1,7 +1,7 @@
 PhotoPrism: Browse Your Life in Pictures
 ========================================
 
-[![License: AGPL](https://img.shields.io/badge/license-AGPL-blue.svg)](https://docs.photoprism.app/license/)
+[![License: AGPL](https://img.shields.io/badge/license-AGPL-blue.svg)](https://docs.photoprism.app/license/agpl/)
 [![GitHub contributors](https://img.shields.io/github/contributors/photoprism/photoprism.svg)](https://photoprism.app/team)
 [![Documentation](https://img.shields.io/badge/read-the%20docs-4aa087.svg)](https://docs.photoprism.app/)
 [![Community Chat](https://img.shields.io/badge/chat-on%20gitter-4aa087.svg)](https://link.photoprism.app/chat)
@@ -64,7 +64,7 @@ We currently have the following sponsorship options:
 - [GitHub Sponsors](https://link.photoprism.app/sponsor) is priced in USD and also offers [one-time donations](https://link.photoprism.app/donate)
 - [Patreon](https://link.photoprism.app/patreon) is priced in Euro and also offers yearly payments
 - Stripe will be available in early 2022, so you can sign up directly in the app without having a Patreon or GitHub account
-- you are welcome to [contact us](https://photoprism.app/contact) for [crypto donations](https://photoprism.app/crypto-donations) and other options
+- You are welcome to [contact us](https://photoprism.app/contact) for [crypto donations](https://photoprism.app/crypto-donations), bank account details, and business partnerships
 
 Also, please [leave a star](https://github.com/photoprism/photoprism/stargazers) on GitHub if you like this project.
 It provides additional motivation to keep going.
@@ -72,15 +72,13 @@ It provides additional motivation to keep going.
 ## Upcoming Features and Improvements ##
 
 **Our vision is to provide the most user- and privacy-friendly solution to keep your pictures organized and accessible.**
-The [roadmap](https://link.photoprism.app/roadmap) shows what tasks are in progress,
-what needs testing, and which features are going to be implemented next.
+The [roadmap](https://link.photoprism.app/roadmap) shows what tasks are in progress, what needs testing, and which features are going to be implemented next.
 Please give ideas you like a thumbs-up 👍  , so that we know what is most popular.
 
-Ideas endorsed by [silver, gold, and platinum sponsors](https://link.photoprism.app/sponsors) receive a [golden label](https://github.com/photoprism/photoprism/issues?q=is%3Aissue+is%3Aopen+label%3Asponsor)
-and will be prioritized on the [roadmap](https://link.photoprism.app/roadmap).
-
-We have a zero bug policy and do our best to help users when they need support or have other questions.
+Ideas endorsed by [silver, gold, and platinum sponsors](https://link.photoprism.app/sponsors) receive a [golden label](https://github.com/photoprism/photoprism/issues?q=is%3Aissue+is%3Aopen+label%3Asponsor) and will be prioritized on the [roadmap](https://link.photoprism.app/roadmap).
+Note that we have a zero bug policy and do our best to help users when they need support or have other questions.
 This comes at a price, as we can't give exact deadlines for new features.
+Our team will consider all requests, but is not obligated to implement the features, improvements, or other changes you request.
 
 Having said that, funding really has the highest impact. So users can do their part and
 [become a sponsor](https://docs.photoprism.app/funding/) to get their favorite features as soon as possible.
@@ -90,7 +88,7 @@ Having said that, funding really has the highest impact. So users can do their p
 Before submitting a support request, please use our [Troubleshooting Checklists](https://docs.photoprism.app/getting-started/troubleshooting/)
 to determine the cause of your problem. If this doesn't help, or you have other questions:
 
-- you are welcome to join us on [Reddit](https://link.photoprism.app/reddit)
+- You are welcome to join us on [Reddit](https://link.photoprism.app/reddit)
 - post your question in [GitHub Discussions](https://link.photoprism.app/discussions)
 - or ask in our [Community Chat](https://link.photoprism.app/chat)
 
@@ -103,12 +101,12 @@ Think of "free software" as in "free speech," not as in "free beer". Thank You! 
 
 ### GitHub Issues ###
 
-We kindly ask you not to report bugs via GitHub Issues unless you are certain to have found a fully reproducible and
-previously unreported issue that must be fixed directly in the app. [Contact us](https://photoprism.app/contact)
-or [a community member](https://link.photoprism.app/discussions) if you need help, it could be a local
-configuration problem, or a misunderstanding in how the software works. This gives our team the opportunity
-to [improve the documentation](https://docs.photoprism.app/getting-started/troubleshooting/) and provide best-in-class
-support to you, instead of handling unclear and/or duplicate bug reports.
+We kindly ask you not to report bugs via GitHub Issues **unless you are certain to have found a fully reproducible and previously unreported issue** that must be fixed directly in the app. Thank you for your careful consideration!
+
+- When reporting a problem, always include the software versions you are using and other information about your environment such as [browser, browser plugins](https://docs.photoprism.app/getting-started/troubleshooting/browsers/), operating system, [storage type](https://docs.photoprism.app/getting-started/troubleshooting/performance/#storage), [memory size](https://docs.photoprism.app/getting-started/troubleshooting/performance/#memory), and [processor](https://docs.photoprism.app/getting-started/troubleshooting/performance/#server-cpu)
+- Note that all issue **subscribers receive an email notification** from GitHub for each new comment, so these should only be used for sharing important information and not for personal discussions/questions
+- [Contact us](https://photoprism.app/contact) or [a community member](https://link.photoprism.app/discussions) if you need help, it could be a local configuration problem, or a misunderstanding in how the software works
+- This gives our team the opportunity to [improve the docs](https://docs.photoprism.app/getting-started/troubleshooting/) and provide best-in-class support to you, instead of handling unclear/duplicate bug reports or triggering a flood of notifications by responding to comments
 
 ## Join the Community ##
 

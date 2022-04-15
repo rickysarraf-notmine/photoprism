@@ -27,8 +27,8 @@ type Subject struct {
 	SubjSlug     string          `gorm:"type:VARBINARY(160);index;default:'';" json:"Slug" yaml:"-"`
 	SubjName     string          `gorm:"type:VARCHAR(160);unique_index;default:'';" json:"Name" yaml:"Name"`
 	SubjAlias    string          `gorm:"type:VARCHAR(160);default:'';" json:"Alias" yaml:"Alias"`
-	SubjBio      string          `gorm:"type:TEXT;" json:"Bio" yaml:"Bio,omitempty"`
-	SubjNotes    string          `gorm:"type:TEXT;" json:"Notes,omitempty" yaml:"Notes,omitempty"`
+	SubjBio      string          `gorm:"type:VARCHAR(2048);" json:"Bio" yaml:"Bio,omitempty"`
+	SubjNotes    string          `gorm:"type:VARCHAR(1024);" json:"Notes,omitempty" yaml:"Notes,omitempty"`
 	SubjFavorite bool            `gorm:"default:false;" json:"Favorite" yaml:"Favorite,omitempty"`
 	SubjHidden   bool            `gorm:"default:false;" json:"Hidden" yaml:"Hidden,omitempty"`
 	SubjPrivate  bool            `gorm:"default:false;" json:"Private" yaml:"Private,omitempty"`
@@ -55,6 +55,18 @@ func (m *Subject) BeforeCreate(scope *gorm.Scope) error {
 	}
 
 	return scope.SetColumn("SubjUID", rnd.PPID('j'))
+}
+
+// AfterSave is a hook that updates the name cache after saving.
+func (m *Subject) AfterSave() (err error) {
+	SubjNames.Set(m.SubjUID, m.SubjName)
+	return
+}
+
+// AfterFind is a hook that updates the name cache after querying.
+func (m *Subject) AfterFind() (err error) {
+	SubjNames.Set(m.SubjUID, m.SubjName)
+	return
 }
 
 // NewSubject returns a new entity.
@@ -106,8 +118,6 @@ func (m *Subject) Delete() error {
 	subjectMutex.Lock()
 	defer subjectMutex.Unlock()
 
-	log.Infof("subject: deleting %s %s", TypeString(m.SubjType), sanitize.Log(m.SubjName))
-
 	event.EntitiesDeleted("subjects", []string{m.SubjUID})
 
 	if m.IsPerson() {
@@ -120,6 +130,8 @@ func (m *Subject) Delete() error {
 	if err := Db().Model(&Face{}).Where("subj_uid = ?", m.SubjUID).Update("subj_uid", "").Error; err != nil {
 		return err
 	}
+
+	log.Infof("subject: marked %s %s as missing", TypeString(m.SubjType), sanitize.Log(m.SubjName))
 
 	return Db().Delete(m).Error
 }
@@ -180,7 +192,7 @@ func FirstOrCreateSubject(m *Subject) *Subject {
 
 	if found := FindSubjectByName(m.SubjName); found != nil {
 		return found
-	} else if createErr := m.Create(); createErr == nil {
+	} else if err := m.Create(); err == nil {
 		log.Infof("subject: added %s %s", TypeString(m.SubjType), sanitize.Log(m.SubjName))
 
 		event.EntitiesCreated("subjects", []*Subject{m})
@@ -196,21 +208,21 @@ func FirstOrCreateSubject(m *Subject) *Subject {
 	} else if found = FindSubjectByName(m.SubjName); found != nil {
 		return found
 	} else {
-		log.Errorf("subject: %s while creating %s", createErr, sanitize.Log(m.SubjName))
+		log.Errorf("subject: failed adding %s (%s)", sanitize.Log(m.SubjName), err)
 	}
 
 	return nil
 }
 
 // FindSubject returns an existing entity if exists.
-func FindSubject(s string) *Subject {
-	if s == "" {
+func FindSubject(uid string) *Subject {
+	if uid == "" {
 		return nil
 	}
 
 	result := Subject{}
 
-	if err := UnscopedDb().Where("subj_uid = ?", s).First(&result).Error; err != nil {
+	if err := UnscopedDb().Where("subj_uid = ?", uid).First(&result).Error; err != nil {
 		return nil
 	}
 
@@ -226,20 +238,34 @@ func FindSubjectByName(name string) *Subject {
 	}
 
 	result := Subject{}
+	uid := SubjNames.Key(name)
 
-	// Search database.
-	if err := UnscopedDb().Where("subj_name LIKE ?", name).First(&result).Error; err != nil {
-		return nil
+	switch uid {
+	case "":
+		if err := UnscopedDb().Where("subj_name LIKE ?", name).First(&result).Error; err != nil {
+			log.Debugf("subject: %s not found by name", sanitize.Log(name))
+			return nil
+		}
+	default:
+		if found := FindSubject(uid); found == nil {
+			log.Debugf("subject: %s not found by uid", sanitize.Log(name))
+			return nil
+		} else {
+			result = *found
+		}
 	}
 
-	// Restore if currently deleted.
-	if err := result.Restore(); err != nil {
-		log.Errorf("subject: %s could not be restored", result.SubjUID)
+	// Restore if flagged as deleted.
+	if !result.Deleted() {
+		return &result
+	} else if err := result.Restore(); err == nil {
+		log.Debugf("subject: restored %s", sanitize.Log(result.SubjName))
+		return &result
 	} else {
-		log.Debugf("subject: %s restored", result.SubjUID)
+		log.Errorf("subject: failed restoring %s (%s)", sanitize.Log(result.SubjName), err)
 	}
 
-	return &result
+	return nil
 }
 
 // IsPerson tests if the subject is a person.

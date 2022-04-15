@@ -39,6 +39,7 @@ test-go: reset-testdb run-test-go
 test-pkg: reset-testdb run-test-pkg
 test-api: reset-testdb run-test-api
 test-short: reset-testdb run-test-short
+test-mariadb: reset-acceptance run-test-mariadb
 acceptance-private-run-chromium: acceptance-private-restart acceptance-private acceptance-private-stop
 acceptance-public-run-chromium: acceptance-restart acceptance acceptance-stop
 acceptance-private-run-firefox: acceptance-private-restart acceptance-private-firefox acceptance-private-stop
@@ -50,6 +51,9 @@ fmt: fmt-js fmt-go
 clean-local: clean-local-config clean-local-cache
 upgrade: dep-upgrade-js dep-upgrade
 devtools: install-go dep-npm
+.SILENT: help;
+help:
+	@echo "For build instructions, visit <https://docs.photoprism.app/developer-guide/>."
 fix-permissions:
 	$(info Updating filesystem permissions...)
 	@if [ $(UID) != 0 ]; then\
@@ -125,11 +129,11 @@ rootshell: root-terminal
 root-terminal:
 	docker-compose exec -u root photoprism bash
 migrate:
-	go run cmd/photoprism/photoprism.go migrate
+	go run cmd/photoprism/photoprism.go migrations run
 generate:
 	go generate ./pkg/... ./internal/...
 	go fmt ./pkg/... ./internal/...
-	# Revert unnecessary file change?
+	# revert unnecessary pot file change
 	POT_UNCHANGED='1 file changed, 1 insertion(+), 1 deletion(-)'
 	@if [ ${$(shell git diff --shortstat assets/locales/messages.pot):1:45} == $(POT_UNCHANGED) ]; then\
 		git checkout -- assets/locales/messages.pot;\
@@ -145,7 +149,7 @@ dep-list:
 dep-npm:
 	sudo npm install -g npm
 dep-js:
-	(cd frontend &&	npm install --silent --legacy-peer-deps)
+	(cd frontend &&	npm ci --no-audit)
 dep-go:
 	go build -v ./...
 dep-upgrade:
@@ -203,6 +207,9 @@ acceptance-private-firefox:
 reset-mariadb:
 	$(info Resetting photoprism database...)
 	mysql < scripts/sql/reset-mariadb.sql
+reset-acceptance:
+	$(info Resetting acceptance database...)
+	echo "DROP DATABASE IF EXISTS acceptance;\nCREATE DATABASE IF NOT EXISTS acceptance;" | mysql
 reset-testdb:
 	$(info Removing test database files...)
 	find ./internal -type f -name ".test.*" -delete
@@ -212,6 +219,9 @@ run-test-short:
 run-test-go:
 	$(info Running all Go unit tests...)
 	$(GOTEST) -parallel 1 -count 1 -cpu 1 -tags slow -timeout 20m ./pkg/... ./internal/...
+run-test-mariadb:
+	$(info Running all Go unit tests on MariaDB...)
+	PHOTOPRISM_TEST_DRIVER="mysql" PHOTOPRISM_TEST_DSN="root:photoprism@tcp(mariadb:4001)/acceptance?charset=utf8mb4,utf8&collation=utf8mb4_unicode_ci&parseTime=true" $(GOTEST) -parallel 1 -count 1 -cpu 1 -tags slow -timeout 20m ./pkg/... ./internal/...
 run-test-pkg:
 	$(info Running all Go unit tests in "/pkg"...)
 	$(GOTEST) -parallel 2 -count 1 -cpu 2 -tags slow -timeout 20m ./pkg/...
@@ -264,8 +274,12 @@ docker-develop-impish:
 	docker pull --platform=amd64 ubuntu:impish
 	docker pull --platform=arm64 ubuntu:impish
 	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 impish /impish
+docker-develop-jammy:
+	docker pull --platform=amd64 ubuntu:jammy
+	docker pull --platform=arm64 ubuntu:jammy
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 jammy /jammy
 docker-preview: docker-preview-bookworm
-docker-preview-all: docker-preview docker-preview-bullseye docker-preview-buster docker-preview-impish
+docker-preview-all: docker-preview docker-preview-bullseye docker-preview-buster docker-preview-jammy
 docker-preview-arm: docker-preview-arm64 docker-preview-armv7
 docker-preview-bookworm:
 	docker pull --platform=amd64 photoprism/develop:bookworm
@@ -293,14 +307,20 @@ docker-preview-buster:
 	docker pull --platform=amd64 debian:buster-slim
 	docker pull --platform=arm64 debian:buster-slim
 	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 preview-buster /buster
+docker-preview-jammy:
+	docker pull --platform=amd64 photoprism/develop:jammy
+	docker pull --platform=arm64 photoprism/develop:jammy
+	docker pull --platform=amd64 ubuntu:jammy
+	docker pull --platform=arm64 ubuntu:jammy
+	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 preview-jammy /jammy
 docker-preview-impish:
-	docker pull --platform=amd64 photoprism/develop:latest
-	docker pull --platform=arm64 photoprism/develop:latest
+	docker pull --platform=amd64 photoprism/develop:impish
+	docker pull --platform=arm64 photoprism/develop:impish
 	docker pull --platform=amd64 ubuntu:impish
 	docker pull --platform=arm64 ubuntu:impish
 	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 preview-impish /impish
 docker-release: docker-release-bookworm
-docker-release-all: docker-release docker-release-bullseye docker-release-buster docker-release-impish
+docker-release-all: docker-release docker-release-bullseye docker-release-buster docker-release-jammy
 docker-release-arm: docker-release-arm64 docker-release-armv7
 docker-release-bookworm:
 	docker pull --platform=amd64 photoprism/develop:bookworm
@@ -328,14 +348,54 @@ docker-release-buster:
 	docker pull --platform=amd64 debian:buster-slim
 	docker pull --platform=arm64 debian:buster-slim
 	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 buster /buster
+docker-release-jammy:
+	docker pull --platform=amd64 photoprism/develop:jammy
+	docker pull --platform=arm64 photoprism/develop:jammy
+	docker pull --platform=amd64 ubuntu:jammy
+	docker pull --platform=arm64 ubuntu:jammy
+	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 jammy /jammy
 docker-release-impish:
 	docker pull --platform=amd64 photoprism/develop:impish
 	docker pull --platform=arm64 photoprism/develop:impish
 	docker pull --platform=amd64 ubuntu:impish
 	docker pull --platform=arm64 ubuntu:impish
 	scripts/docker/buildx-multi.sh photoprism linux/amd64,linux/arm64 impish /impish
-docker-local:
-	scripts/docker/build.sh photoprism
+docker-local: docker-local-bookworm
+docker-local-all: docker-local-bookworm docker-local-bullseye docker-local-buster docker-local-jammy
+docker-local-bookworm:
+	docker pull photoprism/develop:bookworm
+	docker pull photoprism/develop:bookworm-slim
+	scripts/docker/build.sh photoprism bookworm /bookworm
+docker-local-bullseye:
+	docker pull photoprism/develop:bullseye
+	docker pull photoprism/develop:bullseye-slim
+	scripts/docker/build.sh photoprism bullseye /bullseye
+docker-local-buster:
+	docker pull photoprism/develop:buster
+	docker pull debian:buster-slim
+	scripts/docker/build.sh photoprism buster /buster
+docker-local-jammy:
+	docker pull photoprism/develop:jammy
+	docker pull ubuntu:jammy
+	scripts/docker/build.sh photoprism jammy /jammy
+docker-local-impish:
+	docker pull photoprism/develop:impish
+	docker pull ubuntu:impish
+	scripts/docker/build.sh photoprism impish /impish
+docker-local-develop: docker-local-develop-bookworm
+docker-local-develop-all: docker-local-develop-bookworm docker-local-develop-bullseye docker-local-develop-buster docker-local-develop-impish
+docker-local-develop-bookworm:
+	docker pull debian:bookworm-slim
+	scripts/docker/build.sh develop bookworm /bookworm
+docker-local-develop-bullseye:
+	docker pull golang:1.18-bullseye
+	scripts/docker/build.sh develop bullseye /bullseye
+docker-local-develop-buster:
+	docker pull golang:1.18-buster
+	scripts/docker/build.sh develop buster /buster
+docker-local-develop-impish:
+	docker pull ubuntu:impish
+	scripts/docker/build.sh develop impish /impish
 docker-pull:
 	docker pull photoprism/photoprism:preview photoprism/photoprism:latest
 docker-ddns:
@@ -375,7 +435,11 @@ fmt-go:
 	goimports -w pkg internal cmd
 tidy:
 	go mod tidy -go=1.16 && go mod tidy -go=1.17
+
 .PHONY: all build dev dep-npm dep dep-go dep-js dep-list dep-tensorflow dep-upgrade dep-upgrade-js test test-js test-go \
     install generate fmt fmt-go fmt-js upgrade start stop terminal root-terminal packer-digitalocean acceptance clean tidy \
     docker-develop docker-preview docker-preview-all docker-preview-arm docker-release docker-release-all docker-release-arm \
-    install-go install-darktable install-tensorflow devtools tar.gz fix-permissions rootshell;
+    install-go install-darktable install-tensorflow devtools tar.gz fix-permissions rootshell help \
+    docker-local docker-local-all docker-local-bookworm docker-local-bullseye docker-local-buster docker-local-impish \
+    docker-local-develop docker-local-develop-all docker-local-develop-bookworm docker-local-develop-bullseye \
+    docker-local-develop-buster docker-local-develop-impish test-mariadb reset-acceptance run-test-mariadb;

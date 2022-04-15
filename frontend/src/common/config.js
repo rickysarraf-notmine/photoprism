@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
+Copyright (c) 2018 - 2022 PhotoPrism UG. All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
     it under Version 3 of the GNU Affero General Public License (the "AGPL"):
@@ -15,7 +15,7 @@ Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
     which describe how our Brand Assets may be used:
     <https://photoprism.app/trademark>
 
-Feel free to send an e-mail to hello@photoprism.app if you have questions,
+Feel free to send an email to hello@photoprism.app if you have questions,
 want to support our work, or just want to say hello.
 
 Additional information can be found in our Developer Guide:
@@ -23,11 +23,12 @@ Additional information can be found in our Developer Guide:
 
 */
 
+import Api from "api.js";
 import Event from "pubsub-js";
 import themes from "options/themes.json";
 import translations from "locales/translations.json";
-import Api from "api.js";
 import { Languages } from "options/options";
+import { Photo } from "model/photo";
 
 export default class Config {
   /**
@@ -140,10 +141,21 @@ export default class Config {
     }
 
     if (values.settings) {
+      this.setBatchSize(values.settings);
       this.setTheme(values.settings.ui.theme);
     }
 
     return this;
+  }
+
+  setBatchSize(settings) {
+    if (!settings || !settings.search) {
+      return;
+    }
+
+    if (settings.search.batchSize) {
+      Photo.setBatchSize(settings.search.batchSize);
+    }
   }
 
   onPeople(ev, data) {

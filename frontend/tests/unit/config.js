@@ -2,7 +2,7 @@ const clientConfig = {
   mode: "user",
   name: "PhotoPrism",
   version: "210710-bae1f2d7-Linux-x86_64-DEBUG",
-  copyright: "(c) 2018-2022 Michael Mayer <hello@photoprism.app>",
+  copyright: "(c) 2018-2022 PhotoPrism UG. All rights reserved.",
   flags: "public debug experimental settings",
   baseUri: "",
   staticUri: "/static",
@@ -293,8 +293,8 @@ const clientConfig = {
       theme: "default",
       language: "en",
     },
-    templates: {
-      default: "index.tmpl",
+    search: {
+      batchSize: 60,
     },
     maps: {
       animate: 0,
@@ -341,6 +341,9 @@ const clientConfig = {
     },
     download: {
       name: "file",
+    },
+    templates: {
+      default: "index.tmpl",
     },
   },
   disable: {

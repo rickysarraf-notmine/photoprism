@@ -1,6 +1,6 @@
 <template>
   <div v-infinite-scroll="loadMore" class="p-page p-page-labels" style="user-select: none"
-       :infinite-scroll-disabled="scrollDisabled" :infinite-scroll-distance="1200"
+       :infinite-scroll-disabled="scrollDisabled" :infinite-scroll-distance="scrollDistance"
        :infinite-scroll-listen-for-event="'scrollRefresh'">
 
     <v-form ref="form" class="p-labels-search" lazy-validation dense @submit.stop.prevent>
@@ -15,8 +15,6 @@
                       autocapitalize="none"
                       color="secondary-dark"
                       @input="onChangeQuery"
-                      @change="updateQuery"
-                      @blur="updateQuery"
                       @keyup.enter.native="updateQuery"
                       @click:clear="clearQuery"
         ></v-text-field>
@@ -180,6 +178,7 @@ export default {
       dirty: false,
       results: [],
       scrollDisabled: true,
+      scrollDistance: window.innerHeight*2,
       loading: true,
       batchSize: Label.batchSize(),
       offset: 0,
@@ -417,7 +416,7 @@ export default {
       });
     },
     onChangeQuery(val) {
-      this.q = String(val);
+      this.q = val ? String(val) : '';
     },
     clearQuery() {
       this.q = '';

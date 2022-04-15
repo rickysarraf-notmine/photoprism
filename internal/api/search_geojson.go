@@ -3,8 +3,6 @@ package api
 import (
 	"net/http"
 
-	"github.com/photoprism/photoprism/pkg/sanitize"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
@@ -12,12 +10,16 @@ import (
 	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/internal/search"
 	"github.com/photoprism/photoprism/internal/service"
+
+	"github.com/photoprism/photoprism/pkg/sanitize"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
 // SearchGeo finds photos and returns results as JSON, so they can be displayed on a map or in a viewer.
 //
 // GET /api/v1/geo
+//
+// See form.SearchPhotosGeo for supported search params and data types.
 func SearchGeo(router *gin.RouterGroup) {
 	handler := func(c *gin.Context) {
 		s := Auth(SessionID(c), acl.ResourcePhotos, acl.ActionSearch)
@@ -27,7 +29,7 @@ func SearchGeo(router *gin.RouterGroup) {
 			return
 		}
 
-		var f form.SearchGeo
+		var f form.SearchPhotosGeo
 
 		err := c.MustBindWith(&f, binding.Form)
 
@@ -50,13 +52,16 @@ func SearchGeo(router *gin.RouterGroup) {
 		}
 
 		// Find matching pictures.
-		photos, err := search.Geo(f)
+		photos, err := search.PhotosGeo(f)
 
 		if err != nil {
 			log.Warnf("search: %s", err)
 			AbortBadRequest(c)
 			return
 		}
+
+		// Add response headers.
+		AddTokenHeaders(c)
 
 		var resp []byte
 
@@ -74,11 +79,10 @@ func SearchGeo(router *gin.RouterGroup) {
 			return
 		}
 
-		AddTokenHeaders(c)
-
 		c.Data(http.StatusOK, "application/json", resp)
 	}
 
+	// Register route handlers.
 	router.GET("/geo", handler)
 	router.GET("/geo/:format", handler)
 }

@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
+Copyright (c) 2018 - 2022 PhotoPrism UG. All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
     it under Version 3 of the GNU Affero General Public License (the "AGPL"):
@@ -15,7 +15,7 @@ Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
     which describe how our Brand Assets may be used:
     <https://photoprism.app/trademark>
 
-Feel free to send an e-mail to hello@photoprism.app if you have questions,
+Feel free to send an email to hello@photoprism.app if you have questions,
 want to support our work, or just want to say hello.
 
 Additional information can be found in our Developer Guide:
@@ -30,6 +30,8 @@ import { config } from "app/session";
 import { $gettext } from "common/vm";
 
 const SubjPerson = "person";
+
+export let BatchSize = 60;
 
 export class Subject extends RestModel {
   getDefaults() {
@@ -138,7 +140,14 @@ export class Subject extends RestModel {
   }
 
   static batchSize() {
-    return 60;
+    return BatchSize;
+  }
+
+  static setBatchSize(count) {
+    const s = parseInt(count);
+    if (!isNaN(s) && s >= 24) {
+      BatchSize = s;
+    }
   }
 
   static getCollectionResource() {

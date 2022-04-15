@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/photoprism/photoprism/internal/entity"
+	"gopkg.in/yaml.v2"
 
+	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/i18n"
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/sanitize"
-	"gopkg.in/yaml.v2"
 )
 
 // UISettings represents user interface settings.
@@ -18,6 +18,11 @@ type UISettings struct {
 	Zoom      bool   `json:"zoom" yaml:"Zoom"`
 	Theme     string `json:"theme" yaml:"Theme"`
 	Language  string `json:"language" yaml:"Language"`
+}
+
+// SearchSettings represents search UI preferences.
+type SearchSettings struct {
+	BatchSize int `json:"batchSize" yaml:"BatchSize"`
 }
 
 // TemplateSettings represents template settings for the UI and messaging.
@@ -89,12 +94,13 @@ type ShareSettings struct {
 // DownloadSettings represents content download settings.
 type DownloadSettings struct {
 	Name entity.DownloadName `json:"name" yaml:"Name"`
+	Raw  bool                `json:"raw" yaml:"Raw"`
 }
 
 // Settings represents user settings for Web UI, indexing, and import.
 type Settings struct {
 	UI        UISettings       `json:"ui" yaml:"UI"`
-	Templates TemplateSettings `json:"templates" yaml:"Templates"`
+	Search    SearchSettings   `json:"search" yaml:"Search"`
 	Folders   FoldersSettings  `json:"folders" yaml:"Folders"`
 	Maps      MapsSettings     `json:"maps" yaml:"Maps"`
 	Features  FeatureSettings  `json:"features" yaml:"Features"`
@@ -103,6 +109,7 @@ type Settings struct {
 	Stack     StackSettings    `json:"stack" yaml:"Stack"`
 	Share     ShareSettings    `json:"share" yaml:"Share"`
 	Download  DownloadSettings `json:"download" yaml:"Download"`
+	Templates TemplateSettings `json:"templates" yaml:"Templates"`
 }
 
 // NewSettings creates a new Settings instance.
@@ -114,8 +121,8 @@ func NewSettings(c *Config) *Settings {
 			Theme:     c.DefaultTheme(),
 			Language:  c.DefaultLocale(),
 		},
-		Templates: TemplateSettings{
-			Default: "index.tmpl",
+		Search: SearchSettings{
+			BatchSize: 0,
 		},
 		Folders: FoldersSettings{
 			DateMode:  entity.DateModeLast,
@@ -166,6 +173,9 @@ func NewSettings(c *Config) *Settings {
 		Download: DownloadSettings{
 			Name: entity.DownloadNameDefault,
 		},
+		Templates: TemplateSettings{
+			Default: "index.tmpl",
+		},
 	}
 }
 
@@ -174,17 +184,17 @@ func (s *Settings) Propagate() {
 	i18n.SetLocale(s.UI.Language)
 }
 
-// StackSequences tests if files should be stacked based on their file name prefix (sequential names).
+// StackSequences checks if files should be stacked based on their file name prefix (sequential names).
 func (s Settings) StackSequences() bool {
 	return s.Stack.Name
 }
 
-// StackUUID tests if files should be stacked based on unique image or instance id.
+// StackUUID checks if files should be stacked based on unique image or instance id.
 func (s Settings) StackUUID() bool {
 	return s.Stack.UUID
 }
 
-// StackMeta tests if files should be stacked based on their place and time metadata.
+// StackMeta checks if files should be stacked based on their place and time metadata.
 func (s Settings) StackMeta() bool {
 	return s.Stack.Meta
 }
@@ -229,15 +239,19 @@ func (s *Settings) Save(fileName string) error {
 
 // initSettings initializes user settings from a config file.
 func (c *Config) initSettings() {
+	if c.settings != nil {
+		return
+	}
+
 	c.settings = NewSettings(c)
-	fileName := c.SettingsFile()
+	fileName := c.SettingsYaml()
 
 	if err := c.settings.Load(fileName); err == nil {
-		log.Debugf("config: settings loaded from %s ", fileName)
+		log.Debugf("settings: loaded from %s ", fileName)
 	} else if err := c.settings.Save(fileName); err != nil {
-		log.Errorf("failed creating %s: %s", fileName, err)
+		log.Errorf("settings: could not create %s (%s)", fileName, err)
 	} else {
-		log.Debugf("config: created %s ", fileName)
+		log.Debugf("settings: saved to %s ", fileName)
 	}
 
 	i18n.SetDir(c.LocalesPath())
@@ -247,9 +261,7 @@ func (c *Config) initSettings() {
 
 // Settings returns the current user settings.
 func (c *Config) Settings() *Settings {
-	if c.settings == nil {
-		c.initSettings()
-	}
+	c.initSettings()
 
 	if c.DisablePlaces() {
 		c.settings.Features.Places = false

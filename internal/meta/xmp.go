@@ -20,7 +20,7 @@ func XMP(fileName string) (data Data, err error) {
 }
 
 // XMP parses an XMP file and returns a Data struct.
-func (data *Data) XMP(fileName string, fileType fs.FileFormat) (err error) {
+func (data *Data) XMP(fileName string, fileType fs.Format) (err error) {
 	logName := sanitize.Log(filepath.Base(fileName))
 
 	defer func() {

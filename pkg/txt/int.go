@@ -20,13 +20,40 @@ func Int(s string) int {
 	return int(result)
 }
 
+// IntVal converts a string to a validated integer or a default if invalid.
+func IntVal(s string, min, max, d int) (i int) {
+	if s == "" {
+		return d
+	} else if s[0] == ' ' {
+		s = strings.TrimSpace(s)
+	}
+
+	result, err := strconv.ParseInt(s, 10, 32)
+
+	if err != nil {
+		return d
+	}
+
+	i = int(result)
+
+	if i < min {
+		return d
+	} else if max != 0 && i > max {
+		return d
+	}
+
+	return i
+}
+
 // UInt converts a string to an unsigned integer or 0 if invalid.
 func UInt(s string) uint {
 	if s == "" {
 		return 0
+	} else if s[0] == ' ' {
+		s = strings.TrimSpace(s)
 	}
 
-	result, err := strconv.ParseInt(strings.TrimSpace(s), 10, 32)
+	result, err := strconv.ParseInt(s, 10, 32)
 
 	if err != nil || result < 0 {
 		return 0

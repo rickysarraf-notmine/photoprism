@@ -2,20 +2,25 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/urfave/cli"
+
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+
 	"github.com/photoprism/photoprism/internal/thumb"
 	"github.com/photoprism/photoprism/pkg/capture"
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/rnd"
-	"github.com/urfave/cli"
+	"github.com/photoprism/photoprism/pkg/sanitize"
 )
 
 // Download URL and ZIP hash for test files.
@@ -34,48 +39,70 @@ func testDataPath(assetsPath string) string {
 	return assetsPath + "/testdata"
 }
 
+var PkgNameRegexp = regexp.MustCompile("[^a-zA-Z\\-_]+")
+
 // NewTestOptions returns valid config options for tests.
-func NewTestOptions() *Options {
+func NewTestOptions(pkg string) *Options {
 	assetsPath := fs.Abs("../../assets")
 	storagePath := fs.Abs("../../storage")
 	testDataPath := filepath.Join(storagePath, "testdata")
 
-	dbDriver := os.Getenv("PHOTOPRISM_TEST_DRIVER")
-	dbDsn := os.Getenv("PHOTOPRISM_TEST_DSN")
+	pkg = PkgNameRegexp.ReplaceAllString(pkg, "")
+	driver := os.Getenv("PHOTOPRISM_TEST_DRIVER")
+	dsn := os.Getenv("PHOTOPRISM_TEST_DSN")
 
 	// Config example for MySQL / MariaDB:
-	//   dbDriver = MySQL,
-	//   dbDsn = "photoprism:photoprism@tcp(mariadb:4001)/photoprism?parseTime=true",
+	//   driver = MySQL,
+	//   dsn = "photoprism:photoprism@tcp(mariadb:4001)/photoprism?parseTime=true",
 
-	if dbDriver == "test" || dbDriver == "sqlite" || dbDriver == "" || dbDsn == "" {
-		dbDriver = SQLite3
-		dbDsn = ".test.db"
+	// Set default test database driver.
+	if driver == "test" || driver == "sqlite" || driver == "" || dsn == "" {
+		driver = SQLite3
 	}
 
+	// Set default database DSN.
+	if driver == SQLite3 {
+		if dsn == "" && pkg != "" {
+			dsn = fmt.Sprintf("file:%s?mode=memory&cache=shared", pkg)
+		} else if dsn == "" {
+			dsn = SQLiteMemoryDSN
+		} else if dsn != SQLiteTestDB {
+			// Continue.
+		} else if err := os.Remove(dsn); err == nil {
+			log.Debugf("sqlite: test file %s removed", sanitize.Log(dsn))
+		}
+	}
+
+	// Test config options.
 	c := &Options{
-		Name:           "PhotoPrism",
-		Version:        "0.0.0",
-		Copyright:      "(c) 2018-2022 Michael Mayer",
-		Test:           true,
-		Debug:          true,
-		Public:         true,
-		Experimental:   true,
-		ReadOnly:       false,
-		DetectNSFW:     true,
-		UploadNSFW:     false,
-		AssetsPath:     assetsPath,
-		AutoIndex:      -1,
-		AutoImport:     7200,
-		StoragePath:    testDataPath,
-		CachePath:      testDataPath + "/cache",
-		OriginalsPath:  testDataPath + "/originals",
-		ImportPath:     testDataPath + "/import",
-		TempPath:       testDataPath + "/temp",
-		ConfigPath:     testDataPath + "/config",
-		SidecarPath:    testDataPath + "/sidecar",
-		DatabaseDriver: dbDriver,
-		DatabaseDsn:    dbDsn,
-		AdminPassword:  "photoprism",
+		Name:            "PhotoPrism",
+		Version:         "0.0.0",
+		Copyright:       "(c) 2018-2022 PhotoPrism UG. All rights reserved.",
+		Public:          true,
+		Auth:            false,
+		Test:            true,
+		Debug:           true,
+		Trace:           false,
+		Experimental:    true,
+		ReadOnly:        false,
+		DetectNSFW:      true,
+		UploadNSFW:      false,
+		ExifBruteForce:  false,
+		AssetsPath:      assetsPath,
+		AutoIndex:       -1,
+		AutoImport:      7200,
+		StoragePath:     testDataPath,
+		CachePath:       testDataPath + "/cache",
+		OriginalsPath:   testDataPath + "/originals",
+		ImportPath:      testDataPath + "/import",
+		TempPath:        testDataPath + "/temp",
+		ConfigPath:      testDataPath + "/config",
+		SidecarPath:     testDataPath + "/sidecar",
+		DatabaseDriver:  driver,
+		DatabaseDsn:     dsn,
+		AdminPassword:   "photoprism",
+		OriginalsLimit:  66,
+		ResolutionLimit: 33,
 	}
 
 	return c
@@ -102,7 +129,7 @@ func NewTestOptionsError() *Options {
 }
 
 func SetNewTestConfig() {
-	testConfig = NewTestConfig()
+	testConfig = NewTestConfig("test")
 }
 
 // TestConfig returns the existing test config instance or creates a new instance and returns it.
@@ -113,14 +140,14 @@ func TestConfig() *Config {
 }
 
 // NewTestConfig returns a valid test config.
-func NewTestConfig() *Config {
+func NewTestConfig(pkg string) *Config {
 	defer log.Debug(capture.Time(time.Now(), "config: new test config created"))
 
 	testConfigMutex.Lock()
 	defer testConfigMutex.Unlock()
 
 	c := &Config{
-		options: NewTestOptions(),
+		options: NewTestOptions(pkg),
 		token:   rnd.Token(8),
 	}
 
@@ -157,14 +184,14 @@ func NewTestErrorConfig() *Config {
 
 // CliTestContext returns a CLI context for testing.
 func CliTestContext() *cli.Context {
-	config := NewTestOptions()
+	config := NewTestOptions("config-cli")
 
 	globalSet := flag.NewFlagSet("test", 0)
-	globalSet.Bool("debug", false, "doc")
+	globalSet.String("config-path", config.ConfigPath, "doc")
+	globalSet.String("admin-password", config.DarktableBin, "doc")
 	globalSet.String("storage-path", config.StoragePath, "doc")
 	globalSet.String("backup-path", config.StoragePath, "doc")
 	globalSet.String("sidecar-path", config.SidecarPath, "doc")
-	globalSet.String("config-file", config.ConfigFile, "doc")
 	globalSet.String("assets-path", config.AssetsPath, "doc")
 	globalSet.String("originals-path", config.OriginalsPath, "doc")
 	globalSet.String("import-path", config.OriginalsPath, "doc")
@@ -172,7 +199,8 @@ func CliTestContext() *cli.Context {
 	globalSet.String("cache-path", config.OriginalsPath, "doc")
 	globalSet.String("darktable-cli", config.DarktableBin, "doc")
 	globalSet.String("darktable-blacklist", config.DarktableBlacklist, "doc")
-	globalSet.String("admin-password", config.DarktableBin, "doc")
+	globalSet.String("wakeup-interval", "1h34m9s", "doc")
+	globalSet.Bool("debug", false, "doc")
 	globalSet.Bool("detect-nsfw", config.DetectNSFW, "doc")
 	globalSet.Int("auto-index", config.AutoIndex, "doc")
 	globalSet.Int("auto-import", config.AutoImport, "doc")
@@ -182,10 +210,11 @@ func CliTestContext() *cli.Context {
 
 	c := cli.NewContext(app, globalSet, nil)
 
+	LogError(c.Set("config-path", config.ConfigPath))
+	LogError(c.Set("admin-password", config.AdminPassword))
 	LogError(c.Set("storage-path", config.StoragePath))
 	LogError(c.Set("backup-path", config.BackupPath))
 	LogError(c.Set("sidecar-path", config.SidecarPath))
-	LogError(c.Set("config-file", config.ConfigFile))
 	LogError(c.Set("assets-path", config.AssetsPath))
 	LogError(c.Set("originals-path", config.OriginalsPath))
 	LogError(c.Set("import-path", config.ImportPath))
@@ -193,7 +222,7 @@ func CliTestContext() *cli.Context {
 	LogError(c.Set("cache-path", config.CachePath))
 	LogError(c.Set("darktable-cli", config.DarktableBin))
 	LogError(c.Set("darktable-blacklist", "raf,cr3"))
-	LogError(c.Set("admin-password", config.AdminPassword))
+	LogError(c.Set("wakeup-interval", "1h34m9s"))
 	LogError(c.Set("detect-nsfw", "true"))
 	LogError(c.Set("auto-index", strconv.Itoa(config.AutoIndex)))
 	LogError(c.Set("auto-import", strconv.Itoa(config.AutoImport)))

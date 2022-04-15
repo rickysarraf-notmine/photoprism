@@ -1,35 +1,20 @@
 package config
 
+import "github.com/photoprism/photoprism/internal/ffmpeg"
+
 // FFmpegBin returns the ffmpeg executable file name.
 func (c *Config) FFmpegBin() string {
 	return findExecutable(c.options.FFmpegBin, "ffmpeg")
 }
 
-// FFmpegEnabled tests if FFmpeg is enabled for video transcoding.
+// FFmpegEnabled checks if FFmpeg is enabled for video transcoding.
 func (c *Config) FFmpegEnabled() bool {
 	return !c.DisableFFmpeg()
 }
 
-// FFmpegEncoder returns the ffmpeg AVC encoder name.
-func (c *Config) FFmpegEncoder() string {
-	if c.options.FFmpegEncoder == "" {
-		return "libx264"
-	}
-
-	return c.options.FFmpegEncoder
-}
-
-// FFmpegBuffers returns the number of ffmpeg capture buffers.
-func (c *Config) FFmpegBuffers() int {
-	if c.options.FFmpegBuffers <= 8 {
-		return 8
-	}
-
-	if c.options.FFmpegBuffers >= 2048 {
-		return 2048
-	}
-
-	return c.options.FFmpegBuffers
+// FFmpegEncoder returns the FFmpeg AVC encoder name.
+func (c *Config) FFmpegEncoder() ffmpeg.AvcEncoder {
+	return ffmpeg.FindEncoder(c.options.FFmpegEncoder)
 }
 
 // FFmpegBitrate returns the ffmpeg bitrate limit in MBit/s.

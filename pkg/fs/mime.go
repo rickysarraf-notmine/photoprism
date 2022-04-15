@@ -11,6 +11,7 @@ const (
 	MimeTypePng    = "image/png"
 	MimeTypeGif    = "image/gif"
 	MimeTypeBitmap = "image/bmp"
+	MimeTypeWebP   = "image/webp"
 	MimeTypeTiff   = "image/tiff"
 	MimeTypeHEIF   = "image/heif"
 	MimeTypeMP4    = "video/mp4"
@@ -25,7 +26,7 @@ type MimeTypeSearchResult struct {
 	Position int
 }
 
-// MimeType returns the mime type of a file, empty string if unknown.
+// MimeType returns the mime type of a file, an empty string if it is unknown.
 func MimeType(filename string) string {
 	handle, err := os.Open(filename)
 

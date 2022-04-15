@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gosimple/slug"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/photoprism/photoprism/internal/form"
@@ -21,7 +20,7 @@ func TestNewAlbum(t *testing.T) {
 		album := NewAlbum("", AlbumDefault)
 
 		defaultName := time.Now().Format("January 2006")
-		defaultSlug := slug.Make(defaultName)
+		defaultSlug := txt.Slug(defaultName)
 
 		assert.Equal(t, defaultName, album.AlbumTitle)
 		assert.Equal(t, defaultSlug, album.AlbumSlug)
@@ -50,7 +49,7 @@ func TestAlbum_SetName(t *testing.T) {
 		album.SetTitle("")
 		expected := album.CreatedAt.Format("January 2006")
 		assert.Equal(t, expected, album.AlbumTitle)
-		assert.Equal(t, slug.Make(expected), album.AlbumSlug)
+		assert.Equal(t, txt.Slug(expected), album.AlbumSlug)
 	})
 	t.Run("long name", func(t *testing.T) {
 		longName := `A value in decimal degrees to a precision of 4 decimal places is precise to 11.132 meters at the
@@ -61,11 +60,11 @@ the further from the equator you get. The precision of the latitude part does no
 more strictly however, a meridian arc length per 1 second depends on the latitude at the point in question.
 The discrepancy of 1 second meridian arc length between equator and pole is about 0.3 metres because the earth
 is an oblate spheroid.`
-		expected := txt.Clip(longName, txt.ClipDefault)
+		expected := txt.Shorten(longName, txt.ClipDefault, txt.Ellipsis)
 		slugExpected := txt.Clip(longName, txt.ClipSlug)
 		album := NewAlbum(longName, AlbumDefault)
 		assert.Equal(t, expected, album.AlbumTitle)
-		assert.Contains(t, album.AlbumSlug, slug.Make(slugExpected))
+		assert.Contains(t, album.AlbumSlug, txt.Slug(slugExpected))
 	})
 }
 
@@ -284,31 +283,37 @@ func TestNewMonthAlbum(t *testing.T) {
 
 func TestFindAlbumBySlug(t *testing.T) {
 	t.Run("1 result", func(t *testing.T) {
-		album := FindAlbumBySlug("holiday-2030", AlbumDefault)
+		album, err := FindAlbumBySlug("holiday-2030", AlbumDefault)
+		assert.NoError(t, err)
 
 		if album == nil {
-			t.Fatal("expected to find an album")
+			t.Fatal("album should not be nil")
 		}
 
 		assert.Equal(t, "Holiday 2030", album.AlbumTitle)
 		assert.Equal(t, "holiday-2030", album.AlbumSlug)
 	})
 	t.Run("state album", func(t *testing.T) {
-		album := FindAlbumBySlug("california-usa", AlbumState)
+		album, err := FindAlbumBySlug("california-usa", AlbumState)
+		assert.NoError(t, err)
 
 		if album == nil {
-			t.Fatal("expected to find an album")
+			t.Fatal("album should not be nil")
 		}
 
 		assert.Equal(t, "California / USA", album.AlbumTitle)
 		assert.Equal(t, "california-usa", album.AlbumSlug)
 	})
 	t.Run("no result", func(t *testing.T) {
-		album := FindAlbumBySlug("holiday-2030", AlbumMonth)
+		album, err := FindAlbumBySlug("holiday-2030", AlbumMonth)
+		assert.Error(t, err)
 
-		if album != nil {
-			t.Fatal("album should be nil")
+		if album == nil {
+			t.Fatal("album should not be nil")
 		}
+
+		assert.Equal(t, uint(0), album.ID)
+		assert.Equal(t, "", album.AlbumUID)
 	})
 }
 

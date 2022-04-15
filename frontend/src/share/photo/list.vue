@@ -48,11 +48,12 @@
               <v-icon color="white" class="select-on">check_circle</v-icon>
               <v-icon color="white" class="select-off">radio_button_off</v-icon>
             </v-btn>
-            <v-btn v-else-if="props.item.Type === 'video' || props.item.Type === 'live'"
+            <v-btn v-else-if="props.item.Type === 'video' || props.item.Type === 'live' || props.item.Type === 'animated'"
                    :ripple="false"
                    flat icon large absolute class="input-open"
                    @click.stop.prevent="openPhoto(props.index, true)">
               <v-icon color="white" class="default-hidden action-live" :title="$gettext('Live')">$vuetify.icons.live_photo</v-icon>
+              <v-icon color="white" class="default-hidden action-animated" :title="$gettext('Animated')">gif</v-icon>
               <v-icon color="white" class="default-hidden action-play" :title="$gettext('Video')">play_arrow</v-icon>
             </v-btn>
           </v-img>
@@ -101,9 +102,24 @@ export default {
       type: Array,
       default: () => [],
     },
-    openPhoto: Function,
-    editPhoto: Function,
-    openLocation: Function,
+    openPhoto: {
+      type: Function,
+      default: () => () => {
+        console.warn('list view: openPhoto is undefined');
+      },
+    },
+    editPhoto: {
+      type: Function,
+      default: () => () => {
+        console.warn('list view: editPhoto is undefined');
+      },
+    },
+    openLocation: {
+      type: Function,
+      default: () => () => {
+        console.warn('list view: openLocation is undefined');
+      },
+    },
     album: {
       type: Object,
       default: () => {},
@@ -112,7 +128,10 @@ export default {
       type: Object,
       default: () => {},
     },
-    context: String,
+    context: {
+      type: String,
+      default: "",
+    },
     selectMode: Boolean,
   },
   data() {
@@ -186,7 +205,7 @@ export default {
       } else if (this.photos[index]) {
         let photo = this.photos[index];
 
-        if (photo.Type === 'video' && photo.isPlayable()) {
+        if ((photo.Type === 'video' || photo.Type === 'animated') && photo.isPlayable()) {
           this.openPhoto(index, true);
         } else {
           this.openPhoto(index, false);

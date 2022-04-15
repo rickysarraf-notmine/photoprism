@@ -5,7 +5,7 @@ Package remote implements remote service sync and uploads.
 See also:
   - RClone (https://rclone.org/), a popular Go tool for syncing data with remote services
 
-Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
+Copyright (c) 2018 - 2022 PhotoPrism UG. All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
     it under Version 3 of the GNU Affero General Public License (the "AGPL"):
@@ -20,7 +20,7 @@ Copyright (c) 2018 - 2022 Michael Mayer <hello@photoprism.app>
     which describe how our Brand Assets may be used:
     <https://photoprism.app/trademark>
 
-Feel free to send an e-mail to hello@photoprism.app if you have questions,
+Feel free to send an email to hello@photoprism.app if you have questions,
 want to support our work, or just want to say hello.
 
 Additional information can be found in our Developer Guide:
@@ -33,8 +33,6 @@ import (
 	"net/http"
 	"time"
 )
-
-var client = &http.Client{Timeout: 30 * time.Second} // TODO: Change timeout if needed
 
 const (
 	ServiceWebDAV    = "webdav"
@@ -57,6 +55,16 @@ func HttpOk(method, rawUrl string) bool {
 		return false
 	}
 
+	// Create new http.Client instance.
+	//
+	// NOTE: Timeout specifies a time limit for requests made by
+	// this Client. The timeout includes connection time, any
+	// redirects, and reading the response body. The timer remains
+	// running after Get, Head, Post, or Do return and will
+	// interrupt reading of the Response.Body.
+	client := &http.Client{Timeout: 30 * time.Second}
+
+	// Send request to see if it fails.
 	if resp, err := client.Do(req); err != nil {
 		return false
 	} else if resp.StatusCode < 400 {

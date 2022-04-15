@@ -13,12 +13,6 @@ const (
 	Mp4Ext      = ".mp4"
 )
 
-// FileExtensions maps file extensions to standard formats
-type FileExtensions map[string]FileFormat
-
-// TypeExtensions maps standard formats to file extensions.
-type TypeExtensions map[FileFormat][]string
-
 // NormalizeExt returns the file extension without dot and in lowercase.
 func NormalizeExt(fileName string) string {
 	if dot := strings.LastIndex(fileName, "."); dot != -1 && len(fileName[dot+1:]) >= 1 {

@@ -16,6 +16,7 @@ import (
 )
 
 var labelMutex = sync.Mutex{}
+var labelCategoriesMutex = sync.Mutex{}
 
 type Labels []Label
 
@@ -28,8 +29,8 @@ type Label struct {
 	LabelName        string     `gorm:"type:VARCHAR(160);" json:"Name" yaml:"Name"`
 	LabelPriority    int        `json:"Priority" yaml:"Priority,omitempty"`
 	LabelFavorite    bool       `json:"Favorite" yaml:"Favorite,omitempty"`
-	LabelDescription string     `gorm:"type:TEXT;" json:"Description" yaml:"Description,omitempty"`
-	LabelNotes       string     `gorm:"type:TEXT;" json:"Notes" yaml:"Notes,omitempty"`
+	LabelDescription string     `gorm:"type:VARCHAR(2048);" json:"Description" yaml:"Description,omitempty"`
+	LabelNotes       string     `gorm:"type:VARCHAR(1024);" json:"Notes" yaml:"Notes,omitempty"`
 	LabelCategories  []*Label   `gorm:"many2many:categories;association_jointable_foreignkey:category_id" json:"-" yaml:"-"`
 	PhotoCount       int        `gorm:"default:1" json:"PhotoCount" yaml:"-"`
 	Thumb            string     `gorm:"type:VARBINARY(128);index;default:''" json:"Thumb" yaml:"Thumb,omitempty"`
@@ -210,26 +211,32 @@ func (m *Label) UpdateClassify(label classify.Label) error {
 		save = true
 	}
 
+	// Save label.
 	if save {
 		if err := db.Save(m).Error; err != nil {
 			return err
 		}
 	}
 
-	// Add categories
-	for _, category := range label.Categories {
-		sn := FirstOrCreateLabel(NewLabel(txt.Title(category), -3))
+	// Update label categories.
+	if len(label.Categories) > 0 {
+		labelCategoriesMutex.Lock()
+		defer labelCategoriesMutex.Unlock()
 
-		if sn == nil {
-			continue
-		}
+		for _, category := range label.Categories {
+			sn := FirstOrCreateLabel(NewLabel(txt.Title(category), -3))
 
-		if sn.Deleted() {
-			continue
-		}
+			if sn == nil {
+				continue
+			}
 
-		if err := db.Model(m).Association("LabelCategories").Append(sn).Error; err != nil {
-			return err
+			if sn.Deleted() {
+				continue
+			}
+
+			if err := db.Model(m).Association("LabelCategories").Append(sn).Error; err != nil {
+				log.Debugf("index: failed saving label category %s (%s)", sanitize.Log(category), err)
+			}
 		}
 	}
 

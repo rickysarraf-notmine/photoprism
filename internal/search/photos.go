@@ -11,15 +11,25 @@ import (
 
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/form"
+
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/rnd"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
-// Photos searches for photos based on a Form and returns PhotoResults ([]Photo).
+var PhotosColsAll = SelectString(Photo{}, []string{"*"})
+var PhotosColsView = SelectString(Photo{}, SelectCols(GeoResult{}, []string{"*"}))
+
+// Photos finds photos based on the search form provided and returns them as PhotoResults.
 func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
+	return searchPhotos(f, PhotosColsAll)
+}
+
+// photos searches for photos based on a Form and returns PhotoResults ([]Photo).
+func searchPhotos(f form.SearchPhotos, resultCols string) (results PhotoResults, count int, err error) {
 	start := time.Now()
 
+	// Parse query string into fields.
 	if err := f.ParseQueryString(); err != nil {
 		return PhotoResults{}, 0, err
 	}
@@ -27,68 +37,59 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 	s := UnscopedDb()
 	// s = s.LogMode(true)
 
-	// Base query.
-	s = s.Table("photos").
-		Select(`photos.*, photos.id AS composite_id,
-		files.id AS file_id, files.file_uid, files.instance_id, files.file_primary, files.file_sidecar,
-		files.file_portrait,files.file_video, files.file_missing, files.file_name, files.file_root, files.file_hash,
-		files.file_codec, files.file_type, files.file_mime, files.file_width, files.file_height,
-		files.file_aspect_ratio, files.file_orientation, files.file_main_color, files.file_colors, files.file_luminance,
-		files.file_chroma, files.file_projection, files.file_diff, files.file_duration, files.file_size,
-		cameras.camera_make, cameras.camera_model,
-		lenses.lens_make, lenses.lens_model,
-		places.place_label, places.place_city, places.place_state, places.place_country`).
-		Joins("JOIN files ON photos.id = files.photo_id AND files.file_missing = 0 AND files.deleted_at IS NULL").
+	// Database tables.
+	s = s.Table("files").Select(resultCols).
+		Joins("JOIN photos ON files.photo_id = photos.id AND files.media_id IS NOT NULL").
 		Joins("LEFT JOIN cameras ON photos.camera_id = cameras.id").
 		Joins("LEFT JOIN lenses ON photos.lens_id = lenses.id").
 		Joins("LEFT JOIN places ON photos.place_id = places.id")
 
-	// Limit result count.
+	// Offset and count.
 	if f.Count > 0 && f.Count <= MaxResults {
 		s = s.Limit(f.Count).Offset(f.Offset)
 	} else {
 		s = s.Limit(MaxResults).Offset(f.Offset)
 	}
 
-	// Set sort order.
+	// Sort order.
 	switch f.Order {
 	case entity.SortOrderEdited:
-		s = s.Where("edited_at IS NOT NULL").Order("edited_at DESC, photos.photo_uid, files.file_primary DESC")
+		s = s.Where("photos.edited_at IS NOT NULL").Order("photos.edited_at DESC, files.media_id")
 	case entity.SortOrderRelevance:
 		if f.Label != "" {
-			s = s.Order("photo_quality DESC, photos_labels.uncertainty ASC, taken_at DESC, files.file_primary DESC")
+			s = s.Order("photos.photo_quality DESC, photos_labels.uncertainty ASC, files.time_index")
 		} else {
-			s = s.Order("photo_quality DESC, taken_at DESC, files.file_primary DESC")
+			s = s.Order("photos.photo_quality DESC, files.time_index")
 		}
 	case entity.SortOrderNewest:
-		s = s.Order("taken_at DESC, photos.photo_uid, files.file_primary DESC")
+		s = s.Order("files.time_index")
 	case entity.SortOrderOldest:
-		s = s.Order("taken_at, photos.photo_uid, files.file_primary DESC")
-	case entity.SortOrderAdded:
-		s = s.Order("photos.id DESC, files.file_primary DESC")
+		s = s.Order("files.photo_taken_at, files.media_id")
 	case entity.SortOrderSimilar:
 		s = s.Where("files.file_diff > 0")
-		s = s.Order("photos.photo_color, photos.cell_id, files.file_diff, taken_at DESC, files.file_primary DESC")
+		s = s.Order("photos.photo_color, photos.cell_id, files.file_diff, files.time_index")
 	case entity.SortOrderName:
-		s = s.Order("photos.photo_path, photos.photo_name, files.file_primary DESC")
+		s = s.Order("photos.photo_path, photos.photo_name, files.time_index")
+	case entity.SortOrderDefault, entity.SortOrderImported, entity.SortOrderAdded:
+		s = s.Order("files.media_id")
 	case entity.SortOrderRandom:
 		switch entity.DbDialect() {
 		case entity.MySQL:
-			s = s.Order("RAND()")
+			s = s.Joins("JOIN (SELECT DISTINCT photo_id FROM files ORDER BY RAND() LIMIT ?) AS rnd on files.photo_id = rnd.photo_id", f.Count)
 		case entity.SQLite3:
-			s = s.Order("RANDOM()")
+			s = s.Joins("JOIN (SELECT DISTINCT photo_id FROM files ORDER BY RANDOM() LIMIT ?) AS rnd on files.photo_id = rnd.photo_id", f.Count)
 		default:
 			err := fmt.Errorf("unknown sql dialect %s", entity.DbDialect())
 			log.Errorf("photos: %s", err)
 			return results, 0, err
 		}
 	default:
-		s = s.Order("taken_at DESC, photos.photo_uid, files.file_primary DESC")
+		return PhotoResults{}, 0, fmt.Errorf("invalid sort order")
 	}
 
-	// Include hidden files?
+	// Show hidden files?
 	if !f.Hidden {
-		s = s.Where("files.file_type = 'jpg' OR files.file_video = 1")
+		s = s.Where("files.file_type IN (?) OR files.file_video = 1", []string{"jpg", "gif"})
 
 		if f.Error {
 			s = s.Where("files.file_error <> ''")
@@ -97,17 +98,17 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 		}
 	}
 
-	// Return primary files only.
+	// Primary files only?
 	if f.Primary {
 		s = s.Where("files.file_primary = 1")
 	}
 
 	if txt.NotEmpty(f.UID) {
-		s = s.Where("photos.photo_uid IN (?)", strings.Split(strings.ToLower(f.UID), txt.Or))
+		s = s.Where("photos.photo_uid IN (?)", SplitOr(strings.ToLower(f.UID)))
 
 		// Take shortcut?
 		if f.Album == "" && f.Query == "" {
-			s = s.Order("files.file_primary DESC")
+			s = s.Order("files.media_id")
 
 			if result := s.Scan(&results); result.Error != nil {
 				return results, 0, result.Error
@@ -116,7 +117,7 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 			log.Debugf("photos: found %s for %s [%s]", english.Plural(len(results), "result", "results"), f.SerializeAll(), time.Since(start))
 
 			if f.Merged {
-				return results.Merged()
+				return results.Merge()
 			}
 
 			return results, len(results), nil
@@ -136,16 +137,15 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 			for _, l := range labels {
 				labelIds = append(labelIds, l.ID)
 
-				Db().Where("category_id = ?", l.ID).Find(&categories)
-
-				log.Infof("search: label %s includes %d categories", txt.LogParamLower(l.LabelName), len(categories))
+				Log("find categories", Db().Where("category_id = ?", l.ID).Find(&categories).Error)
+				log.Debugf("search: label %s includes %d categories", txt.LogParamLower(l.LabelName), len(categories))
 
 				for _, category := range categories {
 					labelIds = append(labelIds, category.LabelID)
 				}
 			}
 
-			s = s.Joins("JOIN photos_labels ON photos_labels.photo_id = photos.id AND photos_labels.uncertainty < 100 AND photos_labels.label_id IN (?)", labelIds).
+			s = s.Joins("JOIN photos_labels ON photos_labels.photo_id = files.photo_id AND photos_labels.uncertainty < 100 AND photos_labels.label_id IN (?)", labelIds).
 				Group("photos.id, files.id")
 		}
 	}
@@ -170,11 +170,23 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 		case terms["video"]:
 			f.Query = strings.ReplaceAll(f.Query, "video", "")
 			f.Video = true
+		case terms["svg"]:
+			f.Query = strings.ReplaceAll(f.Query, "svg", "")
+			f.Vector = true
+		case terms["gifs"]:
+			f.Query = strings.ReplaceAll(f.Query, "gifs", "")
+			f.Animated = true
+		case terms["gif"]:
+			f.Query = strings.ReplaceAll(f.Query, "gif", "")
+			f.Animated = true
 		case terms["live"]:
 			f.Query = strings.ReplaceAll(f.Query, "live", "")
 			f.Live = true
 		case terms["raws"]:
 			f.Query = strings.ReplaceAll(f.Query, "raws", "")
+			f.Raw = true
+		case terms["raw"]:
+			f.Query = strings.ReplaceAll(f.Query, "raw", "")
 			f.Raw = true
 		case terms["favorites"]:
 			f.Query = strings.ReplaceAll(f.Query, "favorites", "")
@@ -202,14 +214,14 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 		s = s.Where("photos.cell_id <> 'zz'")
 
 		for _, where := range LikeAnyKeyword("k.keyword", f.Query) {
-			s = s.Where("photos.id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
+			s = s.Where("files.photo_id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
 		}
 	} else if f.Query != "" {
 		if err := Db().Where(AnySlug("custom_slug", f.Query, " ")).Find(&labels).Error; len(labels) == 0 || err != nil {
 			log.Debugf("search: label %s not found, using fuzzy search", txt.LogParamLower(f.Query))
 
 			for _, where := range LikeAnyKeyword("k.keyword", f.Query) {
-				s = s.Where("photos.id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
+				s = s.Where("files.photo_id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
 			}
 		} else {
 			for _, l := range labels {
@@ -226,11 +238,11 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 
 			if wheres := LikeAnyKeyword("k.keyword", f.Query); len(wheres) > 0 {
 				for _, where := range wheres {
-					s = s.Where("photos.id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?)) OR "+
-						"photos.id IN (SELECT pl.photo_id FROM photos_labels pl WHERE pl.uncertainty < 100 AND pl.label_id IN (?))", gorm.Expr(where), labelIds)
+					s = s.Where("files.photo_id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?)) OR "+
+						"files.photo_id IN (SELECT pl.photo_id FROM photos_labels pl WHERE pl.uncertainty < 100 AND pl.label_id IN (?))", gorm.Expr(where), labelIds)
 				}
 			} else {
-				s = s.Where("photos.id IN (SELECT pl.photo_id FROM photos_labels pl WHERE pl.uncertainty < 100 AND pl.label_id IN (?))", labelIds)
+				s = s.Where("files.photo_id IN (SELECT pl.photo_id FROM photos_labels pl WHERE pl.uncertainty < 100 AND pl.label_id IN (?))", labelIds)
 			}
 		}
 	}
@@ -238,7 +250,7 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 	// Search for one or more keywords?
 	if txt.NotEmpty(f.Keywords) {
 		for _, where := range LikeAnyWord("k.keyword", f.Keywords) {
-			s = s.Where("photos.id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
+			s = s.Where("files.photo_id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
 		}
 	}
 
@@ -256,35 +268,35 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 
 	// Filter for specific face clusters? Example: PLJ7A3G4MBGZJRMVDIUCBLC46IAP4N7O
 	if len(f.Face) >= 32 {
-		for _, f := range strings.Split(strings.ToUpper(f.Face), txt.And) {
-			s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 WHERE face_id IN (?))",
-				entity.Marker{}.TableName()), strings.Split(f, txt.Or))
+		for _, f := range SplitAnd(strings.ToUpper(f.Face)) {
+			s = s.Where(fmt.Sprintf("files.photo_id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 WHERE face_id IN (?))",
+				entity.Marker{}.TableName()), SplitOr(f))
 		}
 	} else if txt.New(f.Face) {
-		s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 AND m.marker_type = ? WHERE subj_uid IS NULL OR subj_uid = '')",
+		s = s.Where(fmt.Sprintf("files.photo_id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 AND m.marker_type = ? WHERE subj_uid IS NULL OR subj_uid = '')",
 			entity.Marker{}.TableName()), entity.MarkerFace)
 	} else if txt.No(f.Face) {
-		s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 AND m.marker_type = ? WHERE face_id IS NULL OR face_id = '')",
+		s = s.Where(fmt.Sprintf("files.photo_id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 AND m.marker_type = ? WHERE face_id IS NULL OR face_id = '')",
 			entity.Marker{}.TableName()), entity.MarkerFace)
 	} else if txt.Yes(f.Face) {
-		s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 AND m.marker_type = ? WHERE face_id IS NOT NULL AND face_id <> '')",
+		s = s.Where(fmt.Sprintf("files.photo_id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 AND m.marker_type = ? WHERE face_id IS NOT NULL AND face_id <> '')",
 			entity.Marker{}.TableName()), entity.MarkerFace)
 	}
 
 	// Filter for one or more subjects?
 	if txt.NotEmpty(f.Subject) {
-		for _, subj := range strings.Split(strings.ToLower(f.Subject), txt.And) {
-			if subjects := strings.Split(subj, txt.Or); rnd.ContainsUIDs(subjects, 'j') {
-				s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 WHERE subj_uid IN (?))",
+		for _, subj := range SplitAnd(strings.ToLower(f.Subject)) {
+			if subjects := SplitOr(subj); rnd.ContainsUIDs(subjects, 'j') {
+				s = s.Where(fmt.Sprintf("files.photo_id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 WHERE subj_uid IN (?))",
 					entity.Marker{}.TableName()), subjects)
 			} else {
-				s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 JOIN %s s ON s.subj_uid = m.subj_uid WHERE (?))",
+				s = s.Where(fmt.Sprintf("files.photo_id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 JOIN %s s ON s.subj_uid = m.subj_uid WHERE (?))",
 					entity.Marker{}.TableName(), entity.Subject{}.TableName()), gorm.Expr(AnySlug("s.subj_slug", subj, txt.Or)))
 			}
 		}
 	} else if txt.NotEmpty(f.Subjects) {
 		for _, where := range LikeAllNames(Cols{"subj_name", "subj_alias"}, f.Subjects) {
-			s = s.Where(fmt.Sprintf("photos.id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 JOIN %s s ON s.subj_uid = m.subj_uid WHERE (?))",
+			s = s.Where(fmt.Sprintf("files.photo_id IN (SELECT photo_id FROM files f JOIN %s m ON f.file_uid = m.file_uid AND m.marker_invalid = 0 JOIN %s s ON s.subj_uid = m.subj_uid WHERE (?))",
 				entity.Marker{}.TableName(), entity.Subject{}.TableName()), gorm.Expr(where))
 		}
 	}
@@ -317,7 +329,7 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 		s = s.Where("photos.camera_id = ?", txt.UInt(f.Camera))
 	} else if txt.NotEmpty(f.Camera) {
 		v := strings.Trim(f.Camera, "*%") + "%"
-		s = s.Where("cameras.camera_make LIKE ? OR cameras.camera_model LIKE ? OR cameras.camera_slug LIKE ?", v, v, v)
+		s = s.Where("cameras.camera_name LIKE ? OR cameras.camera_model LIKE ? OR cameras.camera_slug LIKE ?", v, v, v)
 	}
 
 	// Filter by lens id or name?
@@ -325,7 +337,7 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 		s = s.Where("photos.lens_id = ?", txt.UInt(f.Lens))
 	} else if txt.NotEmpty(f.Lens) {
 		v := strings.Trim(f.Lens, "*%") + "%"
-		s = s.Where("lenses.lens_make LIKE ? OR lenses.lens_model LIKE ? OR lenses.lens_slug LIKE ?", v, v, v)
+		s = s.Where("lenses.lens_name LIKE ? OR lenses.lens_model LIKE ? OR lenses.lens_slug LIKE ?", v, v, v)
 	}
 
 	// Filter by year?
@@ -345,7 +357,7 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 
 	// Filter by main color?
 	if f.Color != "" {
-		s = s.Where("files.file_main_color IN (?)", strings.Split(strings.ToLower(f.Color), txt.Or))
+		s = s.Where("files.file_main_color IN (?)", SplitOr(strings.ToLower(f.Color)))
 	}
 
 	// Find favorites only?
@@ -363,9 +375,13 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 		s = s.Where("photos.photo_panorama = 1")
 	}
 
-	// Find portraits only?
+	// Find portrait/landscape/square pictures only?
 	if f.Portrait {
 		s = s.Where("files.file_portrait = 1")
+	} else if f.Landscape {
+		s = s.Where("files.file_aspect_ratio > 1.25")
+	} else if f.Square {
+		s = s.Where("files.file_aspect_ratio = 1")
 	}
 
 	if f.Stackable {
@@ -376,31 +392,35 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 
 	// Filter by location country?
 	if txt.NotEmpty(f.Country) {
-		s = s.Where("photos.photo_country IN (?)", strings.Split(strings.ToLower(f.Country), txt.Or))
+		s = s.Where("photos.photo_country IN (?)", SplitOr(strings.ToLower(f.Country)))
 	}
 
 	// Filter by location state?
 	if txt.NotEmpty(f.State) {
-		s = s.Where("places.place_state IN (?)", strings.Split(f.State, txt.Or))
+		s = s.Where("places.place_state IN (?)", SplitOr(f.State))
 	}
 
 	// Filter by location category?
 	if txt.NotEmpty(f.Category) {
 		s = s.Joins("JOIN cells ON photos.cell_id = cells.id").
-			Where("cells.cell_category IN (?)", strings.Split(strings.ToLower(f.Category), txt.Or))
+			Where("cells.cell_category IN (?)", SplitOr(strings.ToLower(f.Category)))
 	}
 
 	// Filter by media type?
 	if txt.NotEmpty(f.Type) {
-		s = s.Where("photos.photo_type IN (?)", strings.Split(strings.ToLower(f.Type), txt.Or))
+		s = s.Where("photos.photo_type IN (?)", SplitOr(strings.ToLower(f.Type)))
 	} else if f.Video {
-		s = s.Where("photos.photo_type = 'video'")
-	} else if f.Photo {
-		s = s.Where("photos.photo_type IN ('image','raw','live')")
+		s = s.Where("photos.photo_type = ?", entity.MediaVideo)
+	} else if f.Vector {
+		s = s.Where("photos.photo_type = ?", entity.MediaVector)
+	} else if f.Animated {
+		s = s.Where("photos.photo_type = ?", entity.MediaAnimated)
 	} else if f.Raw {
-		s = s.Where("photos.photo_type = 'raw'")
+		s = s.Where("photos.photo_type = ?", entity.MediaRaw)
 	} else if f.Live {
-		s = s.Where("photos.photo_type = 'live'")
+		s = s.Where("photos.photo_type = ?", entity.MediaLive)
+	} else if f.Photo {
+		s = s.Where("photos.photo_type IN ('image','raw','live','animated')")
 	}
 
 	// Filter by storage path?
@@ -451,7 +471,7 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 
 	// Filter by file hash?
 	if txt.NotEmpty(f.Hash) {
-		s = s.Where("files.file_hash IN (?)", strings.Split(strings.ToLower(f.Hash), txt.Or))
+		s = s.Where("files.file_hash IN (?)", SplitOr(strings.ToLower(f.Hash)))
 	}
 
 	if f.Mono {
@@ -480,7 +500,7 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 		f.Dist = 5000
 	}
 
-	// Filter by approx distance to coordinates:
+	// Filter by approx distance to co-ordinates:
 	if f.Lat != 0 {
 		latMin := f.Lat - Radius*float32(f.Dist)
 		latMax := f.Lat + Radius*float32(f.Dist)
@@ -508,19 +528,19 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 	// Filter by album?
 	if rnd.IsPPID(f.Album, 'a') {
 		if f.Filter != "" {
-			s = s.Where("photos.photo_uid NOT IN (SELECT photo_uid FROM photos_albums pa WHERE pa.hidden = 1 AND pa.album_uid = ?)", f.Album)
+			s = s.Where("files.photo_uid NOT IN (SELECT photo_uid FROM photos_albums pa WHERE pa.hidden = 1 AND pa.album_uid = ?)", f.Album)
 		} else {
-			s = s.Joins("JOIN photos_albums ON photos_albums.photo_uid = photos.photo_uid").
+			s = s.Joins("JOIN photos_albums ON photos_albums.photo_uid = files.photo_uid").
 				Where("photos_albums.hidden = 0 AND photos_albums.album_uid = ?", f.Album)
 		}
 	} else if f.Unsorted && f.Filter == "" {
-		s = s.Where("photos.photo_uid NOT IN (SELECT photo_uid FROM photos_albums pa WHERE pa.hidden = 0)")
+		s = s.Where("files.photo_uid NOT IN (SELECT photo_uid FROM photos_albums pa WHERE pa.hidden = 0)")
 	} else if txt.NotEmpty(f.Album) {
 		v := strings.Trim(f.Album, "*%") + "%"
-		s = s.Where("photos.photo_uid IN (SELECT pa.photo_uid FROM photos_albums pa JOIN albums a ON a.album_uid = pa.album_uid AND pa.hidden = 0 WHERE (a.album_title LIKE ? OR a.album_slug LIKE ?))", v, v)
+		s = s.Where("files.photo_uid IN (SELECT pa.photo_uid FROM photos_albums pa JOIN albums a ON a.album_uid = pa.album_uid AND pa.hidden = 0 WHERE (a.album_title LIKE ? OR a.album_slug LIKE ?))", v, v)
 	} else if txt.NotEmpty(f.Albums) {
 		for _, where := range LikeAnyWord("a.album_title", f.Albums) {
-			s = s.Where("photos.photo_uid IN (SELECT pa.photo_uid FROM photos_albums pa JOIN albums a ON a.album_uid = pa.album_uid AND pa.hidden = 0 WHERE (?))", gorm.Expr(where))
+			s = s.Where("files.photo_uid IN (SELECT pa.photo_uid FROM photos_albums pa JOIN albums a ON a.album_uid = pa.album_uid AND pa.hidden = 0 WHERE (?))", gorm.Expr(where))
 		}
 	}
 
@@ -531,7 +551,7 @@ func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
 	log.Debugf("photos: found %s for %s [%s]", english.Plural(len(results), "result", "results"), f.SerializeAll(), time.Since(start))
 
 	if f.Merged {
-		return results.Merged()
+		return results.Merge()
 	}
 
 	return results, len(results), nil
