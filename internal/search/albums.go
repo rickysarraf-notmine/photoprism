@@ -29,25 +29,25 @@ func Albums(f form.SearchAlbums) (results AlbumResults, err error) {
 			// Rewrite the select statement to calculate the photo count based on the photo/album path.
 			Select("albums.*, COUNT(p.id) as photo_count, cl.link_count, CASE WHEN albums.album_year = 0 THEN 0 ELSE 1 END AS has_year").
 			Joins("LEFT JOIN photos p on albums.album_path = p.photo_path").
-			Group("album_uid")
+			Group("albums.album_uid")
 	case entity.AlbumCountry:
 		s = s.
 			// Rewrite the select statement to calculate the photo count based on the photo/album country.
 			Select("albums.*, COUNT(p.id) as photo_count, cl.link_count, CASE WHEN albums.album_year = 0 THEN 0 ELSE 1 END AS has_year").
 			Joins("LEFT JOIN photos p on albums.album_country = p.photo_country").
-			Group("album_uid")
+			Group("albums.album_uid")
 	case entity.AlbumState:
 		s = s.
 			// Rewrite the select statement to calculate the photo count based on the photo/album state.
 			Select("albums.*, COUNT(p.id) as photo_count, cl.link_count, CASE WHEN albums.album_year = 0 THEN 0 ELSE 1 END AS has_year").
 			Joins("LEFT JOIN (SELECT places.place_state, photos.* FROM `photos` LEFT JOIN places ON photos.place_id = places.id) p on albums.album_state = p.place_state").
-			Group("album_uid")
+			Group("albums.album_uid")
 	case entity.AlbumMonth:
 		s = s.
 			// Rewrite the select statement to calculate the photo count based on the photo/album year and month.
 			Select("albums.*, COUNT(p.id) as photo_count, cl.link_count, CASE WHEN albums.album_year = 0 THEN 0 ELSE 1 END AS has_year").
 			Joins("LEFT JOIN photos p on albums.album_year = p.photo_year AND albums.album_month = p.photo_month").
-			Group("album_uid")
+			Group("albums.album_uid")
 	}
 
 	// Limit result count.
