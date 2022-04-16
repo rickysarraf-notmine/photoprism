@@ -142,7 +142,7 @@ func resetAction(ctx *cli.Context) error {
 		}
 
 		// the avc files and burried deep in the sidecar folder, so we need to search it recursively
-		avcMatches, err := recursiveGlob(conf.SidecarPath(), fs.AvcExt)
+		avcMatches, err := recursiveGlob(conf.SidecarPath(), fs.ExtAVC)
 
 		if err != nil {
 			return err

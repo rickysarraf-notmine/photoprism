@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/photoprism/photoprism/pkg/media"
+
 	"github.com/karrick/godirwalk"
 
 	"github.com/photoprism/photoprism/internal/classify"
@@ -18,8 +20,8 @@ import (
 	"github.com/photoprism/photoprism/internal/face"
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/internal/nsfw"
+	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
-	"github.com/photoprism/photoprism/pkg/sanitize"
 )
 
 // Index represents an indexer that indexes files in the originals directory.
@@ -94,7 +96,7 @@ func (ind *Index) Start(o IndexOptions) fs.Done {
 	optionsPath := filepath.Join(originalsPath, o.Path)
 
 	if !fs.PathExists(optionsPath) {
-		event.Error(fmt.Sprintf("index: %s does not exist", sanitize.Log(optionsPath)))
+		event.Error(fmt.Sprintf("index: %s does not exist", clean.Log(optionsPath)))
 		return done
 	}
 
@@ -176,7 +178,7 @@ func (ind *Index) Start(o IndexOptions) fs.Done {
 
 			done[fileName] = fs.Found
 
-			if !fs.IsMedia(fileName) {
+			if !media.MainFile(fileName) {
 				return nil
 			}
 
@@ -190,7 +192,7 @@ func (ind *Index) Start(o IndexOptions) fs.Done {
 
 			// Ignore RAW images?
 			if mf.IsRaw() && skipRaw {
-				log.Infof("index: skipped raw %s", sanitize.Log(mf.RootRelName()))
+				log.Infof("index: skipped raw %s", clean.Log(mf.RootRelName()))
 				return nil
 			}
 

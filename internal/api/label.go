@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/photoprism/photoprism/pkg/sanitize"
+	"github.com/photoprism/photoprism/pkg/clean"
 
 	"github.com/gin-gonic/gin"
 
@@ -27,7 +27,7 @@ func UpdateLabel(router *gin.RouterGroup) {
 			return
 		}
 
-		id := sanitize.IdString(c.Param("uid"))
+		id := clean.IdString(c.Param("uid"))
 		m, err := query.LabelByUID(id)
 
 		if err != nil {
@@ -78,16 +78,16 @@ func LikeLabel(router *gin.RouterGroup) {
 			return
 		}
 
-		id := sanitize.IdString(c.Param("uid"))
+		id := clean.IdString(c.Param("uid"))
 		label, err := query.LabelByUID(id)
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": txt.UcFirst(err.Error())})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": txt.UpperFirst(err.Error())})
 			return
 		}
 
 		if err := label.Update("LabelFavorite", true); err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UcFirst(err.Error())})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
 			return
 		}
 
@@ -118,16 +118,16 @@ func DislikeLabel(router *gin.RouterGroup) {
 			return
 		}
 
-		id := sanitize.IdString(c.Param("uid"))
+		id := clean.IdString(c.Param("uid"))
 		label, err := query.LabelByUID(id)
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": txt.UcFirst(err.Error())})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": txt.UpperFirst(err.Error())})
 			return
 		}
 
 		if err := label.Update("LabelFavorite", false); err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UcFirst(err.Error())})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
 			return
 		}
 

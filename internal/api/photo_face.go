@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/photoprism/photoprism/pkg/sanitize"
+	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/txt"
 
 	"github.com/gin-gonic/gin"
@@ -30,7 +30,7 @@ func GetPhotoFaces(router *gin.RouterGroup) {
 			return
 		}
 
-		f, err := query.FileByPhotoUID(sanitize.IdString(c.Param("uid")))
+		f, err := query.FileByPhotoUID(clean.IdString(c.Param("uid")))
 
 		if err != nil {
 			AbortEntityNotFound(c)
@@ -41,7 +41,7 @@ func GetPhotoFaces(router *gin.RouterGroup) {
 		faces, err := face.DetectAll(photoprism.FileName(f.FileRoot, f.FileName), conf.FaceSize())
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UcFirst(err.Error())})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
 			return
 		}
 
@@ -62,7 +62,7 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 			return
 		}
 
-		file, err := query.FileByPhotoUID(sanitize.IdString(c.Param("uid")))
+		file, err := query.FileByPhotoUID(clean.IdString(c.Param("uid")))
 
 		if err != nil {
 			AbortEntityNotFound(c)
@@ -89,7 +89,7 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 		embeddings, err := net.Embeddings(photoprism.FileName(file.FileRoot, file.FileName), f)
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UcFirst(err.Error())})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
 			return
 		}
 
@@ -113,7 +113,7 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 
 		// Save the new marker.
 		if count, err := file.SaveMarkers(); err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UcFirst(err.Error())})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
 			return
 		} else if count == 0 {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "did not save new marker"})
@@ -126,7 +126,7 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 		faces, err := query.Faces(false, false, false)
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UcFirst(err.Error())})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
 			return
 		}
 
@@ -149,7 +149,7 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 			_, err := marker.SetFace(matched_face, matched_distance)
 
 			if err != nil {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UcFirst(err.Error())})
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
 				return
 			}
 

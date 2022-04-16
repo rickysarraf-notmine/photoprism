@@ -8,20 +8,20 @@ import (
 
 	jpegstructure "github.com/dsoprea/go-jpeg-image-structure/v2"
 
+	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
-	"github.com/photoprism/photoprism/pkg/sanitize"
 )
 
 // XMP parses an XMP file and returns a Data struct.
 func XMP(fileName string) (data Data, err error) {
-	err = data.XMP(fileName, fs.FormatXMP)
+	err = data.XMP(fileName, fs.XmpFile)
 
 	return data, err
 }
 
 // XMP parses an XMP file and returns a Data struct.
-func (data *Data) XMP(fileName string, fileType fs.Format) (err error) {
-	logName := sanitize.Log(filepath.Base(fileName))
+func (data *Data) XMP(fileName string, fileType fs.Type) (err error) {
+	logName := clean.Log(filepath.Base(fileName))
 
 	defer func() {
 		if e := recover(); e != nil {
@@ -32,11 +32,11 @@ func (data *Data) XMP(fileName string, fileType fs.Format) (err error) {
 	doc := XmpDocument{}
 
 	// All unsupported types will be silently ignored, otherwise we will polute the log with warnings
-	if fileType == fs.FormatXMP {
+	if fileType == fs.XmpFile {
 		if err := doc.Load(fileName); err != nil {
 			return fmt.Errorf("metadata: can't read %s (xmp)", logName)
 		}
-	} else if fileType == fs.FormatJpeg {
+	} else if fileType == fs.ImageJPEG {
 		jpegParser := jpegstructure.NewJpegMediaParser()
 		intfc, err := jpegParser.ParseFile(fileName)
 

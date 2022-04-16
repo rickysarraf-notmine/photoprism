@@ -13,8 +13,8 @@ import (
 	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/internal/maps"
+	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/rnd"
-	"github.com/photoprism/photoprism/pkg/sanitize"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
@@ -73,7 +73,7 @@ func AddPhotoToAlbums(photo string, albums []string) (err error) {
 		return nil
 	}
 
-	if !rnd.IsPPID(photo, 'p') {
+	if !rnd.EntityUID(photo, 'p') {
 		return fmt.Errorf("album: invalid photo uid %s", photo)
 	}
 
@@ -85,7 +85,7 @@ func AddPhotoToAlbums(photo string, albums []string) (err error) {
 			continue
 		}
 
-		if rnd.IsPPID(album, 'a') {
+		if rnd.EntityUID(album, 'a') {
 			aUID = album
 		} else {
 			a := NewAlbum(album, AlbumDefault)
@@ -362,7 +362,7 @@ func FindFolderAlbum(albumPath string) *Album {
 
 // Find returns an entity from the database.
 func (m *Album) Find() (err error) {
-	if rnd.IsPPID(m.AlbumUID, 'a') {
+	if rnd.EntityUID(m.AlbumUID, 'a') {
 		if err := UnscopedDb().First(m, "album_uid = ?", m.AlbumUID).Error; err != nil {
 			return err
 		}
@@ -391,25 +391,25 @@ func (m *Album) Find() (err error) {
 
 // BeforeCreate creates a random UID if needed before inserting a new row to the database.
 func (m *Album) BeforeCreate(scope *gorm.Scope) error {
-	if rnd.IsUID(m.AlbumUID, 'a') {
+	if rnd.ValidID(m.AlbumUID, 'a') {
 		return nil
 	}
 
-	return scope.SetColumn("AlbumUID", rnd.PPID('a'))
+	return scope.SetColumn("AlbumUID", rnd.GenerateUID('a'))
 }
 
 // String returns the id or name as string.
 func (m *Album) String() string {
 	if m.AlbumSlug != "" {
-		return sanitize.Log(m.AlbumSlug)
+		return clean.Log(m.AlbumSlug)
 	}
 
 	if m.AlbumTitle != "" {
-		return sanitize.Log(m.AlbumTitle)
+		return clean.Log(m.AlbumTitle)
 	}
 
 	if m.AlbumUID != "" {
-		return sanitize.Log(m.AlbumUID)
+		return clean.Log(m.AlbumUID)
 	}
 
 	return "[unknown album]"

@@ -48,7 +48,7 @@ func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 		return nil, fmt.Errorf("file does not exist")
 	}
 
-	mpName := fs.FileName(fs.StripExt(f.FileName()), conf.SidecarPath(), conf.OriginalsPath(), fs.Mp4Ext)
+	mpName := fs.FileName(fs.StripExt(f.FileName()), conf.SidecarPath(), conf.OriginalsPath(), fs.ExtMP4)
 	mediaFile, err := NewMediaFile(mpName)
 
 	if err == nil && mediaFile.IsVideo() {
