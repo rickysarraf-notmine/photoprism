@@ -52,12 +52,13 @@
               <v-icon color="white" class="select-on">check_circle</v-icon>
               <v-icon color="white" class="select-off">radio_button_off</v-icon>
             </v-btn>
-            <v-btn v-else-if="props.item.Type === 'video' || props.item.Type === 'live' || props.item.Type === 'animated'"
+            <v-btn v-else-if="['animated', 'live', 'sphere', 'video'].includes(props.item.Type)"
                    :ripple="false"
                    flat icon large absolute class="input-open"
                    @click.stop.prevent="openPhoto(props.index, true)">
               <v-icon color="white" class="default-hidden action-live" :title="$gettext('Live')">$vuetify.icons.live_photo</v-icon>
               <v-icon color="white" class="default-hidden action-animated" :title="$gettext('Animated')">gif</v-icon>
+              <v-icon color="white" class="default-hidden action-sphere" :title="$gettext('Photosphere')">panorama_photosphere</v-icon>
               <v-icon color="white" class="default-hidden action-play" :title="$gettext('Video')">play_arrow</v-icon>
             </v-btn>
           </v-img>

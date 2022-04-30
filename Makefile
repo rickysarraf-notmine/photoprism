@@ -103,6 +103,9 @@ install-tensorflow:
 	sudo scripts/dist/install-tensorflow.sh
 install-darktable:
 	sudo scripts/dist/install-darktable.sh
+acceptance-prepare:
+	mkdir -p storage
+	(cd storage && wget -q https://dl.photoprism.app/qa/acceptance.tar.gz && tar -xzf acceptance.tar.gz)
 acceptance-restart:
 	cp -f storage/acceptance/backup.db storage/acceptance/index.db
 	cp -f storage/acceptance/config/settingsBackup.yml storage/acceptance/config/settings.yml

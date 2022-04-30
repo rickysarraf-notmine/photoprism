@@ -9,6 +9,7 @@ const (
 	ExtYAML = ".yml"
 	ExtJPEG = ".jpg"
 	ExtAVC  = ".avc"
+	ExtMP4  = ".mp4"
 )
 
 // Ext returns all extension of a file name including the dots.

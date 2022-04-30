@@ -22,6 +22,34 @@ func Albums(f form.SearchAlbums) (results AlbumResults, err error) {
 		Where("albums.album_type <> 'folder' OR albums.album_path IN (SELECT photo_path FROM photos WHERE photo_private = 0 AND photo_quality > -1 AND deleted_at IS NULL)").
 		Where("albums.deleted_at IS NULL")
 
+	// Set photo counts for non-"album" albums.
+	switch f.Type {
+	case entity.AlbumFolder:
+		s = s.
+			// Rewrite the select statement to calculate the photo count based on the photo/album path.
+			Select("albums.*, COUNT(p.id) as photo_count, cl.link_count, CASE WHEN albums.album_year = 0 THEN 0 ELSE 1 END AS has_year").
+			Joins("LEFT JOIN photos p on albums.album_path = p.photo_path").
+			Group("albums.album_uid")
+	case entity.AlbumCountry:
+		s = s.
+			// Rewrite the select statement to calculate the photo count based on the photo/album country.
+			Select("albums.*, COUNT(p.id) as photo_count, cl.link_count, CASE WHEN albums.album_year = 0 THEN 0 ELSE 1 END AS has_year").
+			Joins("LEFT JOIN photos p on albums.album_country = p.photo_country").
+			Group("albums.album_uid")
+	case entity.AlbumState:
+		s = s.
+			// Rewrite the select statement to calculate the photo count based on the photo/album state.
+			Select("albums.*, COUNT(p.id) as photo_count, cl.link_count, CASE WHEN albums.album_year = 0 THEN 0 ELSE 1 END AS has_year").
+			Joins("LEFT JOIN (SELECT places.place_state, photos.* FROM `photos` LEFT JOIN places ON photos.place_id = places.id) p on albums.album_state = p.place_state").
+			Group("albums.album_uid")
+	case entity.AlbumMonth:
+		s = s.
+			// Rewrite the select statement to calculate the photo count based on the photo/album year and month.
+			Select("albums.*, COUNT(p.id) as photo_count, cl.link_count, CASE WHEN albums.album_year = 0 THEN 0 ELSE 1 END AS has_year").
+			Joins("LEFT JOIN photos p on albums.album_year = p.photo_year AND albums.album_month = p.photo_month").
+			Group("albums.album_uid")
+	}
+
 	// Limit result count.
 	if f.Count > 0 && f.Count <= MaxResults {
 		s = s.Limit(f.Count).Offset(f.Offset)
@@ -130,6 +158,22 @@ func Albums(f form.SearchAlbums) (results AlbumResults, err error) {
 
 	if result := s.Scan(&results); result.Error != nil {
 		return results, result.Error
+	}
+
+	// Update the counts for smart albums. This is a very suboptimal way of doing it, but it's the easiest.
+	for idx := range results {
+		album := &results[idx]
+
+		if album.AlbumType == entity.AlbumDefault && album.AlbumFilter != "" {
+			f := form.SearchPhotos{Filter: album.AlbumFilter}
+
+			_, count, err := Photos(f)
+			if err != nil {
+				return results, err
+			}
+
+			album.PhotoCount = count
+		}
 	}
 
 	return results, nil

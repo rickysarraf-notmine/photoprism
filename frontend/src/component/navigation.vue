@@ -307,6 +307,15 @@
               </v-list-tile-title>
             </v-list-tile-content>
           </v-list-tile>
+
+          <v-list-tile to="/countries" class="nav-countries" @click.stop="">
+            <v-list-tile-content>
+              <v-list-tile-title :class="`p-flex-menuitem menu-item ${rtl ? '--rtl' : ''}`">
+                <translate key="Countries">Countries</translate>
+                <span v-show="config.count.countries > 0" :class="`nav-count ${rtl ? '--rtl' : ''}`">{{ config.count.countries | abbreviateCount }}</span>
+              </v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
         </v-list-group>
 
         <v-list-tile v-show="$config.feature('labels')" to="/labels" class="nav-labels" @click.stop="">
@@ -346,6 +355,19 @@
             <v-list-tile-title class="p-flex-menuitem">
               <translate key="Private">Private</translate>
               <span v-show="config.count.private > 0" :class="`nav-count ${rtl ? '--rtl' : ''}`">{{ config.count.private | abbreviateCount }}</span>
+            </v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+
+        <v-list-tile to="/discover" class="nav-discover" @click.stop="">
+          <v-list-tile-action :title="$gettext('Discover')">
+            <!-- travel_explore seems to be a better icon, but it's not available -->
+            <v-icon>explore</v-icon>
+          </v-list-tile-action>
+
+          <v-list-tile-content>
+            <v-list-tile-title>
+              <translate key="Discover">Discover</translate>
             </v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>

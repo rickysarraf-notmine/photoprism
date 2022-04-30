@@ -1,6 +1,7 @@
 package search
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -27,6 +28,9 @@ type Face struct {
 	MatchedAt       *time.Time `json:"MatchedAt" yaml:"MatchedAt,omitempty"`
 	CreatedAt       time.Time  `json:"CreatedAt" yaml:"CreatedAt,omitempty"`
 	UpdatedAt       time.Time  `json:"UpdatedAt" yaml:"UpdatedAt,omitempty"`
+
+	// Additional properties to expose via the REST API
+	EmbeddingJSON json.RawMessage `json:"Embedding,omitempty"`
 }
 
 // FaceResults represents face search results.
