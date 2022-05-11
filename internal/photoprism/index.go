@@ -6,10 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
-	"strings"
 	"sync"
-
-	"github.com/photoprism/photoprism/pkg/media"
 
 	"github.com/karrick/godirwalk"
 
@@ -22,6 +19,7 @@ import (
 	"github.com/photoprism/photoprism/internal/nsfw"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
+	"github.com/photoprism/photoprism/pkg/media"
 )
 
 // Index represents an indexer that indexes files in the originals directory.
@@ -64,7 +62,7 @@ func (ind *Index) originalsPath() string {
 }
 
 func (ind *Index) thumbPath() string {
-	return ind.conf.ThumbPath()
+	return ind.conf.ThumbCachePath()
 }
 
 // foldersSortOrder returns the configured default sort order for folders
@@ -146,12 +144,17 @@ func (ind *Index) Start(o IndexOptions) fs.Done {
 
 	err := godirwalk.Walk(optionsPath, &godirwalk.Options{
 		ErrorCallback: func(fileName string, err error) godirwalk.ErrorAction {
-			log.Errorf("index: %s", strings.Replace(err.Error(), originalsPath, "", 1))
 			return godirwalk.SkipNode
 		},
 		Callback: func(fileName string, info *godirwalk.Dirent) error {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Errorf("index: %s (panic)\nstack: %s", r, debug.Stack())
+				}
+			}()
+
 			if mutex.MainWorker.Canceled() {
-				return errors.New("indexing canceled")
+				return errors.New("canceled")
 			}
 
 			isDir := info.IsDir()
@@ -186,7 +189,7 @@ func (ind *Index) Start(o IndexOptions) fs.Done {
 
 			// Check if file exists and is not empty.
 			if err != nil {
-				log.Errorf("index: %s", err)
+				log.Warnf("index: %s", err)
 				return nil
 			}
 

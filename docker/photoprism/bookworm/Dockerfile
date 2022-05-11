@@ -15,8 +15,6 @@ RUN make all install DESTDIR=/opt/photoprism
 #### Base Image: Debian 12, Codename "Bookworm"
 FROM photoprism/develop:bookworm-slim
 
-LABEL maintainer="Michael Mayer <hello@photoprism.app>"
-
 ARG TARGETARCH
 ARG BUILD_TAG
 
@@ -24,7 +22,6 @@ ARG BUILD_TAG
 ENV PHOTOPRISM_ARCH=$TARGETARCH \
     DOCKER_TAG=$BUILD_TAG \
     DOCKER_ENV="prod" \
-    PATH="/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/scripts:/opt/photoprism/bin" \
     TMPDIR="/tmp" \
     DEBIAN_FRONTEND="noninteractive" \
     TF_CPP_MIN_LOG_LEVEL="2" \
@@ -42,7 +39,6 @@ ENV PHOTOPRISM_ARCH=$TARGETARCH \
     PHOTOPRISM_DETECT_NSFW="false" \
     PHOTOPRISM_EXPERIMENTAL="false" \
     PHOTOPRISM_SITE_URL="http://localhost:2342/" \
-    PHOTOPRISM_SITE_TITLE="PhotoPrism" \
     PHOTOPRISM_SITE_CAPTION="AI-Powered Photos App" \
     PHOTOPRISM_SITE_DESCRIPTION="" \
     PHOTOPRISM_SITE_AUTHOR="" \
@@ -90,9 +86,9 @@ EXPOSE 2342
 
 # copy dist files
 COPY --from=build /opt/photoprism/ /opt/photoprism
-RUN mv /opt/photoprism/sbin/gosu /sbin/gosu && \
-    chown root:root /sbin/gosu && \
-    chmod 755 /sbin/gosu
+RUN mv /opt/photoprism/sbin/gosu /usr/local/sbin/gosu && \
+    chown root:root /usr/local/sbin/gosu && \
+    chmod 755 /usr/local/sbin/gosu
 
 # set container entrypoint script
 ENTRYPOINT ["/scripts/entrypoint.sh"]

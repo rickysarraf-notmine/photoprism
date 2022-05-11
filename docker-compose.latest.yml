@@ -24,7 +24,6 @@ services:
       PHOTOPRISM_ADMIN_PASSWORD: "photoprism"        # initial "admin" password (minimum 8 characters)
       ## Public server URL incl http:// or https:// and /path, :port is optional
       PHOTOPRISM_SITE_URL: "https://latest.localssl.dev/"
-      PHOTOPRISM_SITE_TITLE: "PhotoPrism"
       PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
       PHOTOPRISM_SITE_DESCRIPTION: "Open-Source Photo Management"
       PHOTOPRISM_SITE_AUTHOR: "@photoprism_app"
@@ -38,9 +37,9 @@ services:
       PHOTOPRISM_HTTP_COMPRESSION: "gzip"     # improves transfer speed and bandwidth utilization (none or gzip)
       PHOTOPRISM_DATABASE_DRIVER: "mysql"
       PHOTOPRISM_DATABASE_SERVER: "mariadb:4001"
-      PHOTOPRISM_DATABASE_NAME: "photoprism_latest"
-      PHOTOPRISM_DATABASE_USER: "photoprism_latest"
-      PHOTOPRISM_DATABASE_PASSWORD: "photoprism_latest"
+      PHOTOPRISM_DATABASE_NAME: "latest"
+      PHOTOPRISM_DATABASE_USER: "latest"
+      PHOTOPRISM_DATABASE_PASSWORD: "latest"
       PHOTOPRISM_DISABLE_CHOWN: "false"       # disables storage permission updates on startup
       PHOTOPRISM_DISABLE_BACKUPS: "false"     # disables backing up albums and photo metadata to YAML files
       PHOTOPRISM_DISABLE_WEBDAV: "false"      # disables built-in WebDAV server

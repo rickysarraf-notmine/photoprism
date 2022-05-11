@@ -1,6 +1,6 @@
 /*
 
-Package hub contains backend api config & clients.
+Package hub provides privacy-preserving reverse geocoding and other backend services.
 
 Copyright (c) 2018 - 2022 PhotoPrism UG. All rights reserved.
 

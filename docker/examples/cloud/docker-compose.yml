@@ -129,7 +129,6 @@ services:
     environment:
       ## !! CHANGE site url if your server has a public domain name e.g. "https://photos.yourdomain.com/" !!
       PHOTOPRISM_SITE_URL: "https://_public_ip_/"
-      PHOTOPRISM_SITE_TITLE: "PhotoPrism"
       PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
       PHOTOPRISM_SITE_DESCRIPTION: ""
       PHOTOPRISM_SITE_AUTHOR: ""
@@ -158,7 +157,6 @@ services:
       PHOTOPRISM_DATABASE_PASSWORD: "_admin_password_" # MariaDB or MySQL database user password
       ## Run/install on first startup (options: update, gpu, tensorflow, davfs, clean):
       PHOTOPRISM_INIT: "update tensorflow clean"
-      HOME: "/photoprism" # do not change or remove
     working_dir: "/photoprism" # do not change or remove
     ## Storage Folders: "~" is a shortcut for your home directory, "." for the current directory
     volumes:

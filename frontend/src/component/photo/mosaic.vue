@@ -129,15 +129,11 @@ export default {
     },
     openPhoto: {
       type: Function,
-      default: () => () => {
-        console.warn('mosaic view: openPhoto is undefined');
-      },
+      default:() => {},
     },
     editPhoto: {
       type: Function,
-      default: () => () => {
-        console.warn('mosaic view: editPhoto is undefined');
-      },
+      default: () => {},
     },
     album: {
       type: Object,

@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"runtime/debug"
 	"sort"
-	"strings"
 	"sync"
 
 	"github.com/photoprism/photoprism/pkg/media"
@@ -48,7 +47,7 @@ func (imp *Import) originalsPath() string {
 
 // thumbPath returns the thumbnails cache path as string.
 func (imp *Import) thumbPath() string {
-	return imp.conf.ThumbPath()
+	return imp.conf.ThumbCachePath()
 }
 
 // foldersSortOrder returns the configured default sort order for folders
@@ -107,8 +106,9 @@ func (imp *Import) Start(opt ImportOptions) fs.Done {
 
 	filesImported := 0
 
-	convert := imp.conf.Settings().Index.Convert && imp.conf.SidecarWritable()
-	indexOpt := NewIndexOptions("/", true, convert, true, false)
+	settings := imp.conf.Settings()
+	convert := settings.Index.Convert && imp.conf.SidecarWritable()
+	indexOpt := NewIndexOptions("/", true, convert, true, false, false)
 	skipRaw := imp.conf.DisableRaw()
 	ignore := fs.NewIgnoreList(fs.IgnoreFile, true, false)
 
@@ -122,7 +122,6 @@ func (imp *Import) Start(opt ImportOptions) fs.Done {
 
 	err := godirwalk.Walk(importPath, &godirwalk.Options{
 		ErrorCallback: func(fileName string, err error) godirwalk.ErrorAction {
-			log.Errorf("import: %s", strings.Replace(err.Error(), importPath, "", 1))
 			return godirwalk.SkipNode
 		},
 		Callback: func(fileName string, info *godirwalk.Dirent) error {
@@ -133,7 +132,7 @@ func (imp *Import) Start(opt ImportOptions) fs.Done {
 			}()
 
 			if mutex.MainWorker.Canceled() {
-				return errors.New("import canceled")
+				return errors.New("canceled")
 			}
 
 			isDir := info.IsDir()

@@ -12,14 +12,15 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 	cols = []string{"Value", "Name"}
 
 	rows = [][]string{
+		// Authentication.
 		{"admin-password", strings.Repeat("*", utf8.RuneCountInString(c.AdminPassword()))},
+		{"auth", fmt.Sprintf("%t", c.Auth())},
+		{"public", fmt.Sprintf("%t", c.Public())},
+
+		// Logging.
 		{"log-level", c.LogLevel().String()},
 		{"debug", fmt.Sprintf("%t", c.Debug())},
 		{"trace", fmt.Sprintf("%t", c.Trace())},
-		{"auth", fmt.Sprintf("%t", c.Auth())},
-		{"public", fmt.Sprintf("%t", c.Public())},
-		{"read-only", fmt.Sprintf("%t", c.ReadOnly())},
-		{"experimental", fmt.Sprintf("%t", c.Experimental())},
 
 		// Config.
 		{"config-path", c.ConfigPath()},
@@ -35,9 +36,11 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		// Other paths.
 		{"storage-path", c.StoragePath()},
 		{"sidecar-path", c.SidecarPath()},
-		{"cache-path", c.CachePath()},
 		{"albums-path", c.AlbumsPath()},
 		{"backup-path", c.BackupPath()},
+		{"cache-path", c.CachePath()},
+		{"cmd-cache-path", c.CmdCachePath()},
+		{"thumb-cache-path", c.ThumbCachePath()},
 		{"import-path", c.ImportPath()},
 		{"assets-path", c.AssetsPath()},
 		{"static-path", c.StaticPath()},
@@ -53,6 +56,8 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"auto-import", fmt.Sprintf("%d", c.AutoImport()/time.Second)},
 
 		// Feature Flags.
+		{"read-only", fmt.Sprintf("%t", c.ReadOnly())},
+		{"experimental", fmt.Sprintf("%t", c.Experimental())},
 		{"disable-backups", fmt.Sprintf("%t", c.DisableBackups())},
 		{"disable-settings", fmt.Sprintf("%t", c.DisableSettings())},
 		{"disable-places", fmt.Sprintf("%t", c.DisablePlaces())},
@@ -77,13 +82,13 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"tensorflow-version", c.TensorFlowVersion()},
 		{"tensorflow-model-path", c.TensorFlowModelPath()},
 
-		// UI Defaults.
+		// Customization.
 		{"default-locale", c.DefaultLocale()},
-
-		// Progressive Web App.
+		{"default-theme", c.DefaultTheme()},
 		{"app-icon", c.AppIcon()},
 		{"app-name", c.AppName()},
 		{"app-mode", c.AppMode()},
+		{"wallpaper-uri", c.WallpaperUri()},
 
 		// Site Infos.
 		{"cdn-url", c.CdnUrl("/")},
@@ -142,7 +147,6 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"thumb-size", fmt.Sprintf("%d", c.ThumbSizePrecached())},
 		{"thumb-size-uncached", fmt.Sprintf("%d", c.ThumbSizeUncached())},
 		{"thumb-uncached", fmt.Sprintf("%t", c.ThumbUncached())},
-		{"thumb-path", c.ThumbPath()},
 		{"jpeg-quality", fmt.Sprintf("%d", c.JpegQuality())},
 		{"jpeg-size", fmt.Sprintf("%d", c.JpegSize())},
 

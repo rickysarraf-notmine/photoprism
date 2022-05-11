@@ -39,6 +39,7 @@ Index:
   Path: /
   Convert: true
   Rescan: false
+  SkipArchived: false
 Stack:
   UUID: true
   Meta: true
