@@ -56,6 +56,10 @@ class Viewer {
     Event.publish("player.open", params);
   }
 
+  showSphere(item) {
+    Event.publish("sphereviewer.open", item);
+  }
+
   show(items, index = 0) {
     if (!Array.isArray(items) || items.length === 0 || index >= items.length) {
       console.log("photo list passed to gallery was empty:", items);
@@ -135,12 +139,17 @@ class Viewer {
             ' <i aria-hidden="true" class="v-icon material-icons theme--dark" title="Play">play_circle_fill</i>';
         }
 
+        if (item.Sphere) {
+          captionEl.children[0].innerHTML +=
+            ' <i aria-hidden="true" class="v-icon material-icons theme--dark" title="Show Photosphere">panorama_photosphere</i>';
+        }
+
         if (item.Description) {
           captionEl.children[0].innerHTML +=
             '<br><span class="description">' + Util.encodeHTML(item.Description) + "</span>";
         }
 
-        if (item.Playable) {
+        if (item.Playable || item.Sphere) {
           captionEl.children[0].innerHTML =
             "<button>" + captionEl.children[0].innerHTML + "</button>";
         }

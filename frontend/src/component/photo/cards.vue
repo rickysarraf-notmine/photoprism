@@ -105,6 +105,7 @@
                 <i v-if="photo.Type === 'raw'" class="action-raw" :title="$gettext('RAW')">photo_camera</i>
                 <i v-if="photo.Type === 'live'" class="action-live" :title="$gettext('Live')"><icon-live-photo/></i>
                 <i v-if="photo.Type === 'animated'" class="action-animated" :title="$gettext('Animated')">gif</i>
+                <i v-if="photo.Type === 'sphere'" class="action-sphere" :title="$gettext('Photosphere')">panorama_photosphere</i>
                 <i v-if="photo.Type === 'video'" class="action-play" :title="$gettext('Video')">play_arrow</i>
                 <i v-if="photo.Type === 'image'" class="action-stack" :title="$gettext('Stack')">burst_mode</i>
             </button>
@@ -134,6 +135,7 @@
               use css to show it when it is being hovered.
             -->
             <button
+                  v-if="!disableSelection"
                   class="input-select"
                   @touchstart.stop.prevent="input.touchStart($event, index)"
                   @touchend.stop.prevent="onSelect($event, index)"
@@ -283,6 +285,7 @@ export default {
       type: Boolean,
       default: false,
     },
+    disableSelection: Boolean,
   },
   data() {
     const featPlaces = this.$config.settings().features.places;

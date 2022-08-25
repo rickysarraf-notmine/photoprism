@@ -41,6 +41,18 @@ func IndexMain(related *RelatedFiles, ind *Index, o IndexOptions) (result IndexR
 		}
 	}
 
+	// Extract embedded video from motion photo.
+	if f.IsMotionPhoto() {
+		log.Debugf("index: found motion photo %s", clean.Log(f.FileName()))
+
+		if mpFile, err := f.ExtractVideoFromMotionPhoto(); err != nil {
+			log.Errorf("index: %s in %s (extract motion photo video)", err.Error(), clean.Log(f.BaseName()))
+		} else {
+			log.Debugf("index: created motion photo video for %s", clean.Log(mpFile.BaseName()))
+			related.Files = append(related.Files, mpFile)
+		}
+	}
+
 	// Create JPEG sidecar for media files in other formats so that thumbnails can be created.
 	if o.Convert && f.IsMedia() && !f.HasJpeg() {
 		if jpg, err := ind.convert.ToJpeg(f, false); err != nil {

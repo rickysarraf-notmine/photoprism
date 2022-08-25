@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/gin-contrib/expvar"
 	"github.com/gin-gonic/gin"
 
 	"github.com/photoprism/photoprism/internal/api"
@@ -102,6 +103,8 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 		api.ClearMarkerSubject(v1)
 		api.PhotoPrimary(v1)
 		api.PhotoUnstack(v1)
+		api.GetPhotoFaces(v1)
+		api.CreatePhotoFace(v1)
 
 		// Albums.
 		api.SearchAlbums(v1)
@@ -202,6 +205,11 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 		} else {
 			log.Debugf("server: extension %s initialized", clean.Log(ext.name))
 		}
+	}
+
+	// Monitoring and debugging endpoints.
+	if conf.EnableExpvar() {
+		router.GET("/debug/vars", expvar.Handler())
 	}
 
 	// Default HTML page for client-side rendering and routing via VueJS.

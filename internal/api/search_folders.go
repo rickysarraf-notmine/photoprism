@@ -63,6 +63,9 @@ func SearchFolders(router *gin.RouterGroup, urlPath, rootName, rootPath string) 
 			return
 		}
 
+		conf := service.Config()
+		foldersSortOrder := conf.Settings().Folders.SortOrder
+
 		cache := service.FolderCache()
 		recursive := f.Recursive
 		listFiles := f.Files
@@ -83,7 +86,7 @@ func SearchFolders(router *gin.RouterGroup, urlPath, rootName, rootPath string) 
 			}
 		}
 
-		if folders, err := query.FoldersByPath(rootName, rootPath, path, recursive); err != nil {
+		if folders, err := query.FoldersByPath(rootName, rootPath, path, recursive, foldersSortOrder); err != nil {
 			log.Errorf("folder: %s", err)
 			c.JSON(http.StatusOK, resp)
 			return

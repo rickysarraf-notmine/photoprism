@@ -41,6 +41,7 @@ const PATHS = {
   app: path.join(__dirname, "src/app.js"),
   share: path.join(__dirname, "src/share.js"),
   build: path.join(__dirname, "../assets/static/build"),
+  module: (module_name) => path.join(__dirname, "node_modules", module_name),
   public: "./",
 };
 
@@ -106,7 +107,7 @@ const config = {
     rules: [
       {
         test: /\.vue$/,
-        include: isCustom ? [PATHS.custom, PATHS.src] : [PATHS.src],
+        include: (isCustom ? [PATHS.custom] : []).concat(PATHS.src, PATHS.module("vue-pannellum")),
         use: [
           {
             loader: "vue-loader",

@@ -350,6 +350,13 @@ body.chrome #photoprism .search-results .result {
     right: 4px;
 }
 
+#photoprism .cards-view .input-confirm-face,
+#photoprism .mosaic-view .input-confirm-face {
+    opacity: 0.75;
+    top: 4px;
+    left: 4px;
+}
+
 #photoprism .cards-view .input-hidden,
 #photoprism .mosaic-view .input-hidden {
     visibility: hidden;
@@ -387,6 +394,7 @@ body.chrome #photoprism .search-results .result {
 
 #photoprism .search-results.select-results .type-image .input-view,
 #photoprism .search-results .type-raw .input-open,
+#photoprism .search-results .type-sphere .input-open,
 #photoprism .search-results .type-video.is-playable .input-open,
 #photoprism .search-results .type-animated.is-playable .input-open,
 #photoprism .search-results .type-live.is-playable .input-open,
@@ -399,6 +407,7 @@ body.chrome #photoprism .search-results .result {
 }
 
 #photoprism .search-results .type-raw .input-open .action-raw,
+#photoprism .search-results .type-sphere .input-open .action-sphere,
 #photoprism .search-results .type-video.is-playable .input-open .action-play,
 #photoprism .search-results .type-live.is-playable .input-open .action-live,
 #photoprism .search-results .type-animated.is-playable .input-open .action-animated,

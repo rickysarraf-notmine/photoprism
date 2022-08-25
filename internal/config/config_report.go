@@ -165,6 +165,9 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		// Daemon Mode.
 		{"pid-filename", c.PIDFilename()},
 		{"log-filename", c.LogFilename()},
+
+		// Monitoring and debugging.
+		{"enable-expvar", fmt.Sprintf("%t", c.EnableExpvar())},
 	}
 
 	if p := c.CustomAssetsPath(); p != "" {

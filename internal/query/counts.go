@@ -47,17 +47,13 @@ func (c *Counts) Refresh() {
 		Take(c)
 
 	Db().Table("albums").
-		Select("SUM(album_type = ?) AS albums, SUM(album_type = ?) AS moments, SUM(album_type = ?) AS folders", entity.AlbumDefault, entity.AlbumMoment, entity.AlbumFolder).
+		Select("SUM(album_type = ?) AS albums, SUM(album_type = ?) AS moments, SUM(album_type = ?) AS folders, SUM(album_type = ?) AS countries", entity.AlbumDefault, entity.AlbumMoment, entity.AlbumFolder, entity.AlbumCountry).
 		Where("deleted_at IS NULL").
 		Take(c)
 
 	Db().Table("files").
 		Select("COUNT(*) AS files").
 		Where("file_missing = 0 AND file_root = ?", entity.RootOriginals).
-		Take(c)
-
-	Db().Table("countries").
-		Select("(COUNT(*) - 1) AS countries").
 		Take(c)
 
 	Db().Table("places").

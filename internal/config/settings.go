@@ -16,6 +16,7 @@ import (
 type Settings struct {
 	UI        UISettings       `json:"ui" yaml:"UI"`
 	Search    SearchSettings   `json:"search" yaml:"Search"`
+	Folders   FoldersSettings  `json:"folders" yaml:"Folders"`
 	Maps      MapsSettings     `json:"maps" yaml:"Maps"`
 	Features  FeatureSettings  `json:"features" yaml:"Features"`
 	Import    ImportSettings   `json:"import" yaml:"Import"`
@@ -37,6 +38,10 @@ func NewSettings(c *Config) *Settings {
 		},
 		Search: SearchSettings{
 			BatchSize: 0,
+		},
+		Folders: FoldersSettings{
+			DateMode:  entity.DateModeLast,
+			SortOrder: entity.SortOrderAdded,
 		},
 		Maps: MapsSettings{
 			Animate: 0,

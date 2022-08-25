@@ -1,6 +1,7 @@
 module github.com/photoprism/photoprism
 
 require (
+	github.com/alfg/mp4 v0.0.0-20210728035756-55ea58c08aeb
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/disintegration/imaging v1.6.2
@@ -15,6 +16,7 @@ require (
 	github.com/dsoprea/go-utility v0.0.0-20200717064901-2fccff4aa15e // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/esimov/pigo v1.4.5
+	github.com/gin-contrib/expvar v0.0.1
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-errors/errors v1.4.2 // indirect
@@ -36,7 +38,6 @@ require (
 	github.com/mandykoh/prism v0.35.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-sqlite3 v2.0.1+incompatible // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/montanaflynn/stats v0.6.6
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/paulmach/go.geojson v1.4.0
@@ -67,6 +68,8 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 )
 
+require github.com/sethgrid/pester v1.1.0
+
 require (
 	github.com/google/uuid v1.3.0
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
@@ -88,6 +91,7 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mandykoh/go-parallel v0.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect

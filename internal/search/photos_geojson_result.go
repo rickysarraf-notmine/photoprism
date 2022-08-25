@@ -46,6 +46,11 @@ func (photo GeoResult) IsPlayable() bool {
 	}
 }
 
+// IsSphere returns true if the photo is a photosphere image.
+func (photo GeoResult) IsSphere() bool {
+	return photo.PhotoType == entity.MediaSphere
+}
+
 // GeoResults represents a list of geo search results.
 type GeoResults []GeoResult
 

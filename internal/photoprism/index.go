@@ -66,6 +66,11 @@ func (ind *Index) thumbPath() string {
 	return ind.conf.ThumbCachePath()
 }
 
+// foldersSortOrder returns the configured default sort order for folders
+func (ind *Index) foldersSortOrder() string {
+	return ind.conf.Settings().Folders.SortOrder
+}
+
 // Cancel stops the current indexing operation.
 func (ind *Index) Cancel() {
 	mutex.MainWorker.Cancel()
@@ -167,7 +172,7 @@ func (ind *Index) Start(o IndexOptions) fs.Done {
 				}
 
 				if result != filepath.SkipDir {
-					folder := entity.NewFolder(entity.RootOriginals, relName, fs.BirthTime(fileName))
+					folder := entity.NewFolder(entity.RootOriginals, relName, fs.BirthTime(fileName), ind.foldersSortOrder())
 
 					if err := folder.Create(); err == nil {
 						log.Infof("index: added folder /%s", folder.Path)
