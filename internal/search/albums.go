@@ -171,7 +171,11 @@ func Albums(f form.SearchAlbums) (results AlbumResults, err error) {
 		if album.AlbumType == entity.AlbumDefault && album.AlbumFilter != "" {
 			f := form.SearchPhotos{Filter: album.AlbumFilter}
 
-			_, count, err := Photos(f)
+			if err := f.ParseQueryString(); err != nil {
+				return results, err
+			}
+
+			_, count, err := PhotoIds(f)
 			if err != nil {
 				return results, err
 			}
