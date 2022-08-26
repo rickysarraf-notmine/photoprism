@@ -29,12 +29,17 @@ func (data *Data) XMP(fileName string, fileType fs.Type) (err error) {
 		}
 	}()
 
+	// Resolve file name e.g. in case it's a symlink.
+	if fileName, err = fs.Resolve(fileName); err != nil {
+		return fmt.Errorf("metadata: %s %s (xmp)", err, clean.Log(filepath.Base(fileName)))
+	}
+
 	doc := XmpDocument{}
 
 	// All unsupported types will be silently ignored, otherwise we will polute the log with warnings
 	if fileType == fs.XmpFile {
 		if err := doc.Load(fileName); err != nil {
-			return fmt.Errorf("metadata: can't read %s (xmp)", logName)
+			return fmt.Errorf("metadata: cannot read %s (xmp)", logName)
 		}
 	} else if fileType == fs.ImageJPEG {
 		jpegParser := jpegstructure.NewJpegMediaParser()

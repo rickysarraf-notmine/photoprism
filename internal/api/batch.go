@@ -2,6 +2,9 @@ package api
 
 import (
 	"net/http"
+	"time"
+
+	"github.com/dustin/go-humanize/english"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -223,8 +226,13 @@ func BatchAlbumsDelete(router *gin.RouterGroup) {
 
 		log.Infof("albums: deleting %s", clean.Log(f.String()))
 
+		// Soft delete albums, can be restored.
 		entity.Db().Where("album_uid IN (?)", f.Albums).Delete(&entity.Album{})
-		entity.Db().Where("album_uid IN (?)", f.Albums).Delete(&entity.PhotoAlbum{})
+
+		/*
+			KEEP ENTRIES AS ALBUMS MAY NOW BE RESTORED BY NAME
+			entity.Db().Where("album_uid IN (?)", f.Albums).Delete(&entity.PhotoAlbum{})
+		*/
 
 		UpdateClientConfig()
 
@@ -366,7 +374,8 @@ func BatchPhotosDelete(router *gin.RouterGroup) {
 
 		log.Infof("photos: deleting %s", clean.Log(f.String()))
 
-		// Fetch selection from index.
+		// Fetch selection from index and record time.
+		deleteStart := time.Now()
 		photos, err := query.SelectedPhotos(f)
 
 		if err != nil {
@@ -376,13 +385,23 @@ func BatchPhotosDelete(router *gin.RouterGroup) {
 
 		var deleted entity.Photos
 
+		var numFiles = 0
+
 		// Delete photos.
 		for _, p := range photos {
-			if err := photoprism.Delete(p); err != nil {
+			n, err := photoprism.DeletePhoto(p, true, true)
+
+			numFiles += n
+
+			if err != nil {
 				log.Errorf("delete: %s", err)
 			} else {
 				deleted = append(deleted, p)
 			}
+		}
+
+		if numFiles > 0 {
+			log.Infof("delete: removed %s [%s]", english.Plural(numFiles, "file", "files"), time.Since(deleteStart))
 		}
 
 		// Any photos deleted?

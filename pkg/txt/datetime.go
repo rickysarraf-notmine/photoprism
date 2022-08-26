@@ -56,7 +56,7 @@ const (
 	SecMax   = 59
 )
 
-// DateTime parses a timestamp string and returns a valid time.Time if possible.
+// DateTime parses a time string and returns a valid time.Time if possible.
 func DateTime(s, timeZone string) (t time.Time) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -65,8 +65,8 @@ func DateTime(s, timeZone string) (t time.Time) {
 		}
 	}()
 
-	// Empty timestamp? Return unknown time.
-	if s == "" {
+	// Empty time string?
+	if EmptyTime(s) {
 		return time.Time{}
 	}
 

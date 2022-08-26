@@ -2,6 +2,7 @@ package config
 
 import (
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/photoprism/photoprism/pkg/fs"
@@ -53,9 +54,45 @@ func (c *Config) TemplatesPath() string {
 	return filepath.Join(c.AssetsPath(), "templates")
 }
 
+// CustomTemplatesPath returns the path to custom templates.
+func (c *Config) CustomTemplatesPath() string {
+	if p := c.CustomAssetsPath(); p != "" {
+		return filepath.Join(p, "templates")
+	}
+
+	return ""
+}
+
+// TemplateFiles returns the file paths of all templates found.
+func (c *Config) TemplateFiles() []string {
+	results := make([]string, 0, 32)
+
+	tmplPaths := []string{c.TemplatesPath(), c.CustomTemplatesPath()}
+
+	for _, p := range tmplPaths {
+		matches, err := filepath.Glob(regexp.QuoteMeta(p) + "/[A-Za-z0-9]*.*")
+
+		if err != nil {
+			continue
+		}
+
+		for _, tmplName := range matches {
+			results = append(results, tmplName)
+		}
+	}
+
+	return results
+}
+
 // TemplateExists checks if a template with the given name exists (e.g. index.tmpl).
 func (c *Config) TemplateExists(name string) bool {
-	return fs.FileExists(filepath.Join(c.TemplatesPath(), name))
+	if found := fs.FileExists(filepath.Join(c.TemplatesPath(), name)); found {
+		return true
+	} else if p := c.CustomTemplatesPath(); p != "" {
+		return fs.FileExists(filepath.Join(p, name))
+	} else {
+		return false
+	}
 }
 
 // TemplateName returns the name of the default template (e.g. index.tmpl).
@@ -69,9 +106,14 @@ func (c *Config) TemplateName() string {
 	return "index.tmpl"
 }
 
-// StaticPath returns the static assets path.
+// StaticPath returns the static assets' path.
 func (c *Config) StaticPath() string {
 	return filepath.Join(c.AssetsPath(), "static")
+}
+
+// StaticFile returns the path to a static file.
+func (c *Config) StaticFile(fileName string) string {
+	return filepath.Join(c.AssetsPath(), "static", fileName)
 }
 
 // BuildPath returns the static build path.

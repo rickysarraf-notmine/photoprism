@@ -1,10 +1,12 @@
 package rnd
 
 import (
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
-// UUID returns a standard, random UUID as string.
+// UUID returns a random string based on RFC 4122 (UUID Version 4) or panics.
+//
+// The strength of the UUID depends on the "crypto/rand" package.
 func UUID() string {
-	return uuid.NewV4().String()
+	return uuid.NewString()
 }

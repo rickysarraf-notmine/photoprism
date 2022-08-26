@@ -177,6 +177,12 @@ func TestConfig_AssetsPath(t *testing.T) {
 	assert.True(t, strings.HasSuffix(c.AssetsPath(), "/assets"))
 }
 
+func TestConfig_CustomAssetsPath(t *testing.T) {
+	c := NewConfig(CliTestContext())
+
+	assert.Equal(t, "", c.CustomAssetsPath())
+}
+
 func TestConfig_DetectNSFW(t *testing.T) {
 	c := NewConfig(CliTestContext())
 
@@ -224,11 +230,33 @@ func TestConfig_TemplatesPath(t *testing.T) {
 	assert.Equal(t, "/go/src/github.com/photoprism/photoprism/assets/templates", path)
 }
 
+func TestConfig_CustomTemplatesPath(t *testing.T) {
+	c := NewConfig(CliTestContext())
+
+	path := c.CustomTemplatesPath()
+	assert.Equal(t, "", path)
+}
+
+func TestConfig_TemplatesFiles(t *testing.T) {
+	c := NewConfig(CliTestContext())
+
+	files := c.TemplateFiles()
+
+	t.Logf("TemplateFiles: %#v", files)
+}
+
 func TestConfig_StaticPath(t *testing.T) {
 	c := NewConfig(CliTestContext())
 
 	path := c.StaticPath()
 	assert.Equal(t, "/go/src/github.com/photoprism/photoprism/assets/static", path)
+}
+
+func TestConfig_StaticFile(t *testing.T) {
+	c := NewConfig(CliTestContext())
+
+	path := c.StaticFile("video/404.mp4")
+	assert.Equal(t, "/go/src/github.com/photoprism/photoprism/assets/static/video/404.mp4", path)
 }
 
 func TestConfig_BuildPath(t *testing.T) {
@@ -350,6 +378,10 @@ func TestConfig_ResolutionLimit(t *testing.T) {
 	assert.Equal(t, -1, c.ResolutionLimit())
 	c.options.ResolutionLimit = -1
 	assert.Equal(t, -1, c.ResolutionLimit())
+	c.options.Sponsor = false
+	assert.Equal(t, 100, c.ResolutionLimit())
+	c.options.Sponsor = true
+	assert.Equal(t, -1, c.ResolutionLimit())
 }
 
 func TestConfig_BaseUri(t *testing.T) {
@@ -463,10 +495,68 @@ func TestConfig_SerialChecksum(t *testing.T) {
 	assert.NotEmpty(t, result)
 }
 
-func TestConfigPublic(t *testing.T) {
+func TestConfig_Public(t *testing.T) {
 	c := NewConfig(CliTestContext())
-	c.options.Demo = true
+	c.options.Demo = false
+	c.options.Public = false
+	c.options.AuthMode = "public"
 	assert.True(t, c.Public())
+	c.options.Demo = true
+	c.options.Public = false
+	c.options.AuthMode = "public"
+	assert.True(t, c.Public())
+	c.options.Demo = true
+	c.options.Public = true
+	c.options.AuthMode = "public"
+	assert.True(t, c.Public())
+	c.options.Demo = false
+	c.options.Public = false
+	c.options.AuthMode = "other"
+	assert.False(t, c.Public())
+	c.options.Demo = false
+	c.options.Public = false
+	c.options.AuthMode = "password"
+	assert.False(t, c.Public())
+	c.options.Demo = false
+	c.options.Public = true
+	c.options.AuthMode = "password"
+	assert.True(t, c.Public())
+	c.options.Demo = true
+	c.options.Public = false
+	c.options.AuthMode = "password"
+	assert.True(t, c.Public())
+}
+
+func TestConfig_Auth(t *testing.T) {
+	c := NewConfig(CliTestContext())
+	c.options.Demo = false
+	c.options.Public = false
+	c.options.AuthMode = "public"
+	assert.False(t, c.Auth())
+	c.options.Demo = true
+	c.options.Public = false
+	c.options.AuthMode = "public"
+	assert.False(t, c.Auth())
+	c.options.Demo = true
+	c.options.Public = true
+	c.options.AuthMode = "public"
+	assert.False(t, c.Auth())
+	c.options.Demo = false
+	c.options.Public = false
+	c.options.AuthMode = "other"
+	assert.True(t, c.Auth())
+	c.options.Demo = false
+	c.options.Public = false
+	c.options.AuthMode = "password"
+	assert.True(t, c.Auth())
+	c.options.Demo = false
+	c.options.Public = true
+	c.options.AuthMode = "password"
+	assert.False(t, c.Auth())
+	c.options.Demo = true
+	c.options.Public = false
+	c.options.AuthMode = "password"
+	assert.False(t, c.Auth())
 }
 
 func TestConfigOptions(t *testing.T) {

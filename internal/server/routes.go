@@ -6,8 +6,10 @@ import (
 
 	"github.com/gin-contrib/expvar"
 	"github.com/gin-gonic/gin"
+
 	"github.com/photoprism/photoprism/internal/api"
 	"github.com/photoprism/photoprism/internal/config"
+	"github.com/photoprism/photoprism/pkg/clean"
 )
 
 func registerRoutes(router *gin.Engine, conf *config.Config) {
@@ -35,9 +37,15 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 	})
 
 	// Rainbow Page.
-	router.GET(conf.BaseUri("/rainbow"), func(c *gin.Context) {
+	router.GET(conf.BaseUri("/_rainbow"), func(c *gin.Context) {
 		clientConfig := conf.PublicConfig()
 		c.HTML(http.StatusOK, "rainbow.tmpl", gin.H{"config": clientConfig})
+	})
+
+	// Splash Screen.
+	router.GET(conf.BaseUri("/_splash"), func(c *gin.Context) {
+		clientConfig := conf.PublicConfig()
+		c.HTML(http.StatusOK, "splash.tmpl", gin.H{"config": clientConfig})
 	})
 
 	// JSON-REST API Version 1
@@ -68,8 +76,8 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 		api.GetThumb(v1)
 		api.GetDownload(v1)
 		api.GetVideo(v1)
-		api.CreateZip(v1)
-		api.DownloadZip(v1)
+		api.ZipCreate(v1)
+		api.ZipDownload(v1)
 
 		// Photos.
 		api.SearchPhotos(v1)
@@ -166,6 +174,7 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 		api.GetErrors(v1)
 		api.DeleteErrors(v1)
 		api.SendFeedback(v1)
+		api.Connect(v1)
 		api.Websocket(v1)
 	}
 
@@ -186,6 +195,15 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 		if conf.ImportPath() != "" {
 			WebDAV(conf.ImportPath(), router.Group(conf.BaseUri(WebDAVImport), BasicAuth()), conf)
 			log.Infof("webdav: %s/ enabled, waiting for requests", conf.BaseUri(WebDAVImport))
+		}
+	}
+
+	// Initialize package extensions.
+	for _, ext := range Extensions() {
+		if err := ext.init(router, conf); err != nil {
+			log.Warnf("server: failed to initialize extension %s (%s)", clean.Log(ext.name), err)
+		} else {
+			log.Debugf("server: extension %s initialized", clean.Log(ext.name))
 		}
 	}
 

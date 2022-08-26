@@ -13,8 +13,8 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 
 	rows = [][]string{
 		// Authentication.
+		{"auth-mode", fmt.Sprintf("%s", c.AuthMode())},
 		{"admin-password", strings.Repeat("*", utf8.RuneCountInString(c.AdminPassword()))},
-		{"auth", fmt.Sprintf("%t", c.Auth())},
 		{"public", fmt.Sprintf("%t", c.Public())},
 
 		// Logging.
@@ -58,9 +58,10 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		// Feature Flags.
 		{"read-only", fmt.Sprintf("%t", c.ReadOnly())},
 		{"experimental", fmt.Sprintf("%t", c.Experimental())},
-		{"disable-backups", fmt.Sprintf("%t", c.DisableBackups())},
+		{"disable-webdav", fmt.Sprintf("%t", c.DisableWebDAV())},
 		{"disable-settings", fmt.Sprintf("%t", c.DisableSettings())},
 		{"disable-places", fmt.Sprintf("%t", c.DisablePlaces())},
+		{"disable-backups", fmt.Sprintf("%t", c.DisableBackups())},
 		{"disable-tensorflow", fmt.Sprintf("%t", c.DisableTensorFlow())},
 		{"disable-faces", fmt.Sprintf("%t", c.DisableFaces())},
 		{"disable-classification", fmt.Sprintf("%t", c.DisableClassification())},
@@ -113,6 +114,7 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"http-host", c.HttpHost()},
 		{"http-port", fmt.Sprintf("%d", c.HttpPort())},
 		{"http-mode", c.HttpMode()},
+		{"http-compression", c.HttpCompression()},
 
 		// Database.
 		{"database-driver", c.DatabaseDriver()},
@@ -166,6 +168,10 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 
 		// Monitoring and debugging.
 		{"enable-expvar", fmt.Sprintf("%t", c.EnableExpvar())},
+	}
+
+	if p := c.CustomAssetsPath(); p != "" {
+		rows = append(rows, []string{"custom-assets-path", p})
 	}
 
 	return rows, cols

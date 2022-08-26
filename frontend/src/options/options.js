@@ -86,11 +86,20 @@ export const MonthsShort = () => {
   return result;
 };
 
+// Available locales sorted by region and alphabet.
 export const Languages = () => [
   {
     text: "English", // English
     translated: "English",
     value: "en",
+  },
+  {
+    text: "Bahasa Indonesia", // Bahasa Indonesia
+    value: "id",
+  },
+  {
+    text: "Català", // Catalan
+    value: "ca",
   },
   {
     text: "Čeština", // Czech
@@ -113,33 +122,37 @@ export const Languages = () => [
     value: "fr",
   },
   {
+    text: "Ελληνικά", // Greek
+    value: "el",
+  },
+  {
     text: "עברית", // Hebrew
     value: "he",
     rtl: true,
   },
   {
-    text: "हिन्दी", // Hindi
-    value: "hi",
+    text: "Hrvatski", // Croatian
+    value: "hr",
+  },
+  {
+    text: "Lietuvis", // Lithuanian
+    value: "lt",
   },
   {
     text: "Magyar", // Hungarian
     value: "hu",
   },
   {
-    text: "Bahasa Indonesia", // Bahasa Indonesia
-    value: "id",
-  },
-  {
-    text: "Italiano", // Italian
-    value: "it",
-  },
-  {
-    text: "한국어", // Korean
-    value: "ko",
+    text: "Melayu", // Malay
+    value: "ms",
   },
   {
     text: "Norsk (Bokmål)", // Norwegian
     value: "nb",
+  },
+  {
+    text: "Italiano", // Italian
+    value: "it",
   },
   {
     text: "Nederlands", // Dutch
@@ -150,7 +163,7 @@ export const Languages = () => [
     value: "pl",
   },
   {
-    text: "Português de Portugal", // Portuguese (Portugal)
+    text: "Português", // Portuguese (Portugal)
     value: "pt",
   },
   {
@@ -158,12 +171,50 @@ export const Languages = () => [
     value: "pt_BR",
   },
   {
-    text: "Русский", // Russian
-    value: "ru",
-  },
-  {
     text: "Slovenčina", // Slovak
     value: "sk",
+  },
+  {
+    text: "Slovenščina", // Slovene
+    value: "sl",
+  },
+  {
+    text: "Suomi", // Finnish
+    value: "fi",
+  },
+  {
+    text: "Svenska", // Swedish
+    value: "sv",
+  },
+  {
+    text: "Română", // Romanian
+    value: "ro",
+  },
+  {
+    text: "Türk", // Turkish
+    value: "tr",
+  },
+  {
+    text: "عربى", // Arabic
+    value: "ar",
+    rtl: true,
+  },
+  {
+    text: "کوردی", // Kurdish
+    value: "ku",
+    rtl: true,
+  },
+  {
+    text: "български", // Bulgarian
+    value: "bg",
+  },
+  {
+    text: "Українська", // Ukrainian
+    value: "uk",
+  },
+  {
+    text: "Русский", // Russian
+    value: "ru",
   },
   {
     text: "简体中文", // Chinese (Simplified)
@@ -178,105 +229,16 @@ export const Languages = () => [
     value: "ja_JP",
   },
   {
-    text: "کوردی", // Kurdish
-    value: "ku",
-    rtl: true,
+    text: "한국어", // Korean
+    value: "ko",
   },
   {
-    text: "Română", // Romanian
-    value: "ro",
+    text: "हिन्दी", // Hindi
+    value: "hi",
   },
   {
-    text: "Türk", // Turkish
-    value: "tr",
-  },
-  {
-    text: "Svenska", // Swedish
-    value: "sv",
-  },
-  {
-    text: "Lietuvis", // Lithuanian
-    value: "lt",
-  },
-  {
-    text: "Hrvatski", // Croatian
-    value: "hr",
-  },
-  {
-    text: "български", // Bulgarian
-    value: "bg",
-  },
-  {
-    text: "Melayu", // Malay
-    value: "ms",
-  },
-];
-
-export const Themes = () => [
-  {
-    text: $gettext("Default"),
-    value: "default",
-    disabled: false,
-  },
-  {
-    text: $gettext("Grayscale"),
-    value: "grayscale",
-    disabled: false,
-  },
-  {
-    text: $gettext("Vanta"),
-    value: "vanta",
-    disabled: false,
-  },
-  {
-    text: $gettext("Abyss"),
-    value: "abyss",
-    disabled: false,
-  },
-  {
-    text: $gettext("Moonlight"),
-    value: "moonlight",
-    disabled: false,
-  },
-  {
-    text: $gettext("Onyx"),
-    value: "onyx",
-    disabled: false,
-  },
-  {
-    text: $gettext("Cyano"),
-    value: "cyano",
-    disabled: false,
-  },
-  {
-    text: $gettext("Lavender"),
-    value: "lavender",
-    disabled: false,
-  },
-  {
-    text: $gettext("Gemstone"),
-    value: "gemstone",
-    disabled: false,
-  },
-  {
-    text: $gettext("Raspberry"),
-    value: "raspberry",
-    disabled: false,
-  },
-  {
-    text: $gettext("Seaweed"),
-    value: "seaweed",
-    disabled: false,
-  },
-  {
-    text: $gettext("Shadow"),
-    value: "shadow",
-    disabled: false,
-  },
-  {
-    text: $gettext("Yellowstone"),
-    value: "yellowstone",
-    disabled: false,
+    text: "ภาษาไทย", // Thai
+    value: "th",
   },
 ];
 

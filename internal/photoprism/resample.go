@@ -81,7 +81,7 @@ func (w *Resample) Start(force bool) (err error) {
 				return errors.New("canceled")
 			}
 
-			isDir := info.IsDir()
+			isDir, _ := info.IsDirOrSymlinkToDir()
 			isSymlink := info.IsSymlink()
 
 			if skip, result := fs.SkipWalk(fileName, isDir, isSymlink, done, ignore); skip {
@@ -90,7 +90,7 @@ func (w *Resample) Start(force bool) (err error) {
 
 			mf, err := NewMediaFile(fileName)
 
-			if err != nil || !mf.IsJpeg() {
+			if err != nil || mf.Empty() || !mf.IsJpeg() {
 				return nil
 			}
 

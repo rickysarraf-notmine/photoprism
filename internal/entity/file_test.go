@@ -13,6 +13,28 @@ import (
 	"github.com/photoprism/photoprism/pkg/projection"
 )
 
+func TestFile_RegenerateIndex(t *testing.T) {
+	t.Run("ID", func(t *testing.T) {
+		File{ID: 1000000}.RegenerateIndex()
+	})
+	t.Run("PhotoID", func(t *testing.T) {
+		File{PhotoID: 1000039}.RegenerateIndex()
+	})
+	t.Run("PhotoUID", func(t *testing.T) {
+		File{PhotoUID: "pr2xu7myk7wrbk32"}.RegenerateIndex()
+	})
+	t.Run("FirstFileByHash", func(t *testing.T) {
+		f, err := FirstFileByHash("2cad9168fa6acc5c5c2965ddf6ec465ca42fd818")
+		if err != nil {
+			t.Fatal(err)
+		}
+		f.RegenerateIndex()
+	})
+	t.Run("All", func(t *testing.T) {
+		File{}.RegenerateIndex()
+	})
+}
+
 func TestFirstFileByHash(t *testing.T) {
 	t.Run("not existing file", func(t *testing.T) {
 		f, err := FirstFileByHash("xxx")
@@ -778,5 +800,23 @@ func TestFile_SetDuration(t *testing.T) {
 		assert.Equal(t, time.Hour, m.FileDuration)
 		assert.Equal(t, 60.0, m.FileFPS)
 		assert.Equal(t, 216000, m.FileFrames)
+	})
+}
+
+func TestFile_Bitrate(t *testing.T) {
+	t.Run("HasDuration", func(t *testing.T) {
+		m := File{FileDuration: 1e9 * 20.302, FileSize: 1826192}
+
+		assert.InEpsilon(t, 0.719, m.Bitrate(), 0.01)
+	})
+	t.Run("NoDuration", func(t *testing.T) {
+		m := File{FileDuration: 0, FileSize: 1826192}
+
+		assert.Equal(t, float64(0), m.Bitrate())
+	})
+	t.Run("NoSize", func(t *testing.T) {
+		m := File{FileDuration: 1e9 * 20.302, FileSize: 0}
+
+		assert.Equal(t, float64(0), m.Bitrate())
 	})
 }

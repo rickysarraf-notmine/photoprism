@@ -55,7 +55,7 @@ func GetAlbum(router *gin.RouterGroup) {
 		a, err := query.AlbumByUID(id)
 
 		if err != nil {
-			Abort(c, http.StatusNotFound, i18n.ErrAlbumNotFound)
+			AbortAlbumNotFound(c)
 			return
 		}
 
@@ -89,26 +89,42 @@ func CreateAlbum(router *gin.RouterGroup) {
 		a.AlbumFavorite = f.AlbumFavorite
 		a.AlbumFilter = f.AlbumFilter
 
-		// Search existing album.
-		if err := a.Find(); err == nil {
-			c.JSON(http.StatusOK, a)
-			return
+		// Existing album?
+		if err := a.Find(); err != nil {
+			// Not found, create new album.
+			err = a.Create()
+
+			// Should never happen.
+			if err != nil {
+				// Report unexpected error.
+				log.Errorf("album: %s (create)", err)
+				AbortUnexpected(c)
+				return
+			}
+
+			event.SuccessMsg(i18n.MsgAlbumCreated)
+		} else {
+			// Exists, restore if necessary.
+			if !a.Deleted() {
+				event.InfoMsg(i18n.ErrAlreadyExists, a.Title())
+				c.JSON(http.StatusOK, a)
+				return
+			} else if err = a.Restore(); err == nil {
+				event.SuccessMsg(i18n.MsgRestored, a.Title())
+			} else {
+				// Report unexpected error.
+				log.Errorf("album: %s (restore)", err)
+				AbortUnexpected(c)
+				return
+			}
 		}
 
-		// Create new album.
-		if err := a.Create(); err != nil {
-			AbortAlreadyExists(c, clean.Log(a.AlbumTitle))
-			return
-		}
-
-		event.SuccessMsg(i18n.MsgAlbumCreated)
-
+		// Publish event and create/update YAML backup.
 		UpdateClientConfig()
-
 		PublishAlbumEvent(EntityCreated, a.AlbumUID, c)
-
 		SaveAlbumAsYaml(*a)
 
+		// Return as JSON.
 		c.JSON(http.StatusOK, a)
 	})
 }
@@ -129,7 +145,7 @@ func UpdateAlbum(router *gin.RouterGroup) {
 		a, err := query.AlbumByUID(uid)
 
 		if err != nil {
-			Abort(c, http.StatusNotFound, i18n.ErrAlbumNotFound)
+			AbortAlbumNotFound(c)
 			return
 		}
 
@@ -185,7 +201,7 @@ func DeleteAlbum(router *gin.RouterGroup) {
 		a, err := query.AlbumByUID(id)
 
 		if err != nil {
-			Abort(c, http.StatusNotFound, i18n.ErrAlbumNotFound)
+			AbortAlbumNotFound(c)
 			return
 		}
 
@@ -224,7 +240,8 @@ func DeleteAlbum(router *gin.RouterGroup) {
 // POST /api/v1/albums/:uid/like
 //
 // Parameters:
-//   uid: string Album UID
+//
+//	uid: string Album UID
 func LikeAlbum(router *gin.RouterGroup) {
 	router.POST("/albums/:uid/like", func(c *gin.Context) {
 		s := Auth(SessionID(c), acl.ResourceAlbums, acl.ActionLike)
@@ -238,7 +255,7 @@ func LikeAlbum(router *gin.RouterGroup) {
 		a, err := query.AlbumByUID(id)
 
 		if err != nil {
-			Abort(c, http.StatusNotFound, i18n.ErrAlbumNotFound)
+			AbortAlbumNotFound(c)
 			return
 		}
 
@@ -262,7 +279,8 @@ func LikeAlbum(router *gin.RouterGroup) {
 // DELETE /api/v1/albums/:uid/like
 //
 // Parameters:
-//   uid: string Album UID
+//
+//	uid: string Album UID
 func DislikeAlbum(router *gin.RouterGroup) {
 	router.DELETE("/albums/:uid/like", func(c *gin.Context) {
 		s := Auth(SessionID(c), acl.ResourceAlbums, acl.ActionLike)
@@ -276,7 +294,7 @@ func DislikeAlbum(router *gin.RouterGroup) {
 		a, err := query.AlbumByUID(id)
 
 		if err != nil {
-			Abort(c, http.StatusNotFound, i18n.ErrAlbumNotFound)
+			AbortAlbumNotFound(c)
 			return
 		}
 
@@ -310,7 +328,7 @@ func CloneAlbums(router *gin.RouterGroup) {
 		a, err := query.AlbumByUID(clean.IdString(c.Param("uid")))
 
 		if err != nil {
-			Abort(c, http.StatusNotFound, i18n.ErrAlbumNotFound)
+			AbortAlbumNotFound(c)
 			return
 		}
 
@@ -376,7 +394,7 @@ func AddPhotosToAlbum(router *gin.RouterGroup) {
 		a, err := query.AlbumByUID(uid)
 
 		if err != nil {
-			Abort(c, http.StatusNotFound, i18n.ErrAlbumNotFound)
+			AbortAlbumNotFound(c)
 			return
 		}
 
@@ -436,7 +454,7 @@ func RemovePhotosFromAlbum(router *gin.RouterGroup) {
 		a, err := query.AlbumByUID(clean.IdString(c.Param("uid")))
 
 		if err != nil {
-			Abort(c, http.StatusNotFound, i18n.ErrAlbumNotFound)
+			AbortAlbumNotFound(c)
 			return
 		}
 

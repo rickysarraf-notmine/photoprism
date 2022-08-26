@@ -66,7 +66,8 @@
                       :filter="filter"
                       :album="model"
                       :edit-photo="editPhoto"
-                      :open-photo="openPhoto"></p-photo-mosaic>
+                      :open-photo="openPhoto"
+                      :is-shared-view="true"></p-photo-mosaic>
       <p-photo-list v-else-if="settings.view === 'list'"
                     :photos="results"
                     :select-mode="selectMode"
@@ -74,7 +75,8 @@
                     :album="model"
                     :open-photo="openPhoto"
                     :edit-photo="editPhoto"
-                    :open-location="openLocation"></p-photo-list>
+                    :open-location="openLocation"
+                    :is-shared-view="true"></p-photo-list>
       <p-photo-cards v-else
                      :photos="results"
                      :select-mode="selectMode"
@@ -82,7 +84,8 @@
                      :album="model"
                      :open-photo="openPhoto"
                      :edit-photo="editPhoto"
-                     :open-location="openLocation"></p-photo-cards>
+                     :open-location="openLocation"
+                     :is-shared-view="true"></p-photo-cards>
     </v-container>
   </div>
 </template>
@@ -126,7 +129,7 @@ export default {
       uid: uid,
       results: [],
       scrollDisabled: true,
-      scrollDistance: window.innerHeight*2,
+      scrollDistance: window.innerHeight * 6,
       batchSize: batchSize,
       offset: 0,
       page: 0,
@@ -198,12 +201,12 @@ export default {
       this.updateQuery();
     },
     viewType() {
-      let queryParam = this.$route.query['view'];
-      let defaultType = window.localStorage.getItem("photo_view_type");
-      let storedType = window.localStorage.getItem("album_view_type");
+      let queryParam = this.$route.query['view'] ? this.$route.query['view'] : "";
+      let defaultType = window.localStorage.getItem("photos_view");
+      let storedType = window.localStorage.getItem("share_photos_view");
 
       if (queryParam) {
-        window.localStorage.setItem("album_view_type", queryParam);
+        window.localStorage.setItem("share_photos_view", queryParam);
         return queryParam;
       } else if (storedType) {
         return storedType;
@@ -234,7 +237,7 @@ export default {
       // Open Edit Dialog
       Event.publish("dialog.edit", {selection: selection, album: this.album, index: index});
     },
-    openPhoto(index, showMerged) {
+    openPhoto(index, showMerged = false, preferVideo = false) {
       if (this.loading || !this.listen || this.viewer.loading || !this.results[index]) {
         return false;
       }
@@ -246,7 +249,21 @@ export default {
         showMerged = false;
       }
 
-      if (showMerged && selected.Type === MediaLive || selected.Type === MediaVideo|| selected.Type === MediaAnimated) {
+      /**
+       * If the file is a video or an animation (like gif), then we always play
+       * it in the video-player.
+       * If the file is a live-image (an image with an embedded video), then we only
+       * play it in the video-player if specifically requested.
+       * This is because:
+       * 1. the lower-resolution video in these files is already
+       *    played when hovering the element (which does not happen for regular
+       *    video files)
+       * 2. The video in live-images is an addon. The main focus is usually still
+       *    the high resolution image inside
+       *
+       * preferVideo is true, when the user explicitly clicks the live-image-icon.
+       */
+      if (preferVideo && selected.Type === MediaLive || selected.Type === MediaVideo || selected.Type === MediaAnimated) {
         if (selected.isPlayable()) {
           this.$viewer.play({video: selected, album: this.album});
         } else {
@@ -337,6 +354,8 @@ export default {
           default:
             this.settings[key] = value;
         }
+
+        window.localStorage.setItem("share_photos_"+key, this.settings[key]);
       }
     },
     updateFilter(props) {

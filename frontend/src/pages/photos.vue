@@ -103,7 +103,7 @@ export default {
       complete: false,
       results: [],
       scrollDisabled: true,
-      scrollDistance: window.innerHeight * 2,
+      scrollDistance: window.innerHeight * 6,
       batchSize: batchSize,
       offset: 0,
       page: 0,
@@ -186,11 +186,11 @@ export default {
   },
   methods: {
     viewType() {
-      let queryParam = this.$route.query["view"];
-      let storedType = window.localStorage.getItem("photo_view");
+      let queryParam = this.$route.query['view'] ? this.$route.query['view'] : "";
+      let storedType = window.localStorage.getItem("photos_view");
 
       if (queryParam) {
-        window.localStorage.setItem("photo_view", queryParam);
+        window.localStorage.setItem("photos_view", queryParam);
         return queryParam;
       } else if (storedType) {
         return storedType;
@@ -202,10 +202,10 @@ export default {
     },
     sortOrder() {
       let queryParam = this.$route.query["order"];
-      let storedType = window.localStorage.getItem("photo_order");
+      let storedType = window.localStorage.getItem("photos_order");
 
       if (queryParam) {
-        window.localStorage.setItem("photo_order", queryParam);
+        window.localStorage.setItem("photos_order", queryParam);
         return queryParam;
       } else if (storedType) {
         return storedType;
@@ -232,7 +232,7 @@ export default {
       // Open Edit Dialog
       Event.publish("dialog.edit", {selection: selection, album: null, index: index});
     },
-    openPhoto(index, showMerged) {
+    openPhoto(index, showMerged = false, preferVideo = false) {
       if (this.loading || !this.listen || this.viewer.loading || !this.results[index]) {
         return false;
       }
@@ -244,7 +244,21 @@ export default {
         showMerged = false;
       }
 
-      if (showMerged && selected.Type === MediaLive || selected.Type === MediaVideo || selected.Type === MediaAnimated) {
+      /**
+       * If the file is a video or an animation (like gif), then we always play
+       * it in the video-player.
+       * If the file is a live-image (an image with an embedded video), then we only
+       * play it in the video-player if specifically requested.
+       * This is because:
+       * 1. the lower-resolution video in these files is already
+       *    played when hovering the element (which does not happen for regular
+       *    video files)
+       * 2. The video in live-images is an addon. The main focus is usually still
+       *    the high resolution image inside
+       *
+       * preferVideo is true, when the user explicitly clicks the live-image-icon.
+       */
+      if (preferVideo && selected.Type === MediaLive || selected.Type === MediaVideo || selected.Type === MediaAnimated) {
         if (selected.isPlayable()) {
           this.$viewer.play({video: selected});
         } else {
@@ -257,6 +271,8 @@ export default {
       } else {
         Viewer.show(this, index);
       }
+
+      return true;
     },
     loadMore() {
       if (this.scrollDisabled || this.$scrollbar.disabled()) return;
@@ -333,6 +349,8 @@ export default {
           default:
             this.settings[key] = value;
         }
+
+        window.localStorage.setItem("photos_"+key, this.settings[key]);
       }
     },
     updateFilter(props) {

@@ -100,8 +100,8 @@ const config = {
   ],
   performance: {
     hints: isDev ? false : "error",
-    maxEntrypointSize: 4000000,
-    maxAssetSize: 4000000,
+    maxEntrypointSize: 4200000,
+    maxAssetSize: 4200000,
   },
   module: {
     rules: [
@@ -141,7 +141,7 @@ const config = {
       },
       {
         test: /\.css$/,
-        include: PATHS.css,
+        include: isCustom ? [PATHS.custom, PATHS.css] : [PATHS.css],
         exclude: /node_modules/,
         use: [
           {

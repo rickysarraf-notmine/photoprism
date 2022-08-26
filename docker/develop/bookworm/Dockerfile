@@ -26,7 +26,7 @@ ENV PHOTOPRISM_ARCH=$TARGETARCH \
     TMPDIR="/tmp" \
     TF_CPP_MIN_LOG_LEVEL="0" \
     GOPATH="/go" \
-    GOBIN="/go/bin" \
+    GOBIN="/usr/local/bin" \
     GO111MODULE="on" \
     CGO_CFLAGS="-g -O2 -Wno-return-local-addr" \
     PROG="photoprism"
@@ -46,17 +46,17 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
     apt-get -qq install \
       libc6 ca-certificates sudo bash tzdata \
       gpg zip unzip wget curl rsync make nano \
-      jq lsof lshw sqlite3 mariadb-client \
+      jq lsof lshw sqlite3 mariadb-client imagemagick \
       exiftool darktable rawtherapee libheif-examples librsvg2-bin \
-      ffmpeg ffmpegthumbnailer libavcodec-extra libwebm1 \
-      libmatroska7 libdvdread8 libebml5 libgav1-0 libatomic1 \
-      libx264-163 libx265-199 \
+      ffmpeg ffmpegthumbnailer libavcodec-extra \
+      libmatroska7 libdvdread8 libebml5 libgav1-bin libatomic1 \
+      x264 x265 libvpx7 libwebm1 \
     && \
     apt-get -qq install \
       apt-utils pkg-config software-properties-common \
       build-essential gcc g++ git gettext davfs2 chrpath apache2-utils \
       chromium chromium-driver chromium-sandbox firefox-esr \
-      libx264-dev libx265-dev libpng-dev libxft-dev \
+      libx264-dev libx265-dev libvpx-dev libwebm-dev libpng-dev libxft-dev \
       libc6-dev libhdf5-serial-dev libzmq3-dev libssl-dev libnss3 \
       libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev fonts-roboto \
     && \
@@ -69,11 +69,8 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
     echo "ALL ALL=(ALL) NOPASSWD:SETENV: ALL" >> /etc/sudoers.d/all && \
     cp /etc/skel/.bashrc /root/.bashrc && \
     /scripts/create-users.sh && \
-    /scripts/cleanup.sh && \
     cp /scripts/heif-convert.sh /usr/local/bin/heif-convert && \
     install -d -m 0777 -o 1000 -g 1000 \
-      /var/lib/photoprism \
-      /tmp/photoprism \
       /photoprism/originals \
       /photoprism/import \
       /photoprism/storage \
@@ -81,10 +78,12 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
       /photoprism/storage/albums \
       /photoprism/storage/backups \
       /photoprism/storage/config \
-      /photoprism/storage/cache
+      /photoprism/storage/cache && \
+    /scripts/cleanup.sh
 
 # download models and testdata
-RUN wget "https://dl.photoprism.app/tensorflow/nsfw.zip?${BUILD_TAG}" -O /tmp/photoprism/nsfw.zip && \
+RUN mkdir /tmp/photoprism && \
+    wget "https://dl.photoprism.app/tensorflow/nsfw.zip?${BUILD_TAG}" -O /tmp/photoprism/nsfw.zip && \
     wget "https://dl.photoprism.app/tensorflow/nasnet.zip?${BUILD_TAG}" -O /tmp/photoprism/nasnet.zip && \
     wget "https://dl.photoprism.app/tensorflow/facenet.zip?${BUILD_TAG}" -O /tmp/photoprism/facenet.zip && \
     wget "https://dl.photoprism.app/qa/testdata.zip?${BUILD_TAG}" -O /tmp/photoprism/testdata.zip

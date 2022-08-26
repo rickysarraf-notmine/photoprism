@@ -9,67 +9,57 @@
         <v-toolbar-title class="nav-title">
           <span :class="{'clickable': auth}" @click.stop.prevent="showNavigation()">{{ page.title }}</span>
         </v-toolbar-title>
-        <v-menu v-if="showNavMenu" attach="#p-navigation .nav-small" :nudge-bottom="16" :nudge-right="0"
-                 close-on-content-click fixed disable-keys offset-y bottom :left="!rtl">
-          <template #activator="{ on }">
+        <v-speed-dial
+            v-model="speedDial"
+            direction="bottom"
+            transition="slide-y-transition"
+            class="mobile-dial"
+            open-on-hover
+            dark
+        >
+          <template #activator>
             <v-btn
-                dark
-                icon
+                v-model="speedDial"
+                dark fab icon flat
+                :ripple="false"
                 class="nav-menu-trigger"
-                v-on="on"
-                @click.stop.prevent
             >
               <v-icon>more_vert</v-icon>
+              <v-icon>close</v-icon>
             </v-btn>
           </template>
-
-          <v-list class="nav-menu navigation dark elevation-2">
-            <v-list-tile to="/browse" class="clickable nav-menu-browse">
-              <v-list-tile-content>
-                <v-list-tile-title>
-                  <translate>Search</translate>
-                </v-list-tile-title>
-              </v-list-tile-content>
-
-              <v-list-tile-action :title="$gettext('Search')">
-                <v-icon>search</v-icon>
-              </v-list-tile-action>
-            </v-list-tile>
-
-            <v-list-tile v-if="auth && !config.readonly && $config.feature('upload')" class="clickable nav-menu-upload" @click.prevent="openUpload()">
-              <v-list-tile-content>
-                <v-list-tile-title>
-                  <translate key="Upload">Upload</translate>
-                </v-list-tile-title>
-              </v-list-tile-content>
-              <v-list-tile-action class="clickable" @click.prevent="openUpload()">
-                <v-icon>cloud_upload</v-icon>
-              </v-list-tile-action>
-            </v-list-tile>
-
-            <v-list-tile v-if="!config.disable.settings" to="/settings" class="nav-menu-settings">
-              <v-list-tile-content>
-                <v-list-tile-title>
-                  <translate key="Settings">Settings</translate>
-                </v-list-tile-title>
-              </v-list-tile-content>
-              <v-list-tile-action :title="$gettext('Settings')">
-                <v-icon>settings</v-icon>
-              </v-list-tile-action>
-            </v-list-tile>
-
-            <v-list-tile v-if="auth && !isPublic" class="clickable nav-menu-logout" @click.prevent="logout">
-              <v-list-tile-content>
-                <v-list-tile-title>
-                  <translate key="Logout">Logout</translate>
-                </v-list-tile-title>
-              </v-list-tile-content>
-              <v-list-tile-action class="clickable" @click.prevent="logout">
-                <v-icon>power_settings_new</v-icon>
-              </v-list-tile-action>
-            </v-list-tile>
-          </v-list>
-        </v-menu>
+          <v-btn
+              v-if="!routeName('browse')" to="/browse" class="nav-menu-browse elevation-5 highlight"
+              fab dark small
+          >
+            <v-icon>search</v-icon>
+          </v-btn>
+          <v-btn
+              v-if="auth && !config.readonly && $config.feature('upload')" class="nav-menu-upload elevation-5 highlight"
+              fab dark small
+              @click.prevent="openUpload()"
+          >
+            <v-icon>cloud_upload</v-icon>
+          </v-btn>
+          <v-btn
+              v-if="!config.disable.settings && !routeName('settings')" to="/settings" class="nav-menu-settings elevation-5"
+              fab dark small
+          >
+            <v-icon>settings</v-icon>
+          </v-btn>
+          <v-btn
+              v-if="auth && !isPublic" class="nav-menu-reload elevation-4"
+              fab dark small
+              @click.prevent="reloadApp">
+            <v-icon>refresh</v-icon>
+          </v-btn>
+          <v-btn
+              v-if="auth && !isPublic" class="nav-menu-logout elevation-4"
+              fab dark small
+              @click.prevent="logout">
+            <v-icon>power_settings_new</v-icon>
+          </v-btn>
+        </v-speed-dial>
       </v-toolbar>
     </template>
     <template v-else-if="visible && !auth">
@@ -100,8 +90,8 @@
               <img :src="appIcon" :alt="appName" :class="{'animate-hue': indexing}">
             </v-list-tile-avatar>
             <v-list-tile-content>
-              <v-list-tile-title class="title tm">
-                <strong>Photo</strong>Prism<span v-if="appName === 'PhotoPrism+'" class="plus">+</span><span v-else-if="appNameSuffix !== ''"> {{ appNameSuffix }}</span>
+              <v-list-tile-title class="title">
+                {{ appName }}
               </v-list-tile-title>
             </v-list-tile-content>
             <v-list-tile-action class="hidden-sm-and-down" :title="$gettext('Minimize')">
@@ -589,7 +579,6 @@
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
-
     </v-navigation-drawer>
 
     <div v-if="config.imprint && visible" id="imprint">
@@ -641,6 +630,7 @@ export default {
       isMini: localStorage.getItem('last_navigation_mode') !== 'false',
       isPublic: this.$config.get("public"),
       isDemo: this.$config.get("demo"),
+      isSponsor: this.$config.isSponsor(),
       isTest: this.$config.test,
       isReadOnly: this.$config.get("readonly"),
       session: this.$session,
@@ -658,6 +648,7 @@ export default {
         selection: [],
         index: 0,
       },
+      speedDial: false,
       rtl: this.$rtl,
       subscriptions: [],
     };
@@ -676,9 +667,6 @@ export default {
     accountInfo() {
       const user = this.$session.getUser();
       return user.PrimaryEmail ? user.PrimaryEmail : this.$gettext("Account");
-    },
-    showNavMenu() {
-      return (this.isDemo || this.session.auth || this.isTest);
     },
   },
   created() {
@@ -701,6 +689,14 @@ export default {
     }
   },
   methods: {
+    routeName(name) {
+      return this.$route.name.startsWith(name);
+    },
+    reloadApp() {
+      this.$notify.info(this.$gettext("Reloading…"));
+      this.$notify.blockUI();
+      setTimeout(() => window.location.reload(), 100);
+    },
     openUpload() {
       if (this.auth && !this.isReadOnly && this.$config.feature('upload')) {
         this.upload.dialog = true;

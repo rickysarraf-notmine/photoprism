@@ -8,6 +8,7 @@ const (
 	ErrAlreadyExists
 	ErrNotFound
 	ErrFileNotFound
+	ErrOriginalsEmpty
 	ErrSelectionNotFound
 	ErrEntityNotFound
 	ErrAccountNotFound
@@ -36,6 +37,7 @@ const (
 	ErrInvalidName
 	ErrBusy
 	ErrWakeupInterval
+	ErrAccountConnect
 
 	MsgChangesSaved
 	MsgAlbumCreated
@@ -77,6 +79,7 @@ const (
 	MsgAlbumsDeleted
 	MsgZipCreatedIn
 	MsgPermanentlyDeleted
+	MsgRestored
 )
 
 var Messages = MessageMap{
@@ -88,6 +91,7 @@ var Messages = MessageMap{
 	ErrAlreadyExists:      gettext("%s already exists"),
 	ErrNotFound:           gettext("Not found"),
 	ErrFileNotFound:       gettext("File not found"),
+	ErrOriginalsEmpty:     gettext("Originals folder is empty"),
 	ErrSelectionNotFound:  gettext("Selection not found"),
 	ErrEntityNotFound:     gettext("Entity not found"),
 	ErrAccountNotFound:    gettext("Account not found"),
@@ -116,6 +120,7 @@ var Messages = MessageMap{
 	ErrInvalidName:        gettext("Invalid name"),
 	ErrBusy:               gettext("Busy, please try again later"),
 	ErrWakeupInterval:     gettext("The wakeup interval is %s, but must be 1h or less"),
+	ErrAccountConnect:     gettext("Your account could not be connected"),
 
 	// Info and confirmation messages:
 	MsgChangesSaved:          gettext("Changes successfully saved"),
@@ -158,4 +163,5 @@ var Messages = MessageMap{
 	MsgAlbumsDeleted:         gettext("Albums deleted"),
 	MsgZipCreatedIn:          gettext("Zip created in %d s"),
 	MsgPermanentlyDeleted:    gettext("Permanently deleted"),
+	MsgRestored:              gettext("%s has been restored"),
 }

@@ -8,7 +8,7 @@ nav .v-list__tile__title.title {
 
 #p-navigation .nav-title {
     text-align: left;
-    font-weight: bold;
+    /* font-weight: bold; */
     font-size: 18px;
     -webkit-box-flex: 1!important;
     -ms-flex-positive: 1!important;
@@ -47,7 +47,6 @@ nav .v-list__tile__title.title {
 }
 
 #photoprism .p-page a,
-#photoprism .v-toolbar a,
 #photoprism .text-link {
     text-decoration: none;
     color: #333333;
@@ -149,50 +148,37 @@ nav .v-list__tile__title.title {
     min-width: 35px;
 }
 
-#photoprism .nav-menu {
+#photoprism nav.nav-small .v-menu__content {
     padding: 0;
-    background-color: #181818;
 }
 
-#p-navigation .nav-menu-trigger {
-    margin: 0 -2px 0 0;
+/* SPEED DIAL */
+
+#photoprism .v-speed-dial__list .v-btn .v-icon {
+    font-size: 19px;
 }
 
-#photoprism .nav-menu .v-list__tile--active {
-    display: none;
+/* MOBILE NAV SPEED DIAL */
+
+#photoprism .mobile-dial .v-btn.nav-menu-trigger {
+    width: 48px;
 }
 
-#photoprism .nav-menu .v-list__tile {
-    padding: 0 24px 0 24px;
-    height: 54px;
+#photoprism .mobile-dial .v-btn:after,
+#photoprism .mobile-dial .v-btn:before {
+    display: none!important;
 }
 
-#photoprism .nav-menu .v-list__tile .v-list__tile__title {
-    height: 26px;
-    line-height: 26px;
+#photoprism .mobile-dial .v-speed-dial__list .v-btn {
+    color: white!important;
+    background-color: #8916ff;
 }
 
-#photoprism .nav-menu .v-list__tile__action {
-    min-width: 44px;
+#photoprism .mobile-dial .v-speed-dial__list .v-btn.highlight {
+    background-color: #5f30fe;
 }
 
-#photoprism .nav-menu .v-list__tile__content {
-    min-width: 146px;
+#photoprism .mobile-dial .v-speed-dial__list .v-btn:hover,
+#photoprism .mobile-dial .v-speed-dial__list .v-btn.highlight:hover {
+    background-color: #6600cc;
 }
-
-/*
-#photoprism .nav-menu .v-list__tile {
-    font-size: 15px;
-}
-
-#photoprism .nav-menu .v-list__tile .v-icon {
-    font-size: 20px;
-    line-height: 1;
-}
-*/
-
-/*
-#photoprism .sidenav-visible .nav-small .v-toolbar__content {
-    opacity: 0.48;
-}
-*/
