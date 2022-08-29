@@ -46,6 +46,22 @@ func TestMediaFile_IsMotionPhoto(t *testing.T) {
 		assert.NotEmpty(t, mediaFile.MetaData().EmbeddedVideoType)
 	})
 
+	t.Run("samsung-heic-motion-photo", func(t *testing.T) {
+		conf := config.TestConfig()
+
+		mediaFile, err := NewMediaFile(conf.ExamplesPath() + "/samsung_mp.heif")
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.True(t, mediaFile.IsMotionPhoto())
+		assert.Len(t, mediaFile.MetaData().Directory, 2)
+		assert.False(t, mediaFile.MetaData().MicroVideo)
+		assert.Equal(t, mediaFile.MetaData().MicroVideoOffset, 0)
+		assert.Empty(t, mediaFile.MetaData().EmbeddedVideoType)
+	})
+
 	t.Run("google-motion-photo", func(t *testing.T) {
 		conf := config.TestConfig()
 
