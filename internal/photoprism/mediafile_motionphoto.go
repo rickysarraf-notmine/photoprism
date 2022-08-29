@@ -36,6 +36,11 @@ func (m *MediaFile) IsMotionPhoto() bool {
 	return false
 }
 
+// EmbeddedVideoData returns the embedded video data from a Samsung motion photo.
+func (m *MediaFile) EmbeddedVideoData() ([]byte, error) {
+	return m.MetaData().EmbeddedVideoData(m.FileName(), m.FileType())
+}
+
 // ExtractVideoFromMotionPhoto extracts the embedded motion photo video to the sidecar folder.
 func (f *MediaFile) ExtractVideoFromMotionPhoto() (file *MediaFile, err error) {
 	conf := Config()
