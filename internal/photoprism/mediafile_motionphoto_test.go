@@ -4,7 +4,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/photoprism/photoprism/internal/classify"
 	"github.com/photoprism/photoprism/internal/config"
+	"github.com/photoprism/photoprism/internal/face"
+	"github.com/photoprism/photoprism/internal/nsfw"
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/stretchr/testify/assert"
 )
@@ -49,12 +52,25 @@ func TestMediaFile_IsMotionPhoto(t *testing.T) {
 	t.Run("samsung-heic-motion-photo", func(t *testing.T) {
 		conf := config.TestConfig()
 
-		mediaFile, err := NewMediaFile(conf.ExamplesPath() + "/samsung_mp.heif")
+		conf.InitializeTestData(t)
 
+		tf := classify.New(conf.AssetsPath(), conf.DisableTensorFlow())
+		nd := nsfw.New(conf.NSFWModelPath())
+		fn := face.NewNet(conf.FaceNetModelPath(), "", conf.DisableTensorFlow())
+		convert := NewConvert(conf)
+
+		ind := NewIndex(conf, tf, nd, fn, convert, NewFiles(), NewPhotos())
+		indexOpt := IndexOptionsAll()
+
+		filename := conf.ExamplesPath() + "/samsung_mp.heif"
+
+		result := ind.FileName(filename, indexOpt)
+		assert.Equal(t, IndexAdded, result.Status)
+
+		mediaFile, err := NewMediaFile(filename)
 		if err != nil {
 			t.Fatal(err)
 		}
-
 		assert.True(t, mediaFile.IsMotionPhoto())
 		assert.Len(t, mediaFile.MetaData().Directory, 2)
 		assert.False(t, mediaFile.MetaData().MicroVideo)
@@ -142,7 +158,6 @@ func TestMediaFile_ExtractVideoFromMotionPhoto(t *testing.T) {
 	}{
 		{"samsung-and-legacy-google-motion-photo", "motion_photo.jpg"},
 		{"samsung-motion-photo", "1216505.jpg"},
-		{"samsung-heic-motion-photo", "samsung_mp.heif"},
 		{"google-motion-photo", "PXL_20210506_083558892.MP.jpg"},
 	}
 
