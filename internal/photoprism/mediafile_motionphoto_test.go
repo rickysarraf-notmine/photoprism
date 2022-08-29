@@ -142,6 +142,7 @@ func TestMediaFile_ExtractVideoFromMotionPhoto(t *testing.T) {
 	}{
 		{"samsung-and-legacy-google-motion-photo", "motion_photo.jpg"},
 		{"samsung-motion-photo", "1216505.jpg"},
+		{"samsung-heic-motion-photo", "samsung_mp.heif"},
 		{"google-motion-photo", "PXL_20210506_083558892.MP.jpg"},
 	}
 

@@ -155,7 +155,11 @@ func (f *MediaFile) extractGoogleMotionPhotoVideo(offset int, mpName string, fil
 
 	startIndex := len(data) - offset
 
-	if startIndex < 0 {
+	// Some test files have a very small offset value, which is simply impossible, so fallback to
+	// finding the embedded mp4 in those cases as well. Hardcoding the threshold to 100 should be fine
+	// for now, but the value might have to be increased at some point. Alternatively we can ignore the
+	// offset value altogether and lookup the mp4 location ourselves.
+	if startIndex < 0 || offset < 100 {
 		log.Warnf("mp: implausible offset %d in %s, will try to recover the embedded motion photo anyway", offset, txt.Quote(fileName))
 
 		// The metadata is obviously incorrect, so let's make a last ditch effort to find whether
