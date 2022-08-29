@@ -242,6 +242,37 @@ export const Languages = () => [
   },
 ];
 
+export const Pages = () => [
+  {
+    text: $gettext("Search"),
+    value: "/browse",
+  },
+  {
+    text: $gettext("Moments"),
+    value: "/moments",
+  },
+  {
+    text: $gettext("Albums"),
+    value: "/albums",
+  },
+  {
+    text: $gettext("Calendar"),
+    value: "/calendar",
+  },
+  {
+    text: $gettext("Folders"),
+    value: "/folders",
+  },
+  {
+    text: $gettext("Favorites"),
+    value: "/favorites",
+  },
+  {
+    text: $gettext("Places"),
+    value: "/places",
+  },
+];
+
 export const FoldersDateMode = () => [
   {
     text: $gettext("Last"),

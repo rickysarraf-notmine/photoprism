@@ -39,6 +39,20 @@
                   @change="onChange"
               ></v-select>
             </v-flex>
+
+            <v-flex xs12 sm6 class="px-2 pb-2">
+              <v-select
+                  v-model="settings.ui.homepage"
+                  :disabled="busy"
+                  :items="pages"
+                  :label="$gettext('Homepage')"
+                  color="secondary-dark"
+                  background-color="secondary-light"
+                  hide-details
+                  box class="input-homepage"
+                  @change="onChange"
+              ></v-select>
+            </v-flex>
           </v-layout>
         </v-card-actions>
       </v-card>
@@ -385,6 +399,7 @@ export default {
       mapsStyle: options.MapsStyle(),
       currentMapsStyle: this.$config.settings().maps.style,
       languages: options.Languages(),
+      pages: options.Pages(),
       dialog: {
         sponsor: false,
       },

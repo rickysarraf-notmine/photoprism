@@ -3,6 +3,7 @@ UI:
   Zoom: false
   Theme: onyx
   Language: de
+  Homepage: /all
 Search:
   BatchSize: 0
 Folders:
