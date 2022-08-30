@@ -6,4 +6,5 @@ type UISettings struct {
 	Zoom      bool   `json:"zoom" yaml:"Zoom"`
 	Theme     string `json:"theme" yaml:"Theme"`
 	Language  string `json:"language" yaml:"Language"`
+	Homepage  string `json:"homepage" yaml:"Homepage"`
 }

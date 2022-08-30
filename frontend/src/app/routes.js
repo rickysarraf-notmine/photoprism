@@ -50,7 +50,7 @@ export default [
   {
     name: "home",
     path: "/",
-    redirect: "/browse",
+    redirect: c.settings.ui.homepage,
   },
   {
     name: "about",
@@ -429,6 +429,6 @@ export default [
   },
   {
     path: "*",
-    redirect: "/browse",
+    redirect: c.settings.ui.homepage,
   },
 ];

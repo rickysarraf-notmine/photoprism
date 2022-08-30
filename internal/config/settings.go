@@ -35,6 +35,7 @@ func NewSettings(c *Config) *Settings {
 			Zoom:      false,
 			Theme:     c.DefaultTheme(),
 			Language:  c.DefaultLocale(),
+			Homepage:  "/all",
 		},
 		Search: SearchSettings{
 			BatchSize: 0,
