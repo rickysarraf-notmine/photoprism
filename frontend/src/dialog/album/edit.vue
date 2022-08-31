@@ -47,6 +47,14 @@
                             color="secondary-dark">
                 </v-textarea>
               </v-flex>
+              <v-flex xs12 pa-2 v-if="isSmartAlbum()">
+                <v-text-field v-model="model.Filter"
+                              hide-details
+                              :label="$gettext('Filter')"
+                              color="secondary-dark"
+                              class="input-filter"
+                ></v-text-field>
+              </v-flex>
               <v-flex xs12 md6 pa-2>
                 <v-combobox v-model="model.Category" hide-details
                             :search-input.sync="model.Category"
@@ -131,6 +139,9 @@ export default {
     }
   },
   methods: {
+    isSmartAlbum() {
+      return this.album.Type === 'album' && this.album.Filter !== '';
+    },
     expand() {
       this.growDesc = !this.growDesc;
     },
