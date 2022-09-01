@@ -12,7 +12,7 @@
     <v-container v-else fluid class="pa-0">
       <p-scroll-top></p-scroll-top>
 
-      <p-photo-clipboard :refresh="refresh" :selection="selection" :context="context" :album="labelAlbum"></p-photo-clipboard>
+      <p-photo-clipboard :refresh="refresh" :selection="selection" :context="context" :album="labelOrSubjectAlbum"></p-photo-clipboard>
 
       <p-photo-mosaic v-if="settings.view === 'mosaic'"
                       :context="context"
@@ -44,6 +44,7 @@
 <script>
 import Label from "model/label";
 import {MediaAnimated, MediaLive, MediaRaw, MediaSphere, MediaVideo, Photo} from "model/photo";
+import Subject from "model/subject";
 import Thumb from "model/thumb";
 import Viewer from "common/viewer";
 import Event from "pubsub-js";
@@ -69,6 +70,8 @@ export default {
     const month = query['month'] ? parseInt(query['month']) : 0;
     const color = query['color'] ? query['color'] : '';
     const label = query['label'] ? query['label'] : '';
+    const person = query['person'] ? query['person'] : '';
+    const subject = query['subject'] ? query['subject'] : '';
     const view = this.viewType();
     const filter = {
       country: country,
@@ -78,6 +81,8 @@ export default {
       year: year,
       month: month,
       color: color,
+      person: person,
+      subject: subject,
       order: order,
       q: q,
     };
@@ -113,7 +118,7 @@ export default {
       },
       filter: filter,
       lastFilter: {},
-      labelAlbum: null,
+      labelOrSubjectAlbum: null,
       routeName: routeName,
       loading: true,
       viewer: {
@@ -157,6 +162,8 @@ export default {
       this.filter.month = query['month'] ? parseInt(query['month']) : 0;
       this.filter.color = query['color'] ? query['color'] : '';
       this.filter.label = query['label'] ? query['label'] : '';
+      this.filter.person = query['person'] ? query['person'] : '';
+      this.filter.subject = query['subject'] ? query['subject'] : '';
       this.filter.order = this.sortOrder();
       this.settings.view = this.viewType();
       this.lastFilter = {};
@@ -167,10 +174,21 @@ export default {
   created() {
     this.search();
 
-    // find all used filters to determine whether we have a label album opened (and exclude the sort order)
+    // Find all used filters to determine the current context (and exclude the sort order).
     const nonEmptyFilters = Object.keys(this.filter).filter(p => p != "order" && this.filter[p]);
-    if (nonEmptyFilters.length == 1 && nonEmptyFilters.includes("label")) {
-      Label.search({q: this.filter.label, count: 1}).then(response => this.labelAlbum = response.models[0]);
+
+    // Supported contexts: label, person, subject
+    const supportedTypes = {
+      "label": [Label, this.filter.label],
+      "person": [Subject, this.filter.person],
+      "subject": [Subject, this.filter.subject],
+    }
+
+    // If we have encountered one of the supported contexts, we can essentially treat it as an album (even thought it is not).
+    if (nonEmptyFilters.length == 1 && nonEmptyFilters[0] in supportedTypes) {
+      const [Type, filter] = supportedTypes[nonEmptyFilters[0]];
+
+      Type.search({q: filter, count: 1}).then(response => this.labelOrSubjectAlbum = response.models[0]);
     }
 
     this.subscriptions.push(Event.subscribe("import.completed", (ev, data) => this.onImportCompleted(ev, data)));
