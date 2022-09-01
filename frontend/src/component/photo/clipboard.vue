@@ -34,7 +34,6 @@
           <v-icon>cloud</v-icon>
         </v-btn>
 
-        
         <v-btn
             v-if="context !== 'archive' && context !== 'review' && navigatorCanShare" fab dark
             small
@@ -179,6 +178,7 @@
 </template>
 <script>
 import Api from "common/api";
+import * as src from "common/src";
 import Util from "common/util";
 import Notify from "common/notify";
 import Event from "pubsub-js";
@@ -302,7 +302,7 @@ export default {
       if (this.busy) {
         return;
       }
-      
+
       this.busy = true;
       this.dialog.album = false;
 
@@ -348,7 +348,7 @@ export default {
       this.busy = true;
 
       switch (this.selection.length) {
-        case 0: 
+        case 0:
           this.busy = false;
           return;
         case 1:
@@ -358,7 +358,7 @@ export default {
               this.busy = false;
             });
           break;
-        default: 
+        default:
           Api.post("zip", {"photos": this.selection})
             .then(r => {
               this.onDownload(`${this.$config.apiUri}/zip/${r.data.filename}?t=${this.$config.downloadToken()}`);
@@ -412,7 +412,7 @@ export default {
     },
     setCover() {
       new Photo().find(this.selection[0]).then(p => {
-        Api.put(this.album.getEntityResource(), {Thumb: p.mainFileHash(), ThumbSrc: "cover"}).then(() => this.onSetCover());
+        Api.put(this.album.getEntityResource(), {Thumb: p.mainFileHash(), ThumbSrc: src.Manual}).then(() => this.onSetCover());
       });
     },
     onSetCover() {
