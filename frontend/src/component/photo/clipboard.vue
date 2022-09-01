@@ -184,6 +184,7 @@ import Notify from "common/notify";
 import Event from "pubsub-js";
 import download from "common/download";
 import Photo from "model/photo";
+import Subject from "model/subject";
 
 export default {
   name: 'PPhotoClipboard',
@@ -412,7 +413,14 @@ export default {
     },
     setCover() {
       new Photo().find(this.selection[0]).then(p => {
-        Api.put(this.album.getEntityResource(), {Thumb: p.mainFileHash(), ThumbSrc: src.Manual}).then(() => this.onSetCover());
+        let thumb = p.mainFileHash();
+
+        // For subjects we need to find the subject marker within the main file.
+        if (this.album.collectionResource() === Subject.getCollectionResource()) {
+          thumb = p.mainFile().Markers.find(m => m.SubjUID === this.album.getId()).Thumb;
+        }
+
+        Api.put(this.album.getEntityResource(), {Thumb: thumb, ThumbSrc: src.Manual}).then(() => this.onSetCover());
       });
     },
     onSetCover() {
