@@ -293,6 +293,35 @@ func TestSubject_SaveForm(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+	t.Run("change thumbnail", func(t *testing.T) {
+		subj := NewSubject("Me", SubjPerson, SrcManual)
+
+		if err := subj.Create(); err != nil {
+			t.Fatal(err)
+		}
+
+		subjForm, err := form.NewSubject(subj)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		subjForm.SubjThumb = "thumb-000"
+		subjForm.SubjThumbSrc = "manual"
+
+		if changed, err := subj.SaveForm(subjForm); err != nil {
+			t.Fatal(err)
+		} else if !changed {
+			t.Fatal("subject must be changed")
+		}
+
+		assert.Equal(t, "thumb-000", subj.Thumb)
+		assert.Equal(t, "manual", subj.ThumbSrc)
+
+		if err := subj.Delete(); err != nil {
+			t.Fatal(err)
+		}
+	})
 }
 
 func TestSubject_UpdateName(t *testing.T) {
