@@ -1106,11 +1106,6 @@ func (m *MediaFile) Orientation() int {
 	return 1
 }
 
-// EmbeddedVideoData returns the embedded video data from a Samsung motion photo.
-func (m *MediaFile) EmbeddedVideoData() ([]byte, error) {
-	return m.MetaData().EmbeddedVideoData(m.FileName(), m.FileType())
-}
-
 // RenameSidecarFiles moves related sidecar files.
 func (m *MediaFile) RenameSidecarFiles(oldFileName string) (renamed map[string]string, err error) {
 	renamed = make(map[string]string)

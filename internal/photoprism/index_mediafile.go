@@ -509,6 +509,10 @@ func (ind *Index) MediaFile(m *MediaFile, o IndexOptions, originalName, photoUID
 				photo.PhotoType = entity.MediaRaw
 			} else if m.IsLive() {
 				photo.PhotoType = entity.MediaLive
+			} else if m.IsMotionPhoto() {
+				// Change the src type to prevent the (non-primary) generated video file from changing it
+				photo.PhotoType = entity.MediaLive
+				photo.TypeSrc = entity.SrcDefault
 			}
 		}
 	case m.IsVideo():
