@@ -531,10 +531,14 @@ func searchPhotos(f form.SearchPhotos, resultCols string) (results PhotoResults,
 
 	if !f.Before.IsZero() {
 		s = s.Where("photos.taken_at <= ?", f.Before.Format("2006-01-02"))
+	} else if !f.BeforeT.IsZero() {
+		s = s.Where("photos.taken_at <= ?", f.BeforeT.Format("2006-01-02 15:04:05"))
 	}
 
 	if !f.After.IsZero() {
 		s = s.Where("photos.taken_at >= ?", f.After.Format("2006-01-02"))
+	} else if !f.AfterT.IsZero() {
+		s = s.Where("photos.taken_at >= ?", f.AfterT.Format("2006-01-02 15:04:05"))
 	}
 
 	// Find stacks only?
