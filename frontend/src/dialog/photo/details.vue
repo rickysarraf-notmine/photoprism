@@ -413,7 +413,7 @@
 </template>
 
 <script>
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import MaplibreGeocoder from '@maplibre/maplibre-gl-geocoder';
 
@@ -564,10 +564,40 @@ export default {
         zoom: 0,
       };
 
-      this.map = new mapboxgl.Map(mapOptions);
+      const localStorageGeocoder = (query) => {
+        const indicator = '<span class="material-icons md-12">cached</span>';
 
-      const nav = new mapboxgl.NavigationControl();
-      this.map.addControl(nav, 'top-left');
+        const matches = [];
+        const geolocations = JSON.parse(window.localStorage.getItem("geolocations")) || [];
+
+        for (const location of geolocations) {
+          if (location.place_name.toLowerCase().includes(query.toLowerCase())) {
+            location.place_name = `${indicator} ${location.place_name}`;
+            matches.push(location);
+          }
+        }
+
+        return matches;
+      };
+      const geocoder = new MaplibreGeocoder(nominatim, {
+        placeholder: this.$gettext("Search"),
+        marker: false,
+        localGeocoder: localStorageGeocoder,
+        // the explicit search is broken in several ways:
+        // - the enter key event is retargeted to the clear button, so no search is performed and instead the text is cleared
+        // - even if the above is fixed, the keyup.enter event is bubbled-up to the form and a save action is performed
+        showResultsWhileTyping: true,
+        debounceSearch: 1500,
+      });
+
+      geocoder.on('result', (e) => {
+        // if the user selects a cached entry (meaning a previously selected location), instead of only jumping
+        // to that location, we should also set it as the photo's geolocation
+        if (e.result.properties.cached) {
+          draw.add(e.result.geometry);
+          this.map.fire('draw.create', { features: [e.result]});
+        }
+      });
 
       const draw = new MapboxDraw({
         displayControlsDefault: false,
@@ -576,7 +606,23 @@ export default {
             trash: true
         },
       });
-      this.map.addControl(draw, 'bottom-right');
+
+      this.map = new maplibregl.Map(mapOptions);
+      this.map.setLanguage(this.config.settings.ui.language.split("-")[0]);
+
+      const controlPos = this.$rtl ? 'top-left' : 'top-right';
+
+      this.map.addControl(geocoder, controlPos);
+      this.map.addControl(new maplibregl.NavigationControl({showCompass: true}), controlPos);
+      this.map.addControl(new maplibregl.FullscreenControl({container: document.querySelector('body')}), controlPos);
+      this.map.addControl(new maplibregl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true
+      }), controlPos);
+
+      this.map.addControl(draw, controlPos);
 
       this.map.on('draw.create', async (e) => {
         // remove all previously selected points
@@ -618,6 +664,14 @@ export default {
         this.model.Lat = 0;
         this.model.Lng = 0;
       });
+      this.map.on('draw.update', e => {
+        if (e.action === "move") {
+          // update the model with the updated location
+          const point = e.features[0].geometry.coordinates;
+          this.model.Lat = point[1];
+          this.model.Lng = point[0];
+        }
+      });
 
       this.map.on('load', () => {
         if (this.model.hasLocation()) {
@@ -629,44 +683,6 @@ export default {
           });
         }
       });
-
-      const localStorageGeocoder = (query) => {
-        const indicator = '<span class="material-icons md-12">cached</span>';
-
-        const matches = [];
-        const geolocations = JSON.parse(window.localStorage.getItem("geolocations")) || [];
-
-        for (const location of geolocations) {
-          if (location.place_name.toLowerCase().includes(query.toLowerCase())) {
-            location.place_name = `${indicator} ${location.place_name}`;
-            matches.push(location);
-          }
-        }
-
-        return matches;
-      };
-
-      const geocoder = new MaplibreGeocoder(nominatim, {
-        placeholder: this.$gettext("Search"),
-        marker: false,
-        localGeocoder: localStorageGeocoder,
-        // the explicit search is broken in several ways:
-        // - the enter key event is retargeted to the clear button, so no search is performed and instead the text is cleared
-        // - even if the above is fixed, the keyup.enter event is bubbled-up to the form and a save action is performed
-        showResultsWhileTyping: true,
-        debounceSearch: 1500,
-      });
-
-      geocoder.on('result', (e) => {
-        // if the user selects a cached entry (meaning a previously selected location), instead of only jumping
-        // to that location, we should also set it as the photo's geolocation
-        if (e.result.properties.cached) {
-          draw.add(e.result.geometry);
-          this.map.fire('draw.create', { features: [e.result]});
-        }
-      });
-
-      this.map.addControl(geocoder);
     },
   },
 };
