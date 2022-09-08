@@ -395,8 +395,12 @@ export class Photo extends RestModel {
   });
 
   isSphere() {
-    return this.Type === MediaSphere;
+    return this.generateIsSphere(this.Type);
   }
+
+  generateIsSphere = memoizeOne((type) => {
+    return type === MediaSphere;
+  });
 
   videoParams() {
     const uri = this.videoUrl();
