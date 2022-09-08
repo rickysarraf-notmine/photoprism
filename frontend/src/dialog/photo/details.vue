@@ -421,6 +421,7 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 // import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
 import '@maplibre/maplibre-gl-geocoder/lib/maplibre-gl-geocoder.css';
 
+import { LocateNearbyControl } from "common/map-controls";
 import nominatim from "common/nominatim";
 import Thumb from "model/thumb";
 import countries from "options/countries.json";
@@ -548,7 +549,7 @@ export default {
       this.$emit('close');
     },
     renderMap() {
-      const s = this.$config.values.settings.maps;
+      const s = this.config.settings.maps;
 
       let mapKey = "";
 
@@ -613,6 +614,11 @@ export default {
       const controlPos = this.$rtl ? 'top-left' : 'top-right';
 
       this.map.addControl(geocoder, controlPos);
+      this.map.addControl(new LocateNearbyControl({
+        model: this.model,
+        settings: this.config.settings.maps,
+        range: { hours: 1 },
+      }), controlPos);
       this.map.addControl(new maplibregl.NavigationControl({showCompass: true}), controlPos);
       this.map.addControl(new maplibregl.FullscreenControl({container: document.querySelector('body')}), controlPos);
       this.map.addControl(new maplibregl.GeolocateControl({
@@ -671,6 +677,10 @@ export default {
           this.model.Lat = point[1];
           this.model.Lng = point[0];
         }
+      });
+      this.map.on("radar.selected", e => {
+        this.model.Lat = e.location.lat;
+        this.model.Lng = e.location.lng;
       });
 
       this.map.on('load', () => {
