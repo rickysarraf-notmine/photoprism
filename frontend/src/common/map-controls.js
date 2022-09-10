@@ -28,6 +28,8 @@ https://docs.photoprism.org/developer-guide/
 
 */
 import maplibregl from "maplibre-gl";
+import Notify from "common/notify";
+import { $gettext } from "common/vm";
 import { Photo } from "model/photo";
 
 const SOURCE = "locate-nearby";
@@ -203,6 +205,10 @@ export class LocateNearbyControl {
         }
 
         this.zoomTo(bounds, 17);
+      }
+
+      if (coordinates.length == 0) {
+        Notify.info($gettext("No nearby photos"));
       }
     });
   }
