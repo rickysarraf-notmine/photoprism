@@ -27,6 +27,7 @@ func AvcConvertCommand(fileName, avcName, ffmpegBin, bitrate string, encoder Avc
 			"-pix_fmt", "yuv420p",
 			"-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
 			"-f", "mp4",
+			"-map", "0:v",
 			"-y",
 			avcName,
 		)
@@ -55,6 +56,7 @@ func AvcConvertCommand(fileName, avcName, ffmpegBin, bitrate string, encoder Avc
 			"-b:v", bitrate,
 			"-bitrate", bitrate,
 			"-f", "mp4",
+			"-map", "0:v",
 			"-y",
 			avcName,
 		)
@@ -74,6 +76,7 @@ func AvcConvertCommand(fileName, avcName, ffmpegBin, bitrate string, encoder Avc
 			"-r", "30",
 			"-b:v", bitrate,
 			"-f", "mp4",
+			"-map", "0:v",
 			"-y",
 			avcName,
 		)
@@ -99,6 +102,7 @@ func AvcConvertCommand(fileName, avcName, ffmpegBin, bitrate string, encoder Avc
 			"-level:v", "41",
 			"-coder:v", "1",
 			"-f", "mp4",
+			"-map", "0:v",
 			"-y",
 			avcName,
 		)
@@ -120,6 +124,7 @@ func AvcConvertCommand(fileName, avcName, ffmpegBin, bitrate string, encoder Avc
 			"-r", "30",
 			"-b:v", bitrate,
 			"-f", "mp4",
+			"-map", "0:v",
 			"-y",
 			avcName,
 		)
@@ -138,6 +143,7 @@ func AvcConvertCommand(fileName, avcName, ffmpegBin, bitrate string, encoder Avc
 			"-r", "30",
 			"-b:v", bitrate,
 			"-f", "mp4",
+			"-map", "0:v",
 			"-y",
 			avcName,
 		)
