@@ -29,7 +29,12 @@ func (c *Convert) ToAvc(f *MediaFile, encoder ffmpeg.AvcEncoder, noMutex, force 
 		return nil, fmt.Errorf("convert: %s is empty", clean.Log(f.RootRelName()))
 	}
 
-	avcName := fs.VideoAVC.FindFirst(f.FileName(), []string{c.conf.SidecarPath(), fs.HiddenPath}, c.conf.OriginalsPath(), false)
+	baseDir := c.conf.OriginalsPath()
+	if f.InSidecar() {
+		baseDir = c.conf.SidecarPath()
+	}
+
+	avcName := fs.VideoAVC.FindFirst(f.FileName(), []string{c.conf.SidecarPath(), fs.HiddenPath}, baseDir, false)
 
 	mediaFile, err := NewMediaFile(avcName)
 
@@ -45,8 +50,8 @@ func (c *Convert) ToAvc(f *MediaFile, encoder ffmpeg.AvcEncoder, noMutex, force 
 		return nil, fmt.Errorf("convert: ffmpeg is disabled for transcoding %s", f.RootRelName())
 	}
 
-	fileName := f.RelName(c.conf.OriginalsPath())
-	avcName = fs.FileName(f.FileName(), c.conf.SidecarPath(), c.conf.OriginalsPath(), fs.ExtAVC)
+	fileName := f.RelName(baseDir)
+	avcName = fs.FileName(f.FileName(), c.conf.SidecarPath(), baseDir, fs.ExtAVC)
 
 	cmd, useMutex, err := c.AvcConvertCommand(f, avcName, encoder)
 

@@ -64,6 +64,45 @@ func TestConvert_ToAvc(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, avcFile)
 	})
+
+	t.Run("jpg in sidecar folder", func(t *testing.T) {
+		conf := config.TestConfig()
+		convert := NewConvert(conf)
+
+		sourceFile := filepath.Join(conf.ExamplesPath(), "gopher-video.mp4")
+		inputFile := filepath.Join(conf.SidecarPath(), conf.ExamplesPath(), "gopher-video.mp4")
+		outputName := filepath.Join(conf.SidecarPath(), conf.ExamplesPath(), "gopher-video.mp4.avc")
+
+		_ = os.Remove(outputName)
+
+		err := fs.Copy(sourceFile, inputFile)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Truef(t, fs.FileExists(inputFile), "input file does not exist: %s", inputFile)
+
+		mf, err := NewMediaFile(inputFile)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		avcFile, err := convert.ToAvc(mf, "", false, false)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, avcFile.FileName(), outputName)
+		assert.Truef(t, fs.FileExists(avcFile.FileName()), "output file does not exist: %s", avcFile.FileName())
+
+		t.Logf("video metadata: %+v", avcFile.MetaData())
+
+		_ = os.Remove(inputFile)
+		_ = os.Remove(outputName)
+	})
 }
 
 func TestConvert_AvcBitrate(t *testing.T) {
