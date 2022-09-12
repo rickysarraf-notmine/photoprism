@@ -32,7 +32,12 @@ func (c *Convert) ToJpeg(f *MediaFile, force bool) (*MediaFile, error) {
 		return f, nil
 	}
 
-	jpegName := fs.ImageJPEG.FindFirst(f.FileName(), []string{c.conf.SidecarPath(), fs.HiddenPath}, c.conf.OriginalsPath(), false)
+	baseDir := c.conf.OriginalsPath()
+	if f.InSidecar() {
+		baseDir = c.conf.SidecarPath()
+	}
+
+	jpegName := fs.ImageJPEG.FindFirst(f.FileName(), []string{c.conf.SidecarPath(), fs.HiddenPath}, baseDir, false)
 
 	mediaFile, err := NewMediaFile(jpegName)
 
@@ -48,7 +53,7 @@ func (c *Convert) ToJpeg(f *MediaFile, force bool) (*MediaFile, error) {
 			return mediaFile, nil
 		}
 	} else {
-		jpegName = fs.FileName(f.FileName(), c.conf.SidecarPath(), c.conf.OriginalsPath(), fs.ExtJPEG)
+		jpegName = fs.FileName(f.FileName(), c.conf.SidecarPath(), baseDir, fs.ExtJPEG)
 	}
 
 	if !c.conf.SidecarWritable() {
