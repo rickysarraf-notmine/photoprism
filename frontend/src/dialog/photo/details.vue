@@ -418,8 +418,7 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import MaplibreGeocoder from '@maplibre/maplibre-gl-geocoder';
 
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
-// import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
-import '@maplibre/maplibre-gl-geocoder/lib/maplibre-gl-geocoder.css';
+import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
 
 import { LocateNearbyControl } from "common/map-controls";
 import nominatim from "common/nominatim";
@@ -589,6 +588,14 @@ export default {
         // - even if the above is fixed, the keyup.enter event is bubbled-up to the form and a save action is performed
         showResultsWhileTyping: true,
         debounceSearch: 1500,
+        limit: 10,
+        // strip the cached indicator when showing the place in the search bar
+        getItemValue: (item) => item.place_name.split("</span>").pop().trim(),
+        flyTo: {
+          duration: this.config.settings.maps.animate,
+          essential: false,
+          animate: this.config.settings.maps.animate > 0,
+        }
       });
 
       geocoder.on('result', (e) => {
@@ -657,8 +664,12 @@ export default {
           geolocation.properties.cached = true;
 
           const geolocations = JSON.parse(window.localStorage.getItem("geolocations")) || [];
-          geolocations.push(geolocation);
 
+          if (geolocations.some((g) => g.id === geolocation.id)) {
+            return;
+          }
+
+          geolocations.push(geolocation);
           window.localStorage.setItem("geolocations", JSON.stringify(geolocations));
         }
       });

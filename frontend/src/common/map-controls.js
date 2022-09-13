@@ -63,6 +63,7 @@ export class LocateNearbyControl {
     var radarButton = document.createElement("button");
     radarButton.className = "maplibregl-ctrl-icon mapboxgl-ctrl-icon";
     radarButton.style = "padding-top: 3px";
+    radarButton.title = "Load timewise nearby photos";
     radarButton.addEventListener("click", (e) => this.onRadarClick(e));
     radarButton.appendChild(radarIcon);
 
@@ -73,6 +74,7 @@ export class LocateNearbyControl {
     var clearButton = document.createElement("button");
     clearButton.className = "maplibregl-ctrl-icon mapboxgl-ctrl-icon";
     clearButton.style = "padding-top: 3px";
+    clearButton.title = "Clear shown nearby photos";
     clearButton.addEventListener("click", (e) => this.onClearClick(e));
     clearButton.appendChild(clearIcon);
 
