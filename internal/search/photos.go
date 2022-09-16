@@ -224,11 +224,11 @@ func searchPhotos(f form.SearchPhotos, resultCols string) (results PhotoResults,
 	// Filter by location?
 	if f.Geo == true {
 		s = s.Where("photos.cell_id <> 'zz'")
+	} else if f.NoGeo {
+		s = s.Where("photos.cell_id = 'zz'")
+	}
 
-		for _, where := range LikeAnyKeyword("k.keyword", f.Query) {
-			s = s.Where("files.photo_id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
-		}
-	} else if f.Query != "" {
+	if f.Query != "" {
 		if err := Db().Where(AnySlug("custom_slug", f.Query, " ")).Find(&labels).Error; len(labels) == 0 || err != nil {
 			log.Debugf("search: label %s not found, using fuzzy search", txt.LogParamLower(f.Query))
 
