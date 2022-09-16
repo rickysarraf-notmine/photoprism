@@ -48,6 +48,7 @@ type SearchPhotos struct {
 	Diff      uint32    `form:"diff" notes:"Differential Perceptual Hash (000000-FFFFFF)"`
 	Mono      bool      `form:"mono" notes:"Finds pictures with few or no colors"`
 	Geo       bool      `form:"geo" notes:"Finds pictures with GPS location"`
+	NoGeo     bool      `form:"nogeo" notes:"Finds pictures without GPS location"`
 	Keywords  string    `form:"keywords"  example:"keywords:\"buffalo&water\"" notes:"Keywords, can be combined with & and |"`                                                                                        // Filter by keyword(s)
 	Label     string    `form:"label" example:"label:cat|dog" notes:"Label Name, OR search with |"`                                                                                                                   // Label name
 	Category  string    `form:"category"  notes:"Location Category Name"`                                                                                                                                             // Moments

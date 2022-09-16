@@ -224,6 +224,8 @@ func searchPhotos(f form.SearchPhotos, resultCols string) (results PhotoResults,
 	// Filter by location?
 	if f.Geo == true {
 		s = s.Where("photos.cell_id <> 'zz'")
+	} else if f.NoGeo {
+		s = s.Where("photos.cell_id = 'zz'")
 	}
 
 	if f.Query != "" {
