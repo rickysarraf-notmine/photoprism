@@ -558,6 +558,7 @@ export default {
 
       let mapOptions = {
         container: "map",
+        cooperativeGestures: true,
         style: "https://api.maptiler.com/maps/" + s.style + "/style.json?key=" + mapKey,
         attributionControl: true,
         customAttribution: "<a href='https://nominatim.org/' target='_blank'>Geocoding provided by OpenStreetMap Nominatim</a>",
@@ -580,8 +581,9 @@ export default {
         return matches;
       };
       const geocoder = new MaplibreGeocoder(nominatim, {
+        maplibregl: maplibregl,
         placeholder: this.$gettext("Search"),
-        marker: false,
+        marker: true,
         localGeocoder: localStorageGeocoder,
         // the explicit search is broken in several ways:
         // - the enter key event is retargeted to the clear button, so no search is performed and instead the text is cleared
