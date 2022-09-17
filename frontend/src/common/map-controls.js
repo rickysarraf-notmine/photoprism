@@ -35,10 +35,11 @@ import { Photo } from "model/photo";
 const SOURCE = "locate-nearby";
 
 export class LocateNearbyControl {
-  constructor({ model, settings, range }) {
+  constructor({ model, settings, range, closest = 10 }) {
     this._model = model;
     this._settings = settings;
     this._range = range;
+    this._closestN = closest;
   }
 
   onAdd(map) {
@@ -167,7 +168,7 @@ export class LocateNearbyControl {
     const after = photoDate.minus(this._range);
 
     const params = {
-      count: 10,
+      count: Photo.limit(),
       offset: 0,
       merged: true,
       geo: true,
@@ -178,6 +179,12 @@ export class LocateNearbyControl {
     Photo.search(params).then((response) => {
       const features = response.data
         .filter((media) => media.Lng !== 0 && media.Lat !== 0)
+        .sort(
+          (a, b) =>
+            Math.abs(photoDate - new Photo(a).utcDate()) -
+            Math.abs(photoDate - new Photo(b).utcDate())
+        )
+        .slice(0, this._closestN)
         .map((media) => ({
           type: "Feature",
           geometry: {
