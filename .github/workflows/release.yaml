@@ -38,5 +38,5 @@ jobs:
           files: ./docker/docker-bake.hcl
           push: true
 
-      - name: Create a push a multi-architecture manifest file
+      - name: Create and push a multi-architecture manifest file
         run: docker buildx imagetools create --tag ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:${TAG}-amd64 ${DOCKER_REPO}:${TAG}-arm64 ${DOCKER_REPO}:${TAG}-armv7
