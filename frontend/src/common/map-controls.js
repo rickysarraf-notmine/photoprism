@@ -27,10 +27,13 @@ Additional information can be found in our Developer Guide:
 https://docs.photoprism.org/developer-guide/
 
 */
+import { DateTime } from "luxon";
 import maplibregl from "maplibre-gl";
+
 import Notify from "common/notify";
 import { $gettext } from "common/vm";
 import { Photo } from "model/photo";
+import { CountriesTimeZones } from "options/options";
 
 const SOURCE = "locate-nearby";
 
@@ -163,7 +166,7 @@ export class LocateNearbyControl {
   onRadarClick(e) {
     e.preventDefault();
 
-    const photoDate = new Photo(this._model).utcDate();
+    const photoDate = this.guesstimateUtcDate(new Photo(this._model));
     const before = photoDate.plus(this._range);
     const after = photoDate.minus(this._range);
 
@@ -241,5 +244,42 @@ export class LocateNearbyControl {
       essential: false,
       animate: this._settings.animate > 0,
     });
+  }
+
+  guesstimateUtcDate(photo) {
+    if (!photo.hasTimeZone() && photo.hasCountry()) {
+      const country = photo.Country.toUpperCase();
+      const ct = CountriesTimeZones();
+
+      if (country in ct) {
+        const timezones = ct[country];
+
+        let timezone;
+
+        if (timezones.length == 1) {
+          timezone = timezones[0];
+        } else if (timezones.length > 1) {
+          // Some countries have more than one timezone, so try to figure out the timezone based on
+          // the photo keywords, which might contain the city name.
+          // The list of countries with more than one timezone can be replicated with this snippet:
+          // https://runkit.com/embed/2yy43dnz45u3
+          const keywords = photo.Details.Keywords.split(",")
+            .map((x) => x.trim())
+            .map((x) => x[0].toUpperCase() + x.slice(1));
+
+          timezone = timezones.find((tz) => keywords.some((kw) => tz.mainCities.includes(kw)));
+        }
+
+        if (timezone) {
+          let iso = photo.localDateString();
+          const zone = timezone.name;
+
+          return DateTime.fromISO(iso, { zone }).toUTC();
+        }
+      }
+    }
+
+    // Either there is a timezone or there is nothing we can do.
+    return photo.utcDate();
   }
 }

@@ -272,6 +272,10 @@ export class Photo extends RestModel {
     return iso;
   }
 
+  hasTimeZone() {
+    return this.getTimeZone() !== "";
+  }
+
   getTimeZone() {
     if (this.TimeZone) {
       return this.TimeZone;
@@ -738,8 +742,12 @@ export class Photo extends RestModel {
     return this.Lat !== 0 || this.Lng !== 0;
   }
 
+  hasCountry() {
+    return this.Country !== "zz";
+  }
+
   countryName() {
-    if (this.Country !== "zz") {
+    if (this.hasCountry()) {
       const country = countries.find((c) => c.Code === this.Country);
 
       if (country) {
