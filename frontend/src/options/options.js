@@ -1,4 +1,4 @@
-import { timeZonesNames } from "@vvo/tzdb";
+import { getTimeZones, timeZonesNames } from "@vvo/tzdb";
 import { $gettext } from "common/vm";
 import { Info } from "luxon";
 import { config } from "app/session";
@@ -16,6 +16,29 @@ export const TimeZones = () =>
     { ID: "UTC", Name: "UTC" },
     { ID: "", Name: $gettext("Local Time") },
   ].concat(timeZonesNames);
+
+export const CountriesTimeZones = () =>
+  getTimeZones().reduce((tzmap, tz) => {
+    const cc = tz.countryCode;
+
+    if (!(cc in tzmap)) {
+      tzmap[cc] = [];
+    }
+
+    tzmap[cc].push(tz);
+    return tzmap;
+  }, {});
+
+export const PreferredTimeZones = () => {
+  return {
+    CL: "America/Santiago",
+    CN: "Asia/Shanghai",
+    ES: "Europe/Madrid",
+    NZ: "Pacific/Auckland",
+    PT: "Europe/Lisbon",
+    UA: "Europe/Zaporozhye",
+  };
+};
 
 export const Days = () => {
   let result = [];

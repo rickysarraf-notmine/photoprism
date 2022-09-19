@@ -100,8 +100,8 @@ const config = {
   ],
   performance: {
     hints: isDev ? false : "error",
-    maxEntrypointSize: 4300000,
-    maxAssetSize: 4300000,
+    maxEntrypointSize: 4500000,
+    maxAssetSize: 4500000,
   },
   module: {
     rules: [
