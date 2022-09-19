@@ -254,10 +254,11 @@ export class LocateNearbyControl {
       if (country in ct) {
         const timezones = ct[country];
 
-        let timezone;
+        let timezone, source;
 
         if (timezones.length == 1) {
           timezone = timezones[0];
+          source = "country";
         } else if (timezones.length > 1) {
           // Some countries have more than one timezone, so try to figure out the timezone based on
           // the photo keywords, which might contain the city name.
@@ -270,16 +271,19 @@ export class LocateNearbyControl {
           timezone = timezones.find((tz) =>
             keywords.some((kw) => tz.mainCities.map((city) => city.toLowerCase()).includes(kw))
           );
+          source = "keyword";
 
           // As a last resort fallback to the hardcoded preferred timezones.
           if (!timezone) {
             timezone = PreferredTimeZones()[country];
+            source = "preferred";
           }
         }
 
         if (timezone) {
           let iso = photo.localDateString();
           const zone = timezone.name || timezone;
+          console.log(`Guesstimated timezone for photo as ${zone} (${source})`);
 
           return DateTime.fromISO(iso, { zone }).toUTC();
         }
