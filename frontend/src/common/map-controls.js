@@ -265,9 +265,11 @@ export class LocateNearbyControl {
           // https://runkit.com/embed/2yy43dnz45u3
           const keywords = photo.Details.Keywords.split(",")
             .map((x) => x.trim())
-            .map((x) => x[0].toUpperCase() + x.slice(1));
+            .map((x) => x.toLowerCase());
 
-          timezone = timezones.find((tz) => keywords.some((kw) => tz.mainCities.includes(kw)));
+          timezone = timezones.find((tz) =>
+            keywords.some((kw) => tz.mainCities.map((city) => city.toLowerCase()).includes(kw))
+          );
 
           // As a last resort fallback to the hardcoded preferred timezones.
           if (!timezone) {
