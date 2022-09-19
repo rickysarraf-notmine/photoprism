@@ -33,7 +33,7 @@ import maplibregl from "maplibre-gl";
 import Notify from "common/notify";
 import { $gettext } from "common/vm";
 import { Photo } from "model/photo";
-import { CountriesTimeZones } from "options/options";
+import { CountriesTimeZones, PreferredTimeZones } from "options/options";
 
 const SOURCE = "locate-nearby";
 
@@ -268,11 +268,16 @@ export class LocateNearbyControl {
             .map((x) => x[0].toUpperCase() + x.slice(1));
 
           timezone = timezones.find((tz) => keywords.some((kw) => tz.mainCities.includes(kw)));
+
+          // As a last resort fallback to the hardcoded preferred timezones.
+          if (!timezone) {
+            timezone = PreferredTimeZones()[country];
+          }
         }
 
         if (timezone) {
           let iso = photo.localDateString();
-          const zone = timezone.name;
+          const zone = timezone.name || timezone;
 
           return DateTime.fromISO(iso, { zone }).toUTC();
         }

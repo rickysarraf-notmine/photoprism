@@ -29,6 +29,17 @@ export const CountriesTimeZones = () =>
     return tzmap;
   }, {});
 
+export const PreferredTimeZones = () => {
+  return {
+    CL: "America/Santiago",
+    CN: "Asia/Shanghai",
+    ES: "Europe/Madrid",
+    NZ: "Pacific/Auckland",
+    PT: "Europe/Lisbon",
+    UA: "Europe/Zaporozhye",
+  };
+};
+
 export const Days = () => {
   let result = [];
 
