@@ -86,7 +86,7 @@ func UpdateAlbumDates(mode string) error {
 		return UnscopedDb().Exec(fmt.Sprintf(`UPDATE albums
 		INNER JOIN
 			(SELECT photo_path, %s AS taken_date
-			 FROM photos WHERE taken_src = 'meta' AND photos.photo_quality >= 3 AND photos.deleted_at IS NULL
+			 FROM photos WHERE taken_src IN ('meta', 'manual') AND photos.photo_quality >= 3 AND photos.deleted_at IS NULL
 			 GROUP BY photo_path) AS p ON albums.album_path = p.photo_path
 		SET albums.album_year = YEAR(taken_date), albums.album_month = MONTH(taken_date), albums.album_day = DAY(taken_date)
 		WHERE albums.album_type = 'folder' AND albums.album_path IS NOT NULL AND p.taken_date IS NOT NULL`, fmt.Sprintf(f, "taken_at_local"))).Error
