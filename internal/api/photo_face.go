@@ -159,7 +159,15 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 			}
 		}
 
-		PublishPhotoEvent(EntityUpdated, c.Param("uid"), c)
+		// Update photo metadata.
+		if p, err := query.PhotoByUID(file.PhotoUID); err != nil {
+			log.Errorf("markers: %s (find photo))", err)
+		} else if err := p.UpdateAndSaveTitle(); err != nil {
+			log.Errorf("markers: %s (update photo title)", err)
+		} else {
+			// Notify clients.
+			PublishPhotoEvent(EntityUpdated, file.PhotoUID, c)
+		}
 
 		event.Success("added photo face")
 
