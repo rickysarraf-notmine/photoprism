@@ -248,7 +248,7 @@ export default {
       this.$notify.blockUI();
 
       this.model.addFace(marker.Face).then((data) => {
-        this.markers[index] = new Marker(data);
+        this.$set(this.markers, index, new Marker(data));
       }).finally(() => {
         this.$notify.unblockUI();
         this.busy = false;
