@@ -40,6 +40,14 @@ func SharePreview(router *gin.RouterGroup) {
 			return
 		}
 
+		album, err := entity.CachedAlbumByUID(share)
+
+		if err != nil {
+			log.Error(err)
+			c.Redirect(http.StatusTemporaryRedirect, conf.SitePreview())
+			return
+		}
+
 		thumbPath := path.Join(conf.ThumbCachePath(), "share")
 
 		if err := os.MkdirAll(thumbPath, os.ModePerm); err != nil {
@@ -66,7 +74,8 @@ func SharePreview(router *gin.RouterGroup) {
 		var f form.SearchPhotos
 
 		// Covers may only contain public content in shared albums.
-		f.Album = share
+		f.Album = album.AlbumUID
+		f.Filter = album.AlbumFilter
 		f.Public = true
 		f.Private = false
 		f.Hidden = false
