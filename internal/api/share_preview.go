@@ -16,6 +16,7 @@ import (
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/internal/photoprism"
+	"github.com/photoprism/photoprism/internal/query"
 	"github.com/photoprism/photoprism/internal/search"
 	"github.com/photoprism/photoprism/internal/service"
 	"github.com/photoprism/photoprism/internal/thumb"
@@ -36,6 +37,14 @@ func SharePreview(router *gin.RouterGroup) {
 
 		if len(links) != 1 {
 			log.Warn("share: invalid token (preview)")
+			c.Redirect(http.StatusTemporaryRedirect, conf.SitePreview())
+			return
+		}
+
+		album, err := entity.CachedAlbumByUID(share)
+
+		if err != nil {
+			log.Error(err)
 			c.Redirect(http.StatusTemporaryRedirect, conf.SitePreview())
 			return
 		}
@@ -63,10 +72,47 @@ func SharePreview(router *gin.RouterGroup) {
 			return
 		}
 
+		if album.HasThumb() {
+			f, err := query.FileByHash(album.Thumb)
+
+			if err != nil {
+				log.Errorf("share: %s (retrieve thumbnail file for album %s)", err, &album)
+				c.Redirect(http.StatusTemporaryRedirect, conf.SitePreview())
+				return
+			}
+
+			p := f.RelatedPhoto()
+
+			if !p.PhotoPrivate && p.DeletedAt == nil {
+				size, _ := thumb.Sizes[thumb.Fit720]
+
+				fileName := photoprism.FileName(f.FileRoot, f.FileName)
+
+				if !fs.FileExists(fileName) {
+					log.Errorf("share: file %s is missing (thumbnail preview)", clean.Log(f.FileName))
+					c.Redirect(http.StatusTemporaryRedirect, conf.SitePreview())
+					return
+				}
+
+				thumbnail, err := thumb.FromFile(fileName, f.FileHash, conf.ThumbCachePath(), size.Width, size.Height, f.FileOrientation, size.Options...)
+
+				if err != nil {
+					log.Error(err)
+					c.Redirect(http.StatusTemporaryRedirect, conf.SitePreview())
+					return
+				}
+
+				c.File(thumbnail)
+
+				return
+			}
+		}
+
 		var f form.SearchPhotos
 
 		// Covers may only contain public content in shared albums.
-		f.Album = share
+		f.Album = album.AlbumUID
+		f.Filter = album.AlbumFilter
 		f.Public = true
 		f.Private = false
 		f.Hidden = false
@@ -102,7 +148,7 @@ func SharePreview(router *gin.RouterGroup) {
 			fileName := photoprism.FileName(f.FileRoot, f.FileName)
 
 			if !fs.FileExists(fileName) {
-				log.Errorf("share: file %s is missing (preview)", clean.Log(f.FileName))
+				log.Errorf("share: file %s is missing (single file preview)", clean.Log(f.FileName))
 				c.Redirect(http.StatusTemporaryRedirect, conf.SitePreview())
 				return
 			}
@@ -132,7 +178,7 @@ func SharePreview(router *gin.RouterGroup) {
 			fileName := photoprism.FileName(f.FileRoot, f.FileName)
 
 			if !fs.FileExists(fileName) {
-				log.Errorf("share: file %s is missing (preview)", clean.Log(f.FileName))
+				log.Errorf("share: file %s is missing (collage preview)", clean.Log(f.FileName))
 				c.Redirect(http.StatusTemporaryRedirect, conf.SitePreview())
 				return
 			}
