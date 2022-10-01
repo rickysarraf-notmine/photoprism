@@ -23,7 +23,7 @@ import (
 //   uid: string PhotoUID as returned by the API
 func GetPhotoFaces(router *gin.RouterGroup) {
 	router.GET("/photos/:uid/faces", func(c *gin.Context) {
-		s := Auth(SessionID(c), acl.ResourcePhotos, acl.ActionUpdate)
+		s := Auth(SessionID(c), acl.ResourcePhotos, acl.ActionRead)
 
 		if s.Invalid() {
 			AbortUnauthorized(c)
