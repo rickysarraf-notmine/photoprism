@@ -174,9 +174,6 @@ export default {
   created() {
     this.search();
 
-    // Find all used filters to determine the current context (and exclude the sort order).
-    const nonEmptyFilters = Object.keys(this.filter).filter(p => p != "order" && this.filter[p]);
-
     // Supported contexts: label, person, subject
     const supportedTypes = {
       "label": [Label, this.filter.label],
@@ -184,9 +181,13 @@ export default {
       "subject": [Subject, this.filter.subject],
     }
 
-    // If we have encountered one of the supported contexts, we can essentially treat it as an album (even thought it is not).
-    if (nonEmptyFilters.length == 1 && nonEmptyFilters[0] in supportedTypes) {
-      const [Type, filter] = supportedTypes[nonEmptyFilters[0]];
+    // Find all used filters to determine the current context (and exclude the sort order).
+    const activeFilters = Object.keys(this.filter).filter(p => this.filter[p] && p in supportedTypes);
+
+    // If we have encountered only one of the supported contexts,
+    // we can essentially treat the current view as an album (even thought it is not).
+    if (activeFilters.length == 1) {
+      const [Type, filter] = supportedTypes[activeFilters[0]];
 
       Type.search({q: filter, count: 1}).then(response => this.labelOrSubjectAlbum = response.models[0]);
     }
