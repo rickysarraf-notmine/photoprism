@@ -17,7 +17,7 @@
 
           <button class="pswp__button pswp__button--close action-close" :title="$gettext('Close')"></button>
 
-          <button v-if="config.settings.features.download" class="pswp__button action-download" style="background: none;"
+          <button v-if="canDownload" class="pswp__button action-download" style="background: none;"
                   :title="$gettext('Download')" @click.exact="onDownload">
             <v-icon size="16" color="white">get_app</v-icon>
           </button>
@@ -27,7 +27,7 @@
             <v-icon size="16" color="white">share</v-icon>
           </button>
 
-          <button class="pswp__button action-edit hidden-shared-only" style="background: none;" :title="$gettext('Edit')"
+          <button v-if="canEdit" class="pswp__button action-edit hidden-shared-only" style="background: none;" :title="$gettext('Edit')"
                   @click.exact="onEdit">
             <v-icon size="16" color="white">edit</v-icon>
           </button>
@@ -38,7 +38,7 @@
             <v-icon v-else size="16" color="white">radio_button_off</v-icon>
           </button>
 
-          <button class="pswp__button action-like hidden-shared-only" style="background: none;"
+          <button v-if="canLike" class="pswp__button action-like hidden-shared-only" style="background: none;"
                   :title="$gettext('Like')" @click.exact="onLike">
             <v-icon v-if="item.Favorite" size="16" color="white">favorite</v-icon>
             <v-icon v-else size="16" color="white">favorite_border</v-icon>
@@ -101,6 +101,9 @@ export default {
   name: "PPhotoViewer",
   data() {
     return {
+      canEdit: this.$config.allow("photos", "update") && this.$config.feature("edit"),
+      canLike: this.$config.allow("photos", "manage") && this.$config.feature("favorites"),
+      canDownload: this.$config.allow("photos", "download") && this.$config.feature("download"),
       selection: this.$clipboard.selection,
       config: this.$config.values,
       navigatorCanShare: navigator.canShare,

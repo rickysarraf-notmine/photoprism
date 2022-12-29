@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"runtime/debug"
 	"strconv"
+	"time"
 
 	jpegstructure "github.com/dsoprea/go-jpeg-image-structure/v2"
 
@@ -95,8 +96,11 @@ func (data *Data) XMP(fileName string, fileType fs.Type) (err error) {
 		data.LensModel = doc.LensModel()
 	}
 
-	if takenAt := doc.TakenAt(); !takenAt.IsZero() {
-		data.TakenAt = takenAt
+	if takenAt := doc.TakenAt(data.TimeZone); !takenAt.IsZero() {
+		data.TakenAt = takenAt.UTC()
+		if data.TimeZone == "" {
+			data.TimeZone = time.UTC.String()
+		}
 	}
 
 	if len(doc.Keywords()) != 0 {

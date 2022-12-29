@@ -442,7 +442,7 @@ describe("model/photo", () => {
   });
 
   it("should return batch size", () => {
-    assert.equal(Photo.batchSize(), 60);
+    assert.equal(Photo.batchSize(), 90);
   });
 
   it("should get model name", () => {

@@ -21,9 +21,10 @@ func AlbumByUID(albumUID string) (album entity.Album, err error) {
 }
 
 // AlbumCoverByUID returns an album cover file based on the uid.
-func AlbumCoverByUID(uid string) (file entity.File, err error) {
+func AlbumCoverByUID(uid string, public bool) (file entity.File, err error) {
 	a := entity.Album{}
 
+	// Find album.
 	if a, err = AlbumByUID(uid); err != nil {
 		return file, err
 	} else if a.AlbumType != entity.AlbumDefault || a.AlbumFilter != "" { // TODO: Optimize
@@ -31,6 +32,11 @@ func AlbumCoverByUID(uid string) (file entity.File, err error) {
 
 		if err = f.ParseQueryString(); err != nil {
 			return file, err
+		}
+
+		// Public private only?
+		if !public {
+			f.Public = false
 		}
 
 		if photos, _, err := search.Photos(f); err != nil {
@@ -48,11 +54,19 @@ func AlbumCoverByUID(uid string) (file entity.File, err error) {
 		return file, fmt.Errorf("no cover found")
 	}
 
-	if err := Db().Where("files.file_primary = 1 AND files.file_missing = 0 AND files.file_type = 'jpg' AND files.deleted_at IS NULL").
+	// Build query.
+	stmt := Db().Where("files.file_primary = 1 AND files.file_missing = 0 AND files.file_type = 'jpg' AND files.deleted_at IS NULL").
 		Joins("JOIN albums ON albums.album_uid = ?", uid).
 		Joins("JOIN photos_albums pa ON pa.album_uid = albums.album_uid AND pa.photo_uid = files.photo_uid AND pa.hidden = 0").
-		Joins("JOIN photos ON photos.id = files.photo_id AND photos.photo_private = 0 AND photos.deleted_at IS NULL").
-		Order("photos.photo_quality DESC, photos.taken_at DESC").
+		Joins("JOIN photos ON photos.id = files.photo_id AND photos.deleted_at IS NULL")
+
+	// Public pictures only?
+	if public {
+		stmt = stmt.Where("photos.photo_private = 0")
+	}
+
+	// Find first picture.
+	if err := stmt.Order("photos.photo_quality DESC, photos.taken_at DESC").
 		First(&file).Error; err != nil {
 		return file, err
 	}
@@ -60,7 +74,7 @@ func AlbumCoverByUID(uid string) (file entity.File, err error) {
 	return file, nil
 }
 
-// UpdateAlbumDates updates album year, month and day based on indexed photo metadata.
+// UpdateAlbumDates updates the year, month and day of the album based on the indexed photo metadata.
 func UpdateAlbumDates(mode string) error {
 	mutex.Index.Lock()
 	defer mutex.Index.Unlock()

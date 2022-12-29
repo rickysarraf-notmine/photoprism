@@ -10,15 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/photoprism/photoprism/pkg/video"
-
-	"github.com/photoprism/photoprism/pkg/projection"
-
-	"github.com/photoprism/photoprism/pkg/clean"
-	"github.com/photoprism/photoprism/pkg/rnd"
-	"github.com/photoprism/photoprism/pkg/txt"
 	"github.com/tidwall/gjson"
 	"gopkg.in/photoprism/go-tz.v2/tz"
+
+	"github.com/photoprism/photoprism/pkg/clean"
+	"github.com/photoprism/photoprism/pkg/projection"
+	"github.com/photoprism/photoprism/pkg/rnd"
+	"github.com/photoprism/photoprism/pkg/txt"
+	"github.com/photoprism/photoprism/pkg/video"
 )
 
 const MimeVideoMP4 = "video/mp4"
@@ -135,22 +134,22 @@ func (data *Data) Exiftool(jsonData []byte, originalName string) (err error) {
 				}
 			case []string:
 				existing := fieldValue.Interface().([]string)
-				fieldValue.Set(reflect.ValueOf(txt.AddToWords(existing, strings.TrimSpace(jsonValue.String()))))
+				fieldValue.Set(reflect.ValueOf(txt.AddToWords(existing, SanitizeUnicode(jsonValue.String()))))
 			case Keywords:
 				existing := fieldValue.Interface().(Keywords)
-				fieldValue.Set(reflect.ValueOf(txt.AddToWords(existing, strings.TrimSpace(jsonValue.String()))))
+				fieldValue.Set(reflect.ValueOf(txt.AddToWords(existing, SanitizeUnicode(jsonValue.String()))))
 			case projection.Type:
 				if !fieldValue.IsZero() {
 					continue
 				}
 
-				fieldValue.Set(reflect.ValueOf(projection.Type(strings.TrimSpace(jsonValue.String()))))
+				fieldValue.Set(reflect.ValueOf(projection.Type(SanitizeUnicode(jsonValue.String()))))
 			case string:
 				if !fieldValue.IsZero() {
 					continue
 				}
 
-				fieldValue.SetString(strings.TrimSpace(jsonValue.String()))
+				fieldValue.SetString(SanitizeUnicode(jsonValue.String()))
 			case bool:
 				if !fieldValue.IsZero() {
 					continue
@@ -195,10 +194,10 @@ func (data *Data) Exiftool(jsonData []byte, originalName string) (err error) {
 	// Set latitude and longitude if known and not already set.
 	if data.Lat == 0 && data.Lng == 0 {
 		if data.GPSPosition != "" {
-			data.Lat, data.Lng = GpsToLatLng(data.GPSPosition)
+			lat, lng := GpsToLatLng(data.GPSPosition)
+			data.Lat, data.Lng = NormalizeGPS(lat, lng)
 		} else if data.GPSLatitude != "" && data.GPSLongitude != "" {
-			data.Lat = GpsToDecimal(data.GPSLatitude)
-			data.Lng = GpsToDecimal(data.GPSLongitude)
+			data.Lat, data.Lng = NormalizeGPS(GpsToDecimal(data.GPSLatitude), GpsToDecimal(data.GPSLongitude))
 		}
 	}
 

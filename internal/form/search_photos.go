@@ -2,13 +2,17 @@ package form
 
 import (
 	"time"
+
+	"github.com/photoprism/photoprism/pkg/fs"
 )
 
 // SearchPhotos represents search form fields for "/api/v1/photos".
 type SearchPhotos struct {
 	Query     string    `form:"q"`
-	Filter    string    `form:"filter" notes:"-" serialize:"-"`
-	UID       string    `form:"uid" example:"uid:pqbcf5j446s0futy" notes:"Internal Unique ID, only exact matches"`
+	Scope     string    `form:"s" serialize:"-" example:"s:ariqwb43p5dh9h13" notes:"Limits the results to one album or another scope, if specified"`
+	Filter    string    `form:"filter" serialize:"-" notes:"-"`
+	ID        string    `form:"id" example:"id:123e4567-e89b-..." notes:"Finds pictures by Exif UID, XMP Document ID or Instance ID"`
+	UID       string    `form:"uid" example:"uid:pqbcf5j446s0futy" notes:"Limits results to the specified internal unique IDs"`
 	Type      string    `form:"type" example:"type:raw" notes:"Media Type (image, video, raw, live, animated); OR search with |"`
 	Path      string    `form:"path" example:"path:2020/Holiday" notes:"Path Name, OR search with |, supports * wildcards"`
 	Folder    string    `form:"folder" example:"folder:\"*/2020\"" notes:"Path Name, OR search with |, supports * wildcards"` // Alias for Path
@@ -121,6 +125,11 @@ func (f *SearchPhotos) ParseQueryString() error {
 		f.People = ""
 	}
 
+	// Strip file extensions if any.
+	if f.Name != "" {
+		f.Name = fs.StripKnownExt(f.Name)
+	}
+
 	return nil
 }
 
@@ -134,6 +143,11 @@ func (f *SearchPhotos) SerializeAll() string {
 	return Serialize(f, true)
 }
 
-func NewPhotoSearch(query string) SearchPhotos {
+// FindUidOnly checks if search filters other than UID may be skipped to improve performance.
+func (f *SearchPhotos) FindUidOnly() bool {
+	return f.UID != "" && f.Query == "" && f.Scope == "" && f.Filter == "" && f.Album == "" && f.Albums == ""
+}
+
+func NewSearchPhotos(query string) SearchPhotos {
 	return SearchPhotos{Query: query}
 }

@@ -117,6 +117,10 @@ export const Languages = () => [
     value: "en",
   },
   {
+    text: "Afrikaans", // Afrikaans (South Africa)
+    value: "af",
+  },
+  {
     text: "Bahasa Indonesia", // Bahasa Indonesia
     value: "id",
   },
@@ -135,6 +139,10 @@ export const Languages = () => [
   {
     text: "Deutsch", // German
     value: "de",
+  },
+  {
+    text: "Eesti", // Estonian
+    value: "et",
   },
   {
     text: "Español", // Spanish
@@ -244,7 +252,7 @@ export const Languages = () => [
     value: "zh",
   },
   {
-    text: "繁体中文", // Chinese (Traditional)
+    text: "繁體中文", // Chinese (Traditional)
     value: "zh_TW",
   },
   {
@@ -262,6 +270,11 @@ export const Languages = () => [
   {
     text: "ภาษาไทย", // Thai
     value: "th",
+  },
+  {
+    text: "فارسی", // Persian
+    value: "fa",
+    rtl: true,
   },
 ];
 
@@ -367,7 +380,11 @@ export const MapsAnimate = () => [
 
 export const MapsStyle = () => [
   {
-    text: $gettext("Offline"),
+    text: $gettext("Default"),
+    value: "",
+  },
+  {
+    text: $gettext("Low Resolution"),
     value: "offline",
   },
   {
@@ -376,18 +393,18 @@ export const MapsStyle = () => [
     sponsor: true,
   },
   {
-    text: $gettext("Hybrid"),
+    text: $gettext("Satellite"),
     value: "hybrid",
-    sponsor: true,
-  },
-  {
-    text: $gettext("Topographic"),
-    value: "topographique",
     sponsor: true,
   },
   {
     text: $gettext("Outdoor"),
     value: "outdoor",
+    sponsor: true,
+  },
+  {
+    text: $gettext("Topographic"),
+    value: "topographique",
     sponsor: true,
   },
 ];
@@ -519,4 +536,10 @@ export const ThumbFilters = () => [
   { value: "lanczos", text: $gettext("Lanczos: Detail Preservation, Minimal Artifacts") },
   { value: "cubic", text: $gettext("Cubic: Moderate Quality, Good Performance") },
   { value: "linear", text: $gettext("Linear: Very Smooth, Best Performance") },
+];
+
+export const Gender = () => [
+  { value: "male", text: $gettext("Male") },
+  { value: "female", text: $gettext("Female") },
+  { value: "other", text: $gettext("Other") },
 ];

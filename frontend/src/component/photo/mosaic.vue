@@ -38,14 +38,17 @@
          re-layout all elements in the list when the children of one of them changes
         -->
         <div class="image-container">
-          <div v-if="index < firstVisibleElementIndex || index > lastVisibileElementIndex" class="accent lighten-2 result image" />
+          <div v-if="index < firstVisibleElementIndex || index > lastVisibileElementIndex"
+               :data-uid="photo.UID"
+               class="card darken-1 result image"
+          />
           <div  v-else
                 :key="photo.Hash"
                 tile
                 :data-id="photo.ID"
                 :data-uid="photo.UID"
                 :style="`background-image: url(${photo.thumbnailUrl('tile_224')})`"
-                :class="photo.classes().join(' ') + ' accent lighten-2 result clickable image'"
+                :class="photo.classes().join(' ') + ' card darken-1 result clickable image'"
                 :alt="photo.Title"
                 :title="photo.Title"
                 @contextmenu.stop="onContextMenu($event, index)"

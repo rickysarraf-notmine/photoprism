@@ -2,6 +2,7 @@ package entity
 
 import (
 	"github.com/photoprism/photoprism/pkg/media"
+	"github.com/sirupsen/logrus"
 )
 
 // Default values.
@@ -52,10 +53,18 @@ const (
 	IsUnstacked int8 = -1
 )
 
+// Authentication providers.
+const (
+	ProviderNone     = ""
+	ProviderPassword = "password"
+)
+
 // Sort options.
 const (
 	SortOrderDefault   = ""
 	SortOrderRelevance = "relevance"
+	SortOrderDuration  = "duration"
+	SortOrderSize      = "size"
 	SortOrderCount     = "count"
 	SortOrderAdded     = "added"
 	SortOrderImported  = "imported"
@@ -78,4 +87,15 @@ const (
 	DateModeLast    = "last"
 	DateModeFirst   = "first"
 	DateModeAverage = "average"
+)
+
+// Log levels.
+const (
+	PanicLevel logrus.Level = iota
+	FatalLevel
+	ErrorLevel
+	WarnLevel
+	InfoLevel
+	DebugLevel
+	TraceLevel
 )

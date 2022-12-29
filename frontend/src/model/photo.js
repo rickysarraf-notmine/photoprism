@@ -87,7 +87,7 @@ export const DATE_FULL_TZ = {
   timeZoneName: short,
 };
 
-export let BatchSize = 60;
+export let BatchSize = 120;
 
 export class Photo extends RestModel {
   constructor(values) {
@@ -514,10 +514,10 @@ export class Photo extends RestModel {
         videoFormat = FormatWebM;
       }
 
-      return `${config.apiUri}/videos/${file.Hash}/${config.previewToken()}/${videoFormat}`;
+      return `${config.apiUri}/videos/${file.Hash}/${config.previewToken}/${videoFormat}`;
     }
 
-    return `${config.apiUri}/videos/${this.Hash}/${config.previewToken()}/${FormatAvc}`;
+    return `${config.apiUri}/videos/${this.Hash}/${config.previewToken}/${FormatAvc}`;
   }
 
   mainFile() {
@@ -591,7 +591,7 @@ export class Photo extends RestModel {
       this.mainFileHash(),
       this.videoFile(),
       config.contentUri,
-      config.previewToken(),
+      config.previewToken,
       size
     );
   }
@@ -611,7 +611,7 @@ export class Photo extends RestModel {
   });
 
   getDownloadUrl() {
-    return `${config.apiUri}/dl/${this.mainFileHash()}?t=${config.downloadToken()}`;
+    return `${config.apiUri}/dl/${this.mainFileHash()}?t=${config.downloadToken}`;
   }
 
   downloadAll() {
@@ -622,7 +622,7 @@ export class Photo extends RestModel {
       return;
     }
 
-    const token = config.downloadToken();
+    const token = config.downloadToken;
 
     if (!this.Files) {
       const hash = this.mainFileHash();

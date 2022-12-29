@@ -23,7 +23,7 @@
         </template>
 
         <v-btn
-            v-if="context !== 'archive' && context !== 'review' && features.share" fab dark
+            v-if="canShare && context !== 'archive' && context !== 'review'" fab dark
             small
             :title="$gettext('Share')"
             color="share"
@@ -47,7 +47,7 @@
         </v-btn>
 
         <v-btn
-            v-if="context === 'review'" fab dark
+            v-if="canManage && context === 'review'" fab dark
             small
             :title="$gettext('Approve')"
             color="share"
@@ -58,7 +58,7 @@
           <v-icon>check</v-icon>
         </v-btn>
         <v-btn
-            v-if="context !== 'archive' && features.edit" fab dark
+            v-if="canEdit" fab dark
             small
             :title="$gettext('Edit')"
             color="edit"
@@ -69,7 +69,7 @@
           <v-icon>edit</v-icon>
         </v-btn>
         <v-btn
-            v-if="context !== 'archive' && features.private" fab dark
+            v-if="canTogglePrivate" fab dark
             small
             :title="$gettext('Change private flag')"
             color="private"
@@ -80,7 +80,7 @@
           <v-icon>lock</v-icon>
         </v-btn>
         <v-btn
-            v-if="context !== 'archive' && features.download" fab dark
+            v-if="canDownload && context !== 'archive'" fab dark
             small
             :title="$gettext('Download')"
             :disabled="busy"
@@ -91,7 +91,7 @@
           <v-icon>get_app</v-icon>
         </v-btn>
         <v-btn
-            v-if="context !== 'archive' && features.albums" fab dark
+            v-if="canEditAlbum && context !== 'archive'" fab dark
             small
             :title="$gettext('Add to album')"
             color="album"
@@ -102,7 +102,7 @@
           <v-icon>bookmark</v-icon>
         </v-btn>
         <v-btn
-            v-if="!isAlbum && context !== 'archive' && features.archive" fab dark
+            v-if="canArchive && !isAlbum && context !== 'archive'" fab dark
             small
             color="remove"
             :title="$gettext('Archive')"
@@ -113,7 +113,7 @@
           <v-icon>archive</v-icon>
         </v-btn>
         <v-btn
-            v-if="!album && context === 'archive'" fab dark
+            v-if="canArchive && !album && context === 'archive'" fab dark
             small
             color="restore"
             :title="$gettext('Restore')"
@@ -124,7 +124,7 @@
           <v-icon>unarchive</v-icon>
         </v-btn>
         <v-btn
-            v-if="isAlbum && features.albums" fab dark
+            v-if="canEditAlbum && isAlbum" fab dark
             small
             :title="$gettext('Remove from album')"
             color="remove"
@@ -146,7 +146,7 @@
           <v-icon>insert_photo</v-icon>
         </v-btn>
         <v-btn
-            v-if="!album && context === 'archive' && features.delete" fab dark
+            v-if="canDelete && !album && context === 'archive'" fab dark
             small
             :title="$gettext('Delete')"
             color="remove"
@@ -207,10 +207,19 @@ export default {
     },
   },
   data() {
+    const features = this.$config.settings().features;
+
     return {
+      canTogglePrivate: this.$config.allow("photos", "manage") && this.context !== 'archive' && features.private,
+      canArchive: this.$config.allow("photos", "delete") && features.archive,
+      canDelete: this.$config.allow("photos", "delete") && features.delete,
+      canDownload: this.$config.allow("photos", "download") && features.download,
+      canShare: this.$config.allow("photos", "share") && features.share,
+      canManage: this.$config.allow("photos", "manage") && features.albums,
+      canEdit: this.$config.allow("photos", "update") && features.edit,
+      canEditAlbum: this.$config.allow("albums", "update") && features.albums,
       busy: false,
       config: this.$config.values,
-      features: this.$config.settings().features,
       expanded: false,
       isAlbum: this.album && this.album.Type === 'album',
       navigatorCanShare: navigator.canShare,
@@ -229,7 +238,7 @@ export default {
       this.expanded = false;
     },
     batchApprove() {
-      if (this.busy) {
+      if (this.busy || !this.canManage) {
         return;
       }
 
@@ -246,14 +255,18 @@ export default {
       this.clearClipboard();
     },
     archivePhotos() {
-      if (!this.features.delete) {
+      if (!this.canArchive) {
+        return;
+      }
+
+      if (!this.canDelete) {
         this.dialog.archive = true;
       } else {
         this.batchArchive();
       }
     },
     batchArchive() {
-      if (this.busy) {
+      if (this.busy || !this.canArchive) {
         return;
       }
 
@@ -271,9 +284,17 @@ export default {
       this.clearClipboard();
     },
     deletePhotos() {
+      if (!this.canDelete) {
+        return;
+      }
+
       this.dialog.delete = true;
     },
     batchDelete() {
+      if (!this.canDelete) {
+        return;
+      }
+
       this.dialog.delete = false;
 
       Api.post("batch/photos/delete", {"photos": this.selection}).then(() => this.onDeleted());
@@ -296,7 +317,7 @@ export default {
       this.clearClipboard();
     },
     addToAlbum(ppid) {
-      if (!ppid) {
+      if (!ppid || !this.canManage) {
         return;
       }
 
@@ -322,7 +343,7 @@ export default {
         return;
       }
 
-      if (this.busy) {
+      if (this.busy || !this.canManage) {
         return;
       }
 
@@ -342,7 +363,7 @@ export default {
       this.clearClipboard();
     },
     download() {
-      if (this.busy) {
+      if (this.busy || !this.canDownload) {
         return;
       }
 
@@ -362,7 +383,7 @@ export default {
         default:
           Api.post("zip", {"photos": this.selection})
             .then(r => {
-              this.onDownload(`${this.$config.apiUri}/zip/${r.data.filename}?t=${this.$config.downloadToken()}`);
+              this.onDownload(`${this.$config.apiUri}/zip/${r.data.filename}?t=${this.$config.downloadToken}`);
             })
             .finally(() => {
               this.busy = false;
