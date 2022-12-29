@@ -70,6 +70,7 @@ require (
 )
 
 require github.com/gabriel-vasile/mimetype v1.4.1
+
 require github.com/sethgrid/pester v1.1.0
 
 require (
@@ -126,6 +127,7 @@ require (
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
+	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/jarcoal/httpmock v1.0.8 // indirect
@@ -135,7 +137,6 @@ require (
 	github.com/mandykoh/go-parallel v0.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
