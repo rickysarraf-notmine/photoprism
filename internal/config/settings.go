@@ -11,12 +11,6 @@ import (
 func (c *Config) initSettings() {
 	if c.settings != nil {
 		return
-	Folders   FoldersSettings  `json:"folders" yaml:"Folders"`
-			Homepage:  "/all",
-		},
-		Folders: FoldersSettings{
-			DateMode:  entity.DateModeLast,
-			SortOrder: entity.SortOrderAdded,
 	}
 
 	// Create settings struct.
