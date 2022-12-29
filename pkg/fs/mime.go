@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/h2non/filetype"
 )
 
 const (
