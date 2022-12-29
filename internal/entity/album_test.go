@@ -221,7 +221,7 @@ func TestAddPhotoToAlbums(t *testing.T) {
 
 func TestNewFolderAlbum(t *testing.T) {
 	t.Run("name Christmas 2018", func(t *testing.T) {
-		album := NewFolderAlbum("Dogs", "dogs", "label:dog", "added")
+		album := NewFolderAlbum("Dogs", "dogs", "label:dog")
 		assert.Equal(t, "Dogs", album.AlbumTitle)
 		assert.Equal(t, "dogs", album.AlbumSlug)
 		assert.Equal(t, AlbumFolder, album.AlbumType)
@@ -229,7 +229,7 @@ func TestNewFolderAlbum(t *testing.T) {
 		assert.Equal(t, "label:dog", album.AlbumFilter)
 	})
 	t.Run("title empty", func(t *testing.T) {
-		album := NewFolderAlbum("", "dogs", "label:dog", "")
+		album := NewFolderAlbum("", "dogs", "label:dog")
 		assert.Nil(t, album)
 	})
 }

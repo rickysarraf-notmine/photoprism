@@ -49,11 +49,6 @@ func (imp *Import) thumbPath() string {
 	return imp.conf.ThumbCachePath()
 }
 
-// foldersSortOrder returns the configured default sort order for folders
-func (imp *Import) foldersSortOrder() string {
-	return imp.conf.Settings().Folders.SortOrder
-}
-
 // Start imports media files from a directory and converts/indexes them as needed.
 func (imp *Import) Start(opt ImportOptions) fs.Done {
 	defer func() {
@@ -150,7 +145,7 @@ func (imp *Import) Start(opt ImportOptions) fs.Done {
 					directories = append(directories, fileName)
 				}
 
-				folder := entity.NewFolder(entity.RootImport, fs.RelName(fileName, imp.conf.ImportPath()), fs.BirthTime(fileName), imp.foldersSortOrder())
+				folder := entity.NewFolder(entity.RootImport, fs.RelName(fileName, imp.conf.ImportPath()), fs.BirthTime(fileName))
 
 				if err := folder.Create(); err == nil {
 					log.Infof("import: added folder /%s", folder.Path)

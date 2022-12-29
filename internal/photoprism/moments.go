@@ -113,7 +113,7 @@ func (w *Moments) Start() (err error) {
 
 				// Restore the album if it has been automatically deleted.
 				restoreAlbum(a)
-			} else if a := entity.NewFolderAlbum(mom.Title(), mom.Path, f.Serialize(), w.conf.Settings().Folders.SortOrder); a != nil {
+			} else if a := entity.NewFolderAlbum(mom.Title(), mom.Path, f.Serialize()); a != nil {
 				a.AlbumYear = mom.FolderYear
 				a.AlbumMonth = mom.FolderMonth
 				a.AlbumDay = mom.FolderDay
@@ -212,44 +212,39 @@ func (w *Moments) Start() (err error) {
 	}
 
 	// Countries totals.
-	if results, err := query.MomentsCountries(threshold); err != nil {
+	if results, err := query.MomentsCountries(threshold, w.conf.Settings().Features.Private); err != nil {
 		log.Errorf("moments: %s", err.Error())
 	} else {
-		emptyAlbums := make(map[string]entity.Album)
-		for _, a := range entity.FindAlbumsByType(entity.AlbumCountry) {
-			emptyAlbums[a.AlbumUID] = a
-		}
-
 		for _, mom := range results {
-			f := form.SearchPhotos{
-				Country: mom.Country,
-				Public:  true,
-			}
+                        f := form.SearchPhotos{
+                                Country: mom.Country,
+                                State:   mom.State,
+                                Public:  true,
+                        }
 
-			if a, err := entity.FindAlbumBySlug(mom.Slug(), entity.AlbumCountry); err == nil {
-				if err := a.UpdateSlug(mom.Title(), mom.Slug()); err != nil {
-					log.Errorf("moments: %s (update slug)", err.Error())
-				}
+                        if a := entity.FindAlbumByAttr(S{mom.Slug(), mom.TitleSlug()}, S{f.Serialize()}, entity.AlbumState); a != nil {
+                                if err := a.UpdateState(mom.Title(), mom.Slug(), mom.State, mom.Country); err != nil {
+                                        log.Errorf("moments: %s (update state)", err.Error())
+                                }
 
-				// Mark the album as non-empty to prevent deletion.
-				delete(emptyAlbums, a.AlbumUID)
-				log.Infof("moments: country album %s is not empty, has %d photos", clean.Log(a.AlbumTitle), mom.PhotoCount)
+                                if !a.Deleted() {
+                                        log.Tracef("moments: %s already exists (%s)", clean.Log(a.AlbumTitle), a.AlbumFilter)
+                                } else if err := a.Restore(); err != nil {
+                                        log.Errorf("moments: %s (restore state)", err.Error())
+                                } else {
+                                        log.Infof("moments: %s restored", clean.Log(a.AlbumTitle))
+                                }
+                        } else if a := entity.NewStateAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
+                                a.AlbumLocation = mom.CountryName()
+                                a.AlbumCountry = mom.Country
+                                a.AlbumState = mom.State
 
-				// Restore the album if it has been automatically deleted.
-				restoreAlbum(a)
-			} else if a := entity.NewCountryAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
-				a.AlbumCountry = mom.Country
-
-				if err := a.Create(); err != nil {
-					log.Errorf("moments: %s", err)
-				} else {
-					log.Infof("moments: added %s (%s)", clean.Log(a.AlbumTitle), a.AlbumFilter)
-				}
-			}
-		}
-
-		for _, album := range emptyAlbums {
-			deleteAlbumIfEmpty(album)
+                                if err := a.Create(); err != nil {
+                                        log.Errorf("moments: %s", err)
+                                } else {
+                                        log.Infof("moments: added %s (%s)", clean.Log(a.AlbumTitle), a.AlbumFilter)
+                                }
+                        }
 		}
 	}
 
@@ -356,7 +351,7 @@ func (w *Moments) Start() (err error) {
 	}
 
 	// UpdateAlbumDates updates the year, month and day of the album based on the indexed photo metadata.
-	if err := query.UpdateAlbumDates(w.conf.Settings().Folders.DateMode); err != nil {
+	if err := query.UpdateAlbumDates(); err != nil {
 		log.Errorf("moments: %s (update album dates)", err.Error())
 	}
 

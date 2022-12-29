@@ -161,7 +161,7 @@ func NewUserAlbum(albumTitle, albumType, userUid string) *Album {
 }
 
 // NewFolderAlbum creates a new folder album.
-func NewFolderAlbum(albumTitle, albumPath, albumFilter string, albumSortOrder string) *Album {
+func NewFolderAlbum(albumTitle, albumPath, albumFilter string) *Album {
 	albumSlug := txt.Slug(albumPath)
 
 	if albumTitle == "" || albumSlug == "" || albumPath == "" || albumFilter == "" {
@@ -171,7 +171,7 @@ func NewFolderAlbum(albumTitle, albumPath, albumFilter string, albumSortOrder st
 	now := TimeStamp()
 
 	result := &Album{
-		AlbumOrder:  albumSortOrder,
+		AlbumOrder:  SortOrderAdded,
 		AlbumType:   AlbumFolder,
 		AlbumSlug:   txt.Clip(albumSlug, txt.ClipSlug),
 		AlbumPath:   txt.Clip(albumPath, txt.ClipPath),

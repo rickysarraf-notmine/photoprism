@@ -75,38 +75,22 @@ func AlbumCoverByUID(uid string, public bool) (file entity.File, err error) {
 }
 
 // UpdateAlbumDates updates the year, month and day of the album based on the indexed photo metadata.
-func UpdateAlbumDates(mode string) error {
-	mutex.Index.Lock()
-	defer mutex.Index.Unlock()
+func UpdateAlbumDates() error {
+        mutex.Index.Lock()
+        defer mutex.Index.Unlock()
 
-	var f string
-
-	switch mode {
-	case entity.DateModeFirst:
-		f = "MIN(%s)"
-		break
-	case entity.DateModeLast:
-		f = "MAX(%s)"
-		break
-	case entity.DateModeAverage:
-		f = "FROM_UNIXTIME(AVG(UNIX_TIMESTAMP(%s)))"
-		break
-	default:
-		return fmt.Errorf("invalid album date mode %s", mode)
-	}
-
-	switch DbDialect() {
-	case MySQL:
-		return UnscopedDb().Exec(fmt.Sprintf(`UPDATE albums
-		INNER JOIN
-			(SELECT photo_path, %s AS taken_date
-			 FROM photos WHERE taken_src IN ('meta', 'manual') AND photos.photo_quality >= 3 AND photos.deleted_at IS NULL
-			 GROUP BY photo_path) AS p ON albums.album_path = p.photo_path
-		SET albums.album_year = YEAR(taken_date), albums.album_month = MONTH(taken_date), albums.album_day = DAY(taken_date)
-		WHERE albums.album_type = 'folder' AND albums.album_path IS NOT NULL AND p.taken_date IS NOT NULL`, fmt.Sprintf(f, "taken_at_local"))).Error
-	default:
-		return nil
-	}
+        switch DbDialect() {
+        case MySQL:
+                return UnscopedDb().Exec(`UPDATE albums
+                INNER JOIN
+                        (SELECT photo_path, MAX(taken_at_local) AS taken_max
+                         FROM photos WHERE taken_src = 'meta' AND photos.photo_quality >= 3 AND photos.deleted_at IS NULL
+                         GROUP BY photo_path) AS p ON albums.album_path = p.photo_path
+                SET albums.album_year = YEAR(taken_max), albums.album_month = MONTH(taken_max), albums.album_day = DAY(taken_max)
+                WHERE albums.album_type = 'folder' AND albums.album_path IS NOT NULL AND p.taken_max IS NOT NULL`).Error
+        default:
+                return nil
+        }
 }
 
 // UpdateMissingAlbumEntries sets a flag for missing photo album entries.
