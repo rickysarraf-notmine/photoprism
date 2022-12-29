@@ -14,7 +14,7 @@ import (
 
 	"github.com/photoprism/photoprism/internal/photoprism"
 	"github.com/photoprism/photoprism/internal/query"
-	"github.com/photoprism/photoprism/internal/service"
+	"github.com/photoprism/photoprism/internal/get"
 )
 
 // GET /api/v1/photos/:uid/faces
@@ -37,7 +37,7 @@ func GetPhotoFaces(router *gin.RouterGroup) {
 			return
 		}
 
-		conf := service.Config()
+		conf := get.Config()
 		faces, err := face.DetectAll(photoprism.FileName(f.FileRoot, f.FileName), conf.FaceSize())
 
 		if err != nil {
@@ -85,7 +85,7 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 		}
 
 		// Calculate the embeddings vector for the given face region.
-		net := service.FaceNet()
+		net := get.FaceNet()
 		embeddings, err := net.Embeddings(photoprism.FileName(file.FileRoot, file.FileName), f)
 
 		if err != nil {
