@@ -180,11 +180,11 @@ func (c *Convert) JpegConvertCommands(f *MediaFile, jpegName string, xmpName str
 
 		// If possible, do not use the first frames to avoid completely black or white thumbnails in case there is an effect or intro.
 		if d > time.Minute {
-			result = append(result, exec.Command(c.conf.FFmpegBin(), "-y", "-i", f.FileName(), "-ss", "00:00:09.000", "-vframes", "1", jpegName))
+			result = append(result, exec.Command(c.conf.FFmpegBin(), "-y", "-i", f.FileName(), "-ss", "00:00:09.000", "-vframes", "1", "-map", "0:v", jpegName))
 		} else if d > LivePhotoDurationLimit {
-			result = append(result, exec.Command(c.conf.FFmpegBin(), "-y", "-i", f.FileName(), "-ss", "00:00:03.000", "-vframes", "1", jpegName))
+			result = append(result, exec.Command(c.conf.FFmpegBin(), "-y", "-i", f.FileName(), "-ss", "00:00:03.000", "-vframes", "1", "-map", "0:v", jpegName))
 		} else {
-			result = append(result, exec.Command(c.conf.FFmpegBin(), "-y", "-i", f.FileName(), "-ss", "00:00:00.001", "-vframes", "1", jpegName))
+			result = append(result, exec.Command(c.conf.FFmpegBin(), "-y", "-i", f.FileName(), "-ss", "00:00:00.001", "-vframes", "1", "-map", "0:v", jpegName))
 		}
 	}
 
