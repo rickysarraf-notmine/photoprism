@@ -161,7 +161,6 @@ func TestFolder_Updates(t *testing.T) {
 
 		assert.Equal(t, "oldRoot", folder.Root)
 		assert.Equal(t, "oldPath", folder.Path)
-		assert.Equal(t, SortOrderNewest, folder.FolderOrder)
 
 		err := folder.Updates(Folder{Root: "newRoot", Path: "newPath"})
 

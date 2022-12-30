@@ -3,12 +3,8 @@ UI:
   Zoom: false
   Theme: onyx
   Language: de
-  Homepage: /all
 Search:
   BatchSize: 0
-Folders:
-  DateMode: last
-  SortOrder: added
 Maps:
   Animate: 0
   Style: streets
