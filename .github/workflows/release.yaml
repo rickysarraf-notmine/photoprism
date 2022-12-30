@@ -10,7 +10,7 @@ on:
 
 env:
   TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || 'preview' }}
-  DOCKER_REPO: kvalev/photoprism
+  DOCKER_REPO: rickysarraf/photoprism
 
 jobs:
   docker:
