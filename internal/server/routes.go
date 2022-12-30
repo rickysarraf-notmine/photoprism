@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/gin-contrib/expvar"
 	"github.com/gin-gonic/gin"
 
 	"github.com/photoprism/photoprism/internal/api"
@@ -164,9 +163,4 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 		api.Connect(v1)
 		api.WebSocket(v1)
 	}
-	}
-
-	// Monitoring and debugging endpoints.
-	if conf.EnableExpvar() {
-		router.GET("/debug/vars", expvar.Handler())
 }
