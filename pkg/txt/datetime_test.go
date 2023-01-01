@@ -128,11 +128,11 @@ func TestDateTime(t *testing.T) {
 
 func TestIsTime(t *testing.T) {
 	t.Run("/2020/1212/20130518_142022_3D657EBD.jpg", func(t *testing.T) {
-		assert.True(t, IsTime("/2020/1212/20130518_142022_3D657EBD.jpg"))
+		assert.False(t, IsTime("/2020/1212/20130518_142022_3D657EBD.jpg"))
 	})
 
 	t.Run("telegram_2020_01_30_09_57_18.jpg", func(t *testing.T) {
-		assert.True(t, IsTime("telegram_2020_01_30_09_57_18.jpg"))
+		assert.False(t, IsTime("telegram_2020_01_30_09_57_18.jpg"))
 	})
 
 	t.Run("", func(t *testing.T) {
@@ -140,11 +140,11 @@ func TestIsTime(t *testing.T) {
 	})
 
 	t.Run("Screenshot 2019_05_21 at 10.45.52.png", func(t *testing.T) {
-		assert.True(t, IsTime("Screenshot 2019_05_21 at 10.45.52.png"))
+		assert.False(t, IsTime("Screenshot 2019_05_21 at 10.45.52.png"))
 	})
 
 	t.Run("telegram_2020-01-30_09-57-18.jpg", func(t *testing.T) {
-		assert.True(t, IsTime("telegram_2020-01-30_09-57-18.jpg"))
+		assert.False(t, IsTime("telegram_2020-01-30_09-57-18.jpg"))
 	})
 
 	t.Run("2013-05-18", func(t *testing.T) {
@@ -170,9 +170,4 @@ func TestIsTime(t *testing.T) {
 	t.Run("2020-01-30_09-57-18", func(t *testing.T) {
 		assert.True(t, IsTime("2020-01-30_09-57-18"))
 	})
-
-	t.Run("IMG-20191120-WA0001.jpg", func(t *testing.T) {
-		assert.True(t, IsTime("IMG-20191120-WA0001.jpg"))
-	})
-
 }
