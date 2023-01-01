@@ -50,7 +50,7 @@ export default [
   {
     name: "home",
     path: "/",
-    redirect: c.settings.ui.homepage,
+    redirect: "/browse",
   },
   {
     name: "about",
@@ -433,32 +433,25 @@ export default [
     props: { tab: 0 },
   },
   {
-    name: "discover_colors",
-    path: "/discover/colors",
-    component: Discover,
-    meta: { title: $gettext("Discover"), auth: true, background: "application-light" },
-    props: { tab: 1 },
-  },
-  {
     name: "discover_similar",
     path: "/discover/similar",
     component: Discover,
     meta: { title: $gettext("Discover"), auth: true, background: "application-light" },
-    props: { tab: 2 },
+    props: { tab: 1 },
   },
   {
     name: "discover_season",
     path: "/discover/season",
     component: Discover,
     meta: { title: $gettext("Discover"), auth: true, background: "application-light" },
-    props: { tab: 3 },
+    props: { tab: 2 },
   },
   {
     name: "discover_random",
     path: "/discover/random",
     component: Discover,
     meta: { title: $gettext("Discover"), auth: true, background: "application-light" },
-    props: { tab: 4 },
+    props: { tab: 3 },
   },
   {
     path: "*",
