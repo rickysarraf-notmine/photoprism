@@ -259,7 +259,7 @@ export default {
     onWebShare() {
       this.onPause();
 
-      if (!this.item || !this.item.download_url) {
+      if (!this.item || !this.item.DownloadUrl) {
         console.warn("photo viewer: no download url");
         return;
       }
