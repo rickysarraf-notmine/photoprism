@@ -107,6 +107,8 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"app-icon", c.AppIcon()},
 		{"app-name", c.AppName()},
 		{"app-mode", c.AppMode()},
+		{"legal-info", c.LegalInfo()},
+		{"legal-url", c.LegalUrl()},
 		{"wallpaper-uri", c.WallpaperUri()},
 
 		// Site Infos.
@@ -120,30 +122,28 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"site-description", c.SiteDescription()},
 		{"site-preview", c.SitePreview()},
 
-		// Legal info.
-		{"legal-info", c.LegalInfo()},
-		{"legal-url", c.LegalUrl()},
-
 		// URIs.
 		{"content-uri", c.ContentUri()},
 		{"static-uri", c.StaticUri()},
 		{"api-uri", c.ApiUri()},
 		{"base-uri", c.BaseUri("/")},
 
-		// HTTP(S) Proxy.
+		// Proxy Servers.
+		{"https-proxy", c.HttpsProxy()},
+		{"https-proxy-insecure", fmt.Sprintf("%t", c.HttpsProxyInsecure())},
 		{"trusted-proxy", c.TrustedProxy()},
 		{"proxy-proto-header", strings.Join(c.ProxyProtoHeader(), ", ")},
 		{"proxy-proto-https", strings.Join(c.ProxyProtoHttps(), ", ")},
 
 		// Web Server.
-		{"http-mode", c.HttpMode()},
-		{"http-compression", c.HttpCompression()},
-		{"http-host", c.HttpHost()},
-		{"http-port", fmt.Sprintf("%d", c.HttpPort())},
 		{"disable-tls", fmt.Sprintf("%t", c.DisableTLS())},
 		{"tls-email", c.TLSEmail()},
 		{"tls-cert", c.TLSCert()},
 		{"tls-key", c.TLSKey()},
+		{"http-mode", c.HttpMode()},
+		{"http-compression", c.HttpCompression()},
+		{"http-host", c.HttpHost()},
+		{"http-port", fmt.Sprintf("%d", c.HttpPort())},
 
 		// Database.
 		{"database-driver", c.DatabaseDriver()},

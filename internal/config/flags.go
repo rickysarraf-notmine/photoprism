@@ -407,6 +407,16 @@ var Flags = CliFlags{
 			Usage:  "sharing preview image `URL`",
 			EnvVar: "PHOTOPRISM_SITE_PREVIEW",
 		}, Tags: []string{EnvSponsor}}, {
+		Flag: cli.StringFlag{
+			Name:   "https-proxy",
+			Usage:  "proxy server `URL` to be used for outgoing connections *optional*",
+			EnvVar: "PHOTOPRISM_HTTPS_PROXY",
+		}}, {
+		Flag: cli.BoolFlag{
+			Name:   "https-proxy-insecure",
+			Usage:  "ignore invalid HTTPS certificates when using a proxy",
+			EnvVar: "PHOTOPRISM_HTTPS_PROXY_INSECURE",
+		}}, {
 		Flag: cli.StringSliceFlag{
 			Name:   "trusted-proxy",
 			Usage:  "`CIDR` range from which reverse proxy headers can be trusted",
@@ -424,6 +434,27 @@ var Flags = CliFlags{
 			Usage:  "forwarded HTTPS protocol `NAME`",
 			Value:  &cli.StringSlice{header.ProtoHttps},
 			EnvVar: "PHOTOPRISM_PROXY_PROTO_HTTPS",
+		}}, {
+		Flag: cli.BoolFlag{
+			Name:   "disable-tls",
+			Usage:  "disable HTTPS even if a certificate is available",
+			EnvVar: "PHOTOPRISM_DISABLE_TLS",
+		}}, {
+		Flag: cli.StringFlag{
+			Name:   "tls-email",
+			Usage:  "`EMAIL` address to enable automatic HTTPS via Let's Encrypt",
+			EnvVar: "PHOTOPRISM_TLS_EMAIL",
+			Hidden: true,
+		}}, {
+		Flag: cli.StringFlag{
+			Name:   "tls-cert",
+			Usage:  "public HTTPS certificate `FILE` (.crt)",
+			EnvVar: "PHOTOPRISM_TLS_CERT",
+		}}, {
+		Flag: cli.StringFlag{
+			Name:   "tls-key",
+			Usage:  "private HTTPS key `FILE` (.key)",
+			EnvVar: "PHOTOPRISM_TLS_KEY",
 		}}, {
 		Flag: cli.StringFlag{
 			Name:   "http-mode, mode",
@@ -445,11 +476,6 @@ var Flags = CliFlags{
 			Value:  2342,
 			Usage:  "Web server port `NUMBER`",
 			EnvVar: "PHOTOPRISM_HTTP_PORT",
-		}}, {
-		Flag: cli.BoolFlag{
-			Name:   "disable-tls",
-			Usage:  "disable HTTPS even if a certificate is available",
-			EnvVar: "PHOTOPRISM_DISABLE_TLS",
 		}}, {
 		Flag: cli.StringFlag{
 			Name:   "database-driver, db",
