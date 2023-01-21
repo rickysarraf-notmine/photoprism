@@ -1,4 +1,4 @@
-# Copyright © 2018 - 2022 PhotoPrism UG. All rights reserved.
+# Copyright © 2018 - 2023 PhotoPrism UG. All rights reserved.
 #
 # Questions? Email us at hello@photoprism.app or visit our website to learn
 # more about our team, products and services: https://photoprism.app/
@@ -40,7 +40,7 @@ else
     GOTEST=go test
 endif
 
-# Compatibility layer to support “docker-compose” and “docker compose”
+# Ensure compatibility with "docker-compose" (old) and "docker compose" (new).
 HAS_DOCKER_COMPOSE_WITH_DASH := $(shell which docker-compose)
 
 ifdef HAS_DOCKER_COMPOSE_WITH_DASH
@@ -51,7 +51,7 @@ endif
 
 # Declare "make" targets.
 all: dep build-js
-dep: dep-tensorflow dep-npm dep-js
+dep: dep-tensorflow dep-js
 build: build-go
 pull: docker-pull
 test: test-js test-go
@@ -62,13 +62,14 @@ test-commands: reset-sqlite run-test-commands
 test-photoprism: reset-sqlite run-test-photoprism
 test-short: reset-sqlite run-test-short
 test-mariadb: reset-acceptance run-test-mariadb
-acceptance-run-chromium: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth acceptance-auth-sqlite-stop acceptance-sqlite-restart acceptance acceptance-sqlite-stop
-acceptance-run-chromium-short: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth-short acceptance-auth-sqlite-stop acceptance-sqlite-restart acceptance-short acceptance-sqlite-stop
-acceptance-auth-run-chromium: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth acceptance-auth-sqlite-stop
-acceptance-public-run-chromium: storage/acceptance acceptance-sqlite-restart acceptance acceptance-sqlite-stop
-acceptance-run-firefox: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth-firefox acceptance-auth-sqlite-stop acceptance-sqlite-restart acceptance-firefox acceptance-sqlite-stop
-acceptance-auth-run-firefox: storage/acceptance acceptance-auth-sqlite-restart acceptance-auth-firefox acceptance-auth-sqlite-stop
-acceptance-public-run-firefox: storage/acceptance acceptance-sqlite-restart acceptance-firefox acceptance-sqlite-stop
+acceptance-run-chromium: storage/acceptance acceptance-auth-sqlite-restart wait acceptance-auth acceptance-auth-sqlite-stop acceptance-sqlite-restart wait-2 acceptance acceptance-sqlite-stop
+acceptance-run-chromium-short: storage/acceptance acceptance-auth-sqlite-restart wait acceptance-auth-short acceptance-auth-sqlite-stop acceptance-sqlite-restart wait-2 acceptance-short acceptance-sqlite-stop
+acceptance-auth-run-chromium: storage/acceptance acceptance-auth-sqlite-restart wait acceptance-auth acceptance-auth-sqlite-stop
+acceptance-public-run-chromium: storage/acceptance acceptance-sqlite-restart wait acceptance acceptance-sqlite-stop
+wait:
+	sleep 20
+wait-2:
+	sleep 20
 test-all: test acceptance-run-chromium
 fmt: fmt-js fmt-go
 clean-local: clean-local-config clean-local-cache
@@ -178,7 +179,7 @@ dep-list:
 dep-npm:
 	sudo npm install -g npm
 dep-js:
-	(cd frontend &&	npm ci --no-audit)
+	(cd frontend &&	npm ci --no-update-notifier --no-audit)
 dep-go:
 	go build -v ./...
 dep-upgrade:
@@ -541,7 +542,7 @@ docker-dummy-oidc:
 	scripts/docker/buildx-multi.sh dummy-oidc linux/amd64,linux/arm64 $(BUILD_DATE)
 packer-digitalocean:
 	$(info Buildinng DigitalOcean marketplace image...)
-	(cd ./docker/examples/cloud && packer build digitalocean.json)
+	(cd ./setup/docker/cloud && packer build digitalocean.json)
 drone-sign:
 	drone sign photoprism/photoprism --save
 lint-js:

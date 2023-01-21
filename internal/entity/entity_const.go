@@ -73,6 +73,7 @@ const (
 	SortOrderOldest    = "oldest"
 	SortOrderPlace     = "place"
 	SortOrderMoment    = "moment"
+	SortOrderFavorites = "favorites"
 	SortOrderName      = "name"
 	SortOrderPath      = "path"
 	SortOrderSlug      = "slug"
