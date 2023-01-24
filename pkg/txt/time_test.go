@@ -18,7 +18,7 @@ func TestTimeStamp(t *testing.T) {
 
 	t.Run("1665389030", func(t *testing.T) {
 		now := time.Unix(1665389030, 0)
-		assert.Equal(t, "2022-10-10 08:03:50", TimeStamp(&now))
+		assert.Equal(t, "2022-10-10 13:03:50", TimeStamp(&now))
 	})
 }
 
