@@ -41,6 +41,19 @@ export default {
       q: '',
     };
 
+    const settings = this.$config.settings();
+    const features = settings.features;
+
+    if (settings) {
+      if (features.private) {
+        filter.public = "true";
+      }
+
+      if (features.review && (!this.staticFilter || !("quality" in this.staticFilter))) {
+        filter.quality = "3";
+      }
+    }
+
     return {
       results: [],
       filter: filter,
@@ -95,6 +108,16 @@ export default {
 
       this.scrollDisabled = true;
       this.loading = true;
+
+      if (settings.features) {
+        if (settings.features.private) {
+          this.filter.public = "true";
+        }
+
+        if (settings.features.review && (!this.staticFilter || !("quality" in this.staticFilter))) {
+          this.filter.quality = "3";
+        }
+      }
 
       const count = this.dirty ? (this.page + 2) * this.batchSize : this.batchSize;
       const offset = this.dirty ? 0 : this.offset;
