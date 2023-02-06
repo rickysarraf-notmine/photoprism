@@ -96,7 +96,7 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
       libfontconfig1-dev \
       fonts-roboto \
       tzdata \
-      exiftool \
+      libimage-exiftool-perl \
       rawtherapee \
       imagemagick \
       ffmpeg \

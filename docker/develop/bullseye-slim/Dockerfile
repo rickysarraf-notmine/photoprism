@@ -59,7 +59,7 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
       libatomic1 \
       libheif-examples \
       librsvg2-bin \
-      exiftool \
+      libimage-exiftool-perl \
       rawtherapee \
       imagemagick \
       ffmpeg \
