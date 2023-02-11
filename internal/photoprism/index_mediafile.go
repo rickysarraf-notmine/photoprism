@@ -326,6 +326,10 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 		result.Status = IndexSkipped
 		return result
 	} else if ind.findFaces && file.FilePrimary {
+		if m.HasFaces() {
+			log.Debugf("faces: found face region metadata %v", m.Faces())
+		}
+
 		if markers := file.Markers(); markers != nil {
 			// Detect faces.
 			faces := ind.Faces(m, markers.DetectedFaceCount())

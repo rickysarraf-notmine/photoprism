@@ -175,6 +175,21 @@ func (data *Data) Exiftool(jsonData []byte, originalName string) (err error) {
 				}
 
 				fieldValue.Set(reflect.ValueOf(entries))
+			case []Region:
+				regions := []Region{}
+				json.Unmarshal([]byte(jsonValue.Get("RegionList").Raw), &regions)
+
+				fieldValue.Set(reflect.ValueOf(regions))
+			case []RegionIPTC:
+				regions := []RegionIPTC{}
+				json.Unmarshal([]byte(jsonValue.Raw), &regions)
+
+				fieldValue.Set(reflect.ValueOf(regions))
+			case []RegionMP:
+				regions := []RegionMP{}
+				json.Unmarshal([]byte(jsonValue.Get("Regions").Raw), &regions)
+
+				fieldValue.Set(reflect.ValueOf(regions))
 			default:
 				log.Warnf("metadata: cannot assign value of type %s to %s (exiftool)", t, tagValue)
 			}
