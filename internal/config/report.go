@@ -42,6 +42,14 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"certificates-path", c.CertificatesPath()},
 		{"options-yaml", c.OptionsYaml()},
 		{"defaults-yaml", c.DefaultsYaml()},
+	}
+
+	// Settings.
+	if settingsDefaults := c.SettingsYamlDefaults(""); settingsDefaults != "" && settingsDefaults != c.SettingsYaml() {
+		rows = append(rows, []string{"settings-yaml", fmt.Sprintf("%s (defaults)", settingsDefaults)})
+	}
+
+	rows = append(rows, [][]string{
 		{"settings-yaml", c.SettingsYaml()},
 
 		// Originals.
@@ -104,9 +112,10 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		// Customization.
 		{"default-locale", c.DefaultLocale()},
 		{"default-theme", c.DefaultTheme()},
-		{"app-icon", c.AppIcon()},
 		{"app-name", c.AppName()},
 		{"app-mode", c.AppMode()},
+		{"app-icon", c.AppIcon()},
+		{"app-color", c.AppColor()},
 		{"legal-info", c.LegalInfo()},
 		{"legal-url", c.LegalUrl()},
 		{"wallpaper-uri", c.WallpaperUri()},
@@ -195,10 +204,7 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		// Daemon Mode.
 		{"pid-filename", c.PIDFilename()},
 		{"log-filename", c.LogFilename()},
-
-		// Monitoring and debugging.
-		{"enable-expvar", fmt.Sprintf("%t", c.EnableExpvar())},
-	}
+	}...)
 
 	if v := c.CustomAssetsPath(); v != "" {
 		rows = append(rows, []string{"custom-assets-path", v})
