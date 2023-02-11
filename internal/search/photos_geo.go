@@ -460,6 +460,12 @@ func UserPhotosGeo(f form.SearchPhotosGeo, sess *entity.Session) (results GeoRes
 		s = s.Where(where, values...)
 	}
 
+	// Filter by photo description?
+	if f.Description != "" {
+		where, values := OrLike("photos.photo_description", f.Description)
+		s = s.Where(where, values...)
+	}
+
 	// Filter by status?
 	if f.Archived {
 		s = s.Where("photos.photo_quality > -1")
