@@ -43,6 +43,7 @@ export default {
 
     return {
       results: [],
+      resultsByYear: {},
       filter: filter,
       loading: false,
       scrollDisabled: false,
@@ -57,27 +58,12 @@ export default {
   },
   computed: {
     years: function() {
-      const yrs = new Set()
-
-      for (let i = 0; i < this.results.length; i++) {
-        let item = this.results[i];
-        yrs.add(item.Year);
-      }
-
-      return yrs;
+      return Object.keys(this.resultsByYear).sort().reverse();
     }
   },
   methods: {
     photosByYear(year) {
-      const photos = [];
-
-      for (let item of this.results) {
-        if (item.Year == year) {
-          photos.push(item);
-        }
-      }
-
-      return photos;
+      return this.resultsByYear[year];
     },
     photosOffsetByYear(selectedYear) {
       let offset = 0;
@@ -105,10 +91,24 @@ export default {
         merged: true,
         month: this.filter.month,
         day: this.filter.day,
+        order: "newest",
       };
 
       Photo.search(params).then(response => {
         this.results = Photo.mergeResponse(this.results, response);
+
+        // TODO: figure out a better way to index by year
+        this.resultsByYear = {};
+        for (let i = 0; i < this.results.length; i++) {
+          const item = this.results[i];
+          const year = item.Year;
+
+          if (this.resultsByYear[year] === undefined) {
+            this.resultsByYear[year] = []
+          }
+
+          this.resultsByYear[year].push(item);
+        }
 
         this.complete = (response.count < count);
         this.scrollDisabled = this.complete;
