@@ -2,9 +2,6 @@
   <div v-infinite-scroll="loadMore" class="p-tab p-tab-discover-today" :infinite-scroll-disabled="scrollDisabled"
        :infinite-scroll-distance="1200" :infinite-scroll-listen-for-event="'scrollRefresh'">
 
-    <p-photo-toolbar :filter="filter" :settings="settings" :refresh="refresh"
-                     :update-filter="updateFilter" :update-query="updateQuery"></p-photo-toolbar>
-
     <v-container v-if="loading" fluid class="pa-4">
       <v-progress-linear color="secondary-dark" :indeterminate="true"></v-progress-linear>
     </v-container>
@@ -43,19 +40,6 @@ export default {
       order: 'newest',
       q: '',
     };
-
-    const settings = this.$config.settings();
-    const features = settings.features;
-
-    if (settings) {
-      if (features.private) {
-        filter.public = "true";
-      }
-
-      if (features.review && (!this.staticFilter || !("quality" in this.staticFilter))) {
-        filter.quality = "3";
-      }
-    }
 
     return {
       results: [],
@@ -111,18 +95,6 @@ export default {
 
       this.scrollDisabled = true;
       this.loading = true;
-
-      const settings = this.$config.settings();
-
-      if (settings.features) {
-        if (settings.features.private) {
-          this.filter.public = "true";
-        }
-
-        if (settings.features.review && (!this.staticFilter || !("quality" in this.staticFilter))) {
-          this.filter.quality = "3";
-        }
-      }
 
       const count = this.dirty ? (this.page + 2) * this.batchSize : this.batchSize;
       const offset = this.dirty ? 0 : this.offset;
