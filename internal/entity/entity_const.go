@@ -57,12 +57,4 @@ const (
 	ProviderNone     = ""
 	ProviderPassword = "password"
 )
-	SortOrderRandom    = "random"
-)
 
-// Date Modes
-
-const (
-	DateModeLast    = "last"
-	DateModeFirst   = "first"
-	DateModeAverage = "average"

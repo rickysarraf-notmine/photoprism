@@ -222,7 +222,7 @@ func (c *Config) Init() error {
 	// Show warning if less than 1 GB RAM was detected.
 	if LowMem {
 		log.Warnf(`config: less than %d GB of memory detected, please upgrade if server becomes unstable or unresponsive`, MinMem/Gigabyte)
-		log.Warnf("config: tensorflow as well as indexing and conversion of RAW files have been disabled automatically")
+		log.Warnf("config: tensorflow as well as indexing and conversion of RAW images have been disabled automatically")
 	}
 
 	// Show swap info.
@@ -573,11 +573,6 @@ func (c *Config) DetectNSFW() bool {
 // UploadNSFW checks if NSFW photos can be uploaded.
 func (c *Config) UploadNSFW() bool {
 	return c.options.UploadNSFW
-}
-
-// EnableExpvar tests if the expvar endpoint should be enabled.
-func (c *Config) EnableExpvar() bool {
-	return c.options.EnableExpvar
 }
 
 // LogLevel returns the Logrus log level.

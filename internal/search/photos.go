@@ -26,7 +26,7 @@ var PhotosColsAll = SelectString(Photo{}, []string{"*"})
 var PhotosColsView = SelectString(Photo{}, SelectCols(GeoResult{}, []string{"*"}))
 
 // FileTypes contains a list of browser-compatible file formats returned by search queries.
-var FileTypes = []string{fs.ImageJPEG.String(), fs.ImagePNG.String(), fs.ImageGIF.String(), fs.ImageWebP.String()}
+var FileTypes = []string{fs.ImageJPEG.String(), fs.ImagePNG.String(), fs.ImageGIF.String(), fs.ImageWebP.String(), fs.VectorSVG.String()}
 
 // Photos finds PhotoResults based on the search form without checking rights or permissions.
 func Photos(f form.SearchPhotos) (results PhotoResults, count int, err error) {
@@ -163,24 +163,13 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 		s = s.Order(sortby.RandomExpr(s.Dialect()))
 	case sortby.Default, sortby.Imported, sortby.Added:
 		s = s.Order("files.media_id")
-	case entity.SortOrderRandom:
-		switch entity.DbDialect() {
-		case entity.MySQL:
-			s = s.Joins("JOIN (SELECT DISTINCT photo_id FROM files ORDER BY RAND() LIMIT ?) AS rnd on files.photo_id = rnd.photo_id", f.Count)
-		case entity.SQLite3:
-			s = s.Joins("JOIN (SELECT DISTINCT photo_id FROM files ORDER BY RANDOM() LIMIT ?) AS rnd on files.photo_id = rnd.photo_id", f.Count)
-		default:
-			err := fmt.Errorf("unknown sql dialect %s", entity.DbDialect())
-			log.Errorf("photos: %s", err)
-			return results, 0, err
-		}
 	default:
 		return PhotoResults{}, 0, ErrBadSortOrder
 	}
 
 	// Limit the result file types if hidden images/videos should not be found.
 	if !f.Hidden {
-		s = s.Where("files.file_type IN (?) OR files.file_video = 1", FileTypes)
+		s = s.Where("files.file_type IN (?) OR files.media_type IN ('vector','video')", FileTypes)
 
 		if f.Error {
 			s = s.Where("files.file_error <> ''")
@@ -285,9 +274,12 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 		case terms["video"]:
 			f.Query = strings.ReplaceAll(f.Query, "video", "")
 			f.Video = true
-		case terms["svg"]:
-			f.Query = strings.ReplaceAll(f.Query, "svg", "")
-			f.Vector = true
+                case terms["vectors"]:
+                        f.Query = strings.ReplaceAll(f.Query, "vectors", "")
+                        f.Vector = true
+                case terms["vector"]:
+                        f.Query = strings.ReplaceAll(f.Query, "vector", "")
+                        f.Vector = true
 		case terms["animated"]:
 			f.Query = strings.ReplaceAll(f.Query, "animated", "")
 			f.Animated = true
@@ -330,11 +322,10 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 	// Filter by location?
 	if f.Geo == true {
 		s = s.Where("photos.cell_id <> 'zz'")
-	} else if f.NoGeo {
-		s = s.Where("photos.cell_id = 'zz'")
-	}
-
-	if f.Query != "" {
+                for _, where := range LikeAnyKeyword("k.keyword", f.Query) {
+                        s = s.Where("files.photo_id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
+                }
+        } else if f.Query != "" {
 		if err := Db().Where(AnySlug("custom_slug", f.Query, " ")).Find(&labels).Error; len(labels) == 0 || err != nil {
 			log.Debugf("search: label %s not found, using fuzzy search", txt.LogParamLower(f.Query))
 
@@ -543,7 +534,7 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 	} else if f.Live {
 		s = s.Where("photos.photo_type = ?", entity.MediaLive)
 	} else if f.Photo {
-		s = s.Where("photos.photo_type IN ('image','raw','live','animated')")
+		s = s.Where("photos.photo_type IN ('image','live','animated','vector','raw')")
 	}
 
 	// Filter by storage path?
@@ -637,14 +628,10 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 
 	if !f.Before.IsZero() {
 		s = s.Where("photos.taken_at <= ?", f.Before.Format("2006-01-02"))
-	} else if !f.BeforeT.IsZero() {
-		s = s.Where("photos.taken_at <= ?", f.BeforeT.Format("2006-01-02 15:04:05"))
 	}
 
 	if !f.After.IsZero() {
 		s = s.Where("photos.taken_at >= ?", f.After.Format("2006-01-02"))
-	} else if !f.AfterT.IsZero() {
-		s = s.Where("photos.taken_at >= ?", f.AfterT.Format("2006-01-02 15:04:05"))
 	}
 
 	// Find stacks only?
