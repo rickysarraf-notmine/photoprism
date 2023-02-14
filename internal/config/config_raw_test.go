@@ -42,21 +42,6 @@ func TestConfig_DarktableBin(t *testing.T) {
 	assert.True(t, strings.Contains(c.DarktableBin(), "/bin/darktable-cli"))
 }
 
-func TestConfig_RsvgConvertBin(t *testing.T) {
-       c := NewConfig(CliTestContext())
-
-       bin := c.RsvgConvertBin()
-       assert.Contains(t, bin, "/bin/rsvg-convert")
-}
-
-func TestConfig_RsvgConvertEnabled(t *testing.T) {
-       c := NewConfig(CliTestContext())
-       assert.True(t, c.RsvgConvertEnabled())
-
-       c.options.DisableVector = true
-       assert.False(t, c.RsvgConvertEnabled())
-}
-
 func TestConfig_DarktableBlacklist(t *testing.T) {
 	c := NewConfig(CliTestContext())
 
