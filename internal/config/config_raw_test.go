@@ -103,3 +103,18 @@ func TestConfig_HeifConvertEnabled(t *testing.T) {
 	c.options.DisableHeifConvert = true
 	assert.False(t, c.HeifConvertEnabled())
 }
+
+func TestConfig_RsvgConvertBin(t *testing.T) {
+	c := NewConfig(CliTestContext())
+
+	bin := c.RsvgConvertBin()
+	assert.Contains(t, bin, "/bin/rsvg-convert")
+}
+
+func TestConfig_RsvgConvertEnabled(t *testing.T) {
+	c := NewConfig(CliTestContext())
+	assert.True(t, c.RsvgConvertEnabled())
+
+	c.options.DisableVector = true
+	assert.False(t, c.RsvgConvertEnabled())
+}

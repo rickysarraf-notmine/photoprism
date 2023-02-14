@@ -367,9 +367,9 @@ func (m *MediaFile) RelatedFiles(stripSequence bool) (result RelatedFiles, err e
 		// Ignore file?
 		if f.IsRaw() && skipRaw {
 			log.Debugf("media: skipped related raw image %s", clean.Log(f.RootRelName()))
-                        continue
-                } else if f.IsVector() && skipVector {
-                        log.Debugf("media: skipped related vector graphics %s", clean.Log(f.RootRelName()))
+			continue
+		} else if f.IsVector() && skipVector {
+			log.Debugf("media: skipped related vector graphics %s", clean.Log(f.RootRelName()))
 			continue
 		}
 
@@ -378,7 +378,7 @@ func (m *MediaFile) RelatedFiles(stripSequence bool) (result RelatedFiles, err e
 		} else if f.IsRaw() {
 			result.Main = f
 		} else if f.IsVector() {
-                        result.Main = f
+			result.Main = f
 		} else if f.IsDNG() {
 			result.Main = f
 		} else if f.IsAVIF() {
@@ -391,7 +391,7 @@ func (m *MediaFile) RelatedFiles(stripSequence bool) (result RelatedFiles, err e
 		} else if f.IsVideo() && !isHEIC {
 			result.Main = f
 		} else if result.Main != nil && f.IsPreviewImage() {
-                       if result.Main.IsPreviewImage() && len(result.Main.FileName()) > len(f.FileName()) {
+			if result.Main.IsPreviewImage() && len(result.Main.FileName()) > len(f.FileName()) {
 				result.Main = f
 			}
 		}
@@ -406,7 +406,7 @@ func (m *MediaFile) RelatedFiles(stripSequence bool) (result RelatedFiles, err e
 			t = "unknown type"
 		}
 
-		return result, fmt.Errorf("no supported files found for %s (%s)", clean.Log(m.BaseName()), t)
+		return result, fmt.Errorf("%s is unsupported (%s)", clean.Log(m.BaseName()), t)
 	}
 
 	// Add hidden JPEG if exists.
@@ -718,7 +718,7 @@ func (m *MediaFile) Extension() string {
 
 // IsPreviewImage return true if this media file is a JPEG or PNG image.
 func (m *MediaFile) IsPreviewImage() bool {
-       return m.IsJpeg() || m.IsPng()
+	return m.IsJpeg() || m.IsPng()
 }
 
 // IsJpeg return true if this media file is a JPEG image.
@@ -829,7 +829,7 @@ func (m *MediaFile) Media() media.Type {
 
 // HasMediaType checks if the file has is the given media type.
 func (m *MediaFile) HasMediaType(mediaType media.Type) bool {
-       return m.Media() == mediaType
+	return m.Media() == mediaType
 }
 
 // HasFileType checks if the file has the given file type.
@@ -843,12 +843,12 @@ func (m *MediaFile) HasFileType(fileType fs.Type) bool {
 
 // IsVector returns true if this is a vector graphics.
 func (m *MediaFile) IsVector() bool {
-       return m.HasMediaType(media.Vector) || m.IsSVG()
+	return m.HasMediaType(media.Vector) || m.IsSVG()
 }
 
 // IsSVG returns true if this is a SVG vector graphics.
 func (m *MediaFile) IsSVG() bool {
-       return m.HasFileType(fs.VectorSVG)
+	return m.HasFileType(fs.VectorSVG)
 }
 
 // IsRaw returns true if this is a RAW file.
@@ -922,7 +922,6 @@ func (m *MediaFile) ExifSupported() bool {
 // IsMedia returns true if this is a media file (photo or video, not sidecar or other).
 func (m *MediaFile) IsMedia() bool {
 	return m.IsImageNative() || m.IsVideo() || m.IsVector() || m.IsRaw() || m.IsDNG() || m.IsAVIF() || m.IsHEIC()
-
 }
 
 // PreviewImage returns a PNG or JPEG version of the media file, if exists.
@@ -940,48 +939,49 @@ func (m *MediaFile) PreviewImage() (*MediaFile, error) {
 	jpegName := fs.ImageJPEG.FindFirst(m.FileName(), []string{Config().SidecarPath(), fs.HiddenPath}, Config().OriginalsPath(), false)
 
 	if jpegName != "" {
-                return NewMediaFile(jpegName)
+		return NewMediaFile(jpegName)
 	}
 
 	pngName := fs.ImagePNG.FindFirst(m.FileName(), []string{Config().SidecarPath(), fs.HiddenPath}, Config().OriginalsPath(), false)
 
-        if pngName != "" {
-                return NewMediaFile(pngName)
-        }
- 
-        return nil, fmt.Errorf("no preview image found for %s", m.RootRelName())
+	if pngName != "" {
+		return NewMediaFile(pngName)
+	}
+
+	return nil, fmt.Errorf("no preview image found for %s", m.RootRelName())
 }
 
 // HasPreviewImage returns true if the file has or is a JPEG or PNG image.
 func (m *MediaFile) HasPreviewImage() bool {
-        if m.hasPreviewImage {
+	if m.hasPreviewImage {
 		return true
 	}
 
-        if m.IsPreviewImage() {
-                m.hasPreviewImage = true
+	if m.IsPreviewImage() {
+		m.hasPreviewImage = true
 		return true
 	}
 
 	jpegName := fs.ImageJPEG.FindFirst(m.FileName(), []string{Config().SidecarPath(), fs.HiddenPath}, Config().OriginalsPath(), false)
 
 	if jpegName == "" {
-                m.hasPreviewImage = false
-        } else {
-                m.hasPreviewImage = fs.MimeType(jpegName) == fs.MimeTypeJpeg
-        }
- 
-        if m.hasPreviewImage {
-                return true
-        }
- 
-        pngName := fs.ImagePNG.FindFirst(m.FileName(), []string{Config().SidecarPath(), fs.HiddenPath}, Config().OriginalsPath(), false)
- 
-        if pngName == "" {
-                m.hasPreviewImage = false
+		m.hasPreviewImage = false
+	} else {
+		m.hasPreviewImage = fs.MimeType(jpegName) == fs.MimeTypeJpeg
+	}
+
+	if m.hasPreviewImage {
+		return true
+	}
+
+	pngName := fs.ImagePNG.FindFirst(m.FileName(), []string{Config().SidecarPath(), fs.HiddenPath}, Config().OriginalsPath(), false)
+
+	if pngName == "" {
+		m.hasPreviewImage = false
 	} else {
 		m.hasPreviewImage = fs.MimeType(pngName) == fs.MimeTypePng
 	}
+
 	return m.hasPreviewImage
 }
 

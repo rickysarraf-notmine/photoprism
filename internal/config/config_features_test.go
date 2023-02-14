@@ -107,18 +107,18 @@ func TestConfig_DisableDarktable(t *testing.T) {
 }
 
 func TestConfig_DisableRawTherapee(t *testing.T) {
-       c := NewConfig(CliTestContext())
-       missing := c.RawTherapeeBin() == ""
+	c := NewConfig(CliTestContext())
+	missing := c.RawTherapeeBin() == ""
 
-       assert.Equal(t, missing, c.DisableRawTherapee())
-       c.options.DisableRaw = true
-       assert.True(t, c.DisableRawTherapee())
-       c.options.DisableRaw = false
-       assert.Equal(t, missing, c.DisableRawTherapee())
-       c.options.DisableRawTherapee = true
-       assert.True(t, c.DisableRawTherapee())
-       c.options.DisableRawTherapee = false
-       assert.Equal(t, missing, c.DisableRawTherapee())
+	assert.Equal(t, missing, c.DisableRawTherapee())
+	c.options.DisableRaw = true
+	assert.True(t, c.DisableRawTherapee())
+	c.options.DisableRaw = false
+	assert.Equal(t, missing, c.DisableRawTherapee())
+	c.options.DisableRawTherapee = true
+	assert.True(t, c.DisableRawTherapee())
+	c.options.DisableRawTherapee = false
+	assert.Equal(t, missing, c.DisableRawTherapee())
 }
 
 func TestConfig_DisableImageMagick(t *testing.T) {
@@ -148,31 +148,31 @@ func TestConfig_DisableSips(t *testing.T) {
 }
 
 func TestConfig_DisableVector(t *testing.T) {
-       c := NewConfig(CliTestContext())
+	c := NewConfig(CliTestContext())
 
-       assert.Equal(t, c.Sponsor(), !c.DisableVector())
-       c.options.DisableVector = true
-       assert.True(t, c.DisableVector())
-       c.options.DisableVector = false
-       assert.Equal(t, c.Sponsor(), !c.DisableVector())
+	assert.Equal(t, c.Sponsor(), !c.DisableVector())
+	c.options.DisableVector = true
+	assert.True(t, c.DisableVector())
+	c.options.DisableVector = false
+	assert.Equal(t, c.Sponsor(), !c.DisableVector())
 }
 
 func TestConfig_DisableRaw(t *testing.T) {
-       c := NewConfig(CliTestContext())
+	c := NewConfig(CliTestContext())
 
-       assert.False(t, c.DisableRaw())
-       c.options.DisableRaw = true
-       assert.True(t, c.DisableRaw())
-       assert.True(t, c.DisableDarktable())
-       assert.True(t, c.DisableRawTherapee())
-       c.options.DisableRaw = false
-       assert.False(t, c.DisableRaw())
-       c.options.DisableDarktable = true
-       c.options.DisableRawTherapee = true
-       assert.False(t, c.DisableRaw())
-       c.options.DisableDarktable = false
-       c.options.DisableRawTherapee = false
-       assert.False(t, c.DisableRaw())
-       assert.False(t, c.DisableDarktable())
-       assert.False(t, c.DisableRawTherapee())
+	assert.False(t, c.DisableRaw())
+	c.options.DisableRaw = true
+	assert.True(t, c.DisableRaw())
+	assert.True(t, c.DisableDarktable())
+	assert.True(t, c.DisableRawTherapee())
+	c.options.DisableRaw = false
+	assert.False(t, c.DisableRaw())
+	c.options.DisableDarktable = true
+	c.options.DisableRawTherapee = true
+	assert.False(t, c.DisableRaw())
+	c.options.DisableDarktable = false
+	c.options.DisableRawTherapee = false
+	assert.False(t, c.DisableRaw())
+	assert.False(t, c.DisableDarktable())
+	assert.False(t, c.DisableRawTherapee())
 }

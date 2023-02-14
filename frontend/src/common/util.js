@@ -210,6 +210,12 @@ export default class Util {
         return "Ogg Media";
       case "wmv":
         return "Windows Media";
+      case "svg":
+        return "Scalable Vector Graphics";
+      case "ps":
+        return "Adobe PostScript";
+      case "eps":
+        return "Encapsulated PostScript";
       default:
         return value.toUpperCase();
     }

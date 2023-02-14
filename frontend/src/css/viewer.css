@@ -111,6 +111,10 @@
     transition: transform 0.8s ease-in-out;
 }
 
+#photo-viewer .pswp__img {
+    -webkit-touch-callout: default;
+}
+
 /* Photosphere Viewer */
 
 #photoprism .sphere-viewer {

@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/photoprism/photoprism/internal/query"
-
 	"github.com/photoprism/photoprism/pkg/clean"
 )
 

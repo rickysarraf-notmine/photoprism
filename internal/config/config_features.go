@@ -97,7 +97,7 @@ func (c *Config) DisableDarktable() bool {
 
 // DisableRawTherapee checks if conversion of RAW images with RawTherapee is disabled.
 func (c *Config) DisableRawTherapee() bool {
-        if c.DisableRaw() || c.options.DisableRawTherapee {
+	if c.DisableRaw() || c.options.DisableRawTherapee {
 		return true
 	} else if c.RawTherapeeBin() == "" {
 		c.options.DisableRawTherapee = true
@@ -108,13 +108,13 @@ func (c *Config) DisableRawTherapee() bool {
 
 // DisableImageMagick checks if conversion of files with ImageMagick is disabled.
 func (c *Config) DisableImageMagick() bool {
-        if c.options.DisableImageMagick {
+	if c.options.DisableImageMagick {
 		return true
-        } else if c.ImageMagickBin() == "" {
-                c.options.DisableImageMagick = true
+	} else if c.ImageMagickBin() == "" {
+		c.options.DisableImageMagick = true
 	}
 
-	return c.options.DisableSips
+	return c.options.DisableImageMagick
 }
 
 // DisableHeifConvert checks if heif-convert is disabled for HEIF conversion.
@@ -130,41 +130,41 @@ func (c *Config) DisableHeifConvert() bool {
 
 // DisableSips checks if conversion of RAW images with SIPS is disabled.
 func (c *Config) DisableSips() bool {
-       if c.options.DisableSips {
-               return true
-       } else if c.SipsBin() == "" {
-               c.options.DisableSips = true
-       }
+	if c.options.DisableSips {
+		return true
+	} else if c.SipsBin() == "" {
+		c.options.DisableSips = true
+	}
 
-       return c.options.DisableSips
+	return c.options.DisableSips
 }
 
 // DisableVector checks if vector graphics support is disabled.
 func (c *Config) DisableVector() bool {
-       if c.options.DisableVector || !c.Sponsor() {
-               return true
-       } else if c.RsvgConvertBin() == "" && c.ImageMagickBin() == "" {
-               c.options.DisableVector = true
-       }
+	if c.options.DisableVector || !c.Sponsor() {
+		return true
+	} else if c.RsvgConvertBin() == "" {
+		c.options.DisableVector = true
+	}
 
-       return c.options.DisableVector
+	return c.options.DisableVector
 }
 
 // DisableRsvgConvert checks if rsvg-convert is disabled for SVG conversion.
 func (c *Config) DisableRsvgConvert() bool {
-       if c.options.DisableVector || !c.Sponsor() {
-               return true
-       }
+	if c.options.DisableVector || !c.Sponsor() {
+		return true
+	}
 
-       return c.RsvgConvertBin() == ""
+	return c.RsvgConvertBin() == ""
 }
 
 // DisableRaw checks if indexing and conversion of RAW images is disabled.
 func (c *Config) DisableRaw() bool {
-       if LowMem && !c.options.DisableRaw {
-               c.options.DisableRaw = true
-               return true
-       }
+	if LowMem && !c.options.DisableRaw {
+		c.options.DisableRaw = true
+		return true
+	}
 
-       return c.options.DisableRaw
+	return c.options.DisableRaw
 }

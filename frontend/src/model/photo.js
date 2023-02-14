@@ -50,15 +50,18 @@ export const FormatAv1 = "av01";
 export const FormatAvc = "avc";
 export const FormatHevc = "hevc";
 export const FormatWebM = "webm";
-export const FormatGif = "gif";
 export const FormatJpeg = "jpg";
+export const FormatPng = "png";
+export const FormatSvg = "svg";
+export const FormatGif = "gif";
 export const MediaImage = "image";
-export const MediaAnimated = "animated";
-export const MediaSidecar = "sidecar";
-export const MediaVideo = "video";
-export const MediaLive = "live";
 export const MediaRaw = "raw";
+export const MediaAnimated = "animated";
+export const MediaLive = "live";
+export const MediaVideo = "video";
+export const MediaVector = "vector";
 export const MediaSphere = "sphere";
+export const MediaSidecar = "sidecar";
 export const YearUnknown = -1;
 export const MonthUnknown = -1;
 export const DayUnknown = -1;
@@ -535,7 +538,7 @@ export class Photo extends RestModel {
       return file;
     }
 
-    return files.find((f) => f.FileType === FormatJpeg);
+    return files.find((f) => f.FileType === FormatJpeg || f.FileType === FormatPng);
   });
 
   jpegFiles() {
@@ -543,7 +546,7 @@ export class Photo extends RestModel {
       return [this];
     }
 
-    return this.Files.filter((f) => f.FileType === FormatJpeg);
+    return this.Files.filter((f) => f.FileType === FormatJpeg || f.FileType === FormatPng);
   }
 
   mainFileHash() {
@@ -800,6 +803,37 @@ export class Photo extends RestModel {
       info.push(size.toFixed(1) + " KB");
     }
   }
+
+  vectorFile() {
+    if (!this.Files) {
+      return this;
+    }
+
+    return this.Files.find((f) => f.MediaType === MediaVector || f.FileType === FormatSvg);
+  }
+
+  getVectorInfo = () => {
+    let file = this.vectorFile() || this.mainFile();
+    return this.generateVectorInfo(file);
+  };
+
+  generateVectorInfo = memoizeOne((file) => {
+    if (!file) {
+      return $gettext("Vector");
+    }
+
+    const info = [];
+
+    if (file.MediaType === MediaVector) {
+      info.push(Util.fileType(file.FileType));
+    } else {
+      info.push($gettext("Vector"));
+    }
+
+    this.addSizeInfo(file, info);
+
+    return info.join(", ");
+  });
 
   getVideoInfo = () => {
     let file = this.videoFile() || this.mainFile();

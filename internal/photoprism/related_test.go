@@ -10,35 +10,14 @@ import (
 )
 
 func TestRelatedFiles_HasPreview(t *testing.T) {
-       cfg := config.TestConfig()
+	cfg := config.TestConfig()
 
-       t.Run("JPEG", func(t *testing.T) {
-               mediaFile, err := NewMediaFile(cfg.ExamplesPath() + "/telegram_2020-01-30_09-57-18.jpg")
-               if err != nil {
-                       t.Fatal(err)
-               }
-               mediaFile2, err2 := NewMediaFile(cfg.ExamplesPath() + "/gopher-video.mp4")
-               if err2 != nil {
-                       t.Fatal(err2)
-               }
-               mediaFile3, err3 := NewMediaFile(cfg.ExamplesPath() + "/iphone_7.heic")
-               if err3 != nil {
-                       t.Fatal(err3)
-               }
-               relatedFiles := RelatedFiles{
-                       Files: MediaFiles{mediaFile, mediaFile2},
-                       Main:  mediaFile3,
-               }
-               assert.True(t, relatedFiles.HasPreview())
-       })
-       t.Run("PNG", func(t *testing.T) {
-               mediaFile, err := NewMediaFile(cfg.ExamplesPath() + "/gopher-video.mp4")
-
+	t.Run("JPEG", func(t *testing.T) {
+		mediaFile, err := NewMediaFile(cfg.ExamplesPath() + "/telegram_2020-01-30_09-57-18.jpg")
 		if err != nil {
 			t.Fatal(err)
 		}
-		mediaFile2, err2 := NewMediaFile(cfg.ExamplesPath() + "/Screenshot 2019-05-21 at 10.45.52.png")
-
+		mediaFile2, err2 := NewMediaFile(cfg.ExamplesPath() + "/gopher-video.mp4")
 		if err2 != nil {
 			t.Fatal(err2)
 		}
@@ -50,10 +29,29 @@ func TestRelatedFiles_HasPreview(t *testing.T) {
 			Files: MediaFiles{mediaFile, mediaFile2},
 			Main:  mediaFile3,
 		}
-		assert.True(t, relatedFiles.ContainsJpeg())
+		assert.True(t, relatedFiles.HasPreview())
 	})
-        t.Run("False", func(t *testing.T) {
-                mediaFile3, err3 := NewMediaFile(cfg.ExamplesPath() + "/iphone_7.heic")
+	t.Run("PNG", func(t *testing.T) {
+		mediaFile, err := NewMediaFile(cfg.ExamplesPath() + "/gopher-video.mp4")
+		if err != nil {
+			t.Fatal(err)
+		}
+		mediaFile2, err2 := NewMediaFile(cfg.ExamplesPath() + "/Screenshot 2019-05-21 at 10.45.52.png")
+		if err2 != nil {
+			t.Fatal(err2)
+		}
+		mediaFile3, err3 := NewMediaFile(cfg.ExamplesPath() + "/iphone_7.heic")
+		if err3 != nil {
+			t.Fatal(err3)
+		}
+		relatedFiles := RelatedFiles{
+			Files: MediaFiles{mediaFile, mediaFile2},
+			Main:  mediaFile3,
+		}
+		assert.True(t, relatedFiles.HasPreview())
+	})
+	t.Run("False", func(t *testing.T) {
+		mediaFile3, err3 := NewMediaFile(cfg.ExamplesPath() + "/iphone_7.heic")
 		if err3 != nil {
 			t.Fatal(err3)
 		}
@@ -167,7 +165,7 @@ func TestRelatedFiles_MainFileType(t *testing.T) {
 		}
 		assert.Equal(t, "", relatedFiles.MainFileType())
 	})
-	t.Run("Jpeg", func(t *testing.T) {
+	t.Run("Primary", func(t *testing.T) {
 		mediaFile, err := NewMediaFile(cfg.ExamplesPath() + "/telegram_2020-01-30_09-57-18.jpg")
 		if err != nil {
 			t.Fatal(err)

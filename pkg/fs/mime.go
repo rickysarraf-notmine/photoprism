@@ -21,9 +21,9 @@ const (
 	MimeTypeWebP    = "image/webp"
 	MimeTypeMP4     = "video/mp4"
 	MimeTypeMOV     = "video/quicktime"
-        MimeTypeSVG     = "image/svg+xml"
-        MimeTypePS      = "application/ps"
-        MimeTypeEPS     = "image/eps"
+	MimeTypeSVG     = "image/svg+xml"
+	MimeTypePS      = "application/ps"
+	MimeTypeEPS     = "image/eps"
 	MimeTypeXML     = "text/xml"
 	MimeTypeJSON    = "application/json"
 )
@@ -52,12 +52,12 @@ func MimeType(filename string) (mimeType string) {
 		return MimeTypeMP4
 	} else if ext == VideoMOV {
 		return MimeTypeMOV
-        } else if ext == VectorSVG {
-                return MimeTypeSVG
-        } else if ext == VectorPS {
-                return MimeTypePS
-        } else if ext == VectorEPS {
-                return MimeTypeEPS
+	} else if ext == VectorSVG {
+		return MimeTypeSVG
+	} else if ext == VectorPS {
+		return MimeTypePS
+	} else if ext == VectorEPS {
+		return MimeTypeEPS
 	}
 
 	if t, err := mimetype.DetectFile(filename); err != nil {

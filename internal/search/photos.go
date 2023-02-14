@@ -274,12 +274,12 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 		case terms["video"]:
 			f.Query = strings.ReplaceAll(f.Query, "video", "")
 			f.Video = true
-                case terms["vectors"]:
-                        f.Query = strings.ReplaceAll(f.Query, "vectors", "")
-                        f.Vector = true
-                case terms["vector"]:
-                        f.Query = strings.ReplaceAll(f.Query, "vector", "")
-                        f.Vector = true
+		case terms["vectors"]:
+			f.Query = strings.ReplaceAll(f.Query, "vectors", "")
+			f.Vector = true
+		case terms["vector"]:
+			f.Query = strings.ReplaceAll(f.Query, "vector", "")
+			f.Vector = true
 		case terms["animated"]:
 			f.Query = strings.ReplaceAll(f.Query, "animated", "")
 			f.Animated = true
@@ -322,10 +322,11 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 	// Filter by location?
 	if f.Geo == true {
 		s = s.Where("photos.cell_id <> 'zz'")
-                for _, where := range LikeAnyKeyword("k.keyword", f.Query) {
-                        s = s.Where("files.photo_id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
-                }
-        } else if f.Query != "" {
+
+		for _, where := range LikeAnyKeyword("k.keyword", f.Query) {
+			s = s.Where("files.photo_id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
+		}
+	} else if f.Query != "" {
 		if err := Db().Where(AnySlug("custom_slug", f.Query, " ")).Find(&labels).Error; len(labels) == 0 || err != nil {
 			log.Debugf("search: label %s not found, using fuzzy search", txt.LogParamLower(f.Query))
 

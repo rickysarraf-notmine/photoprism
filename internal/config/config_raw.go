@@ -81,7 +81,7 @@ func (c *Config) RawTherapeeBlacklist() string {
 	return c.options.RawTherapeeBlacklist
 }
 
-// RawtherapeeEnabled checks if Rawtherapee is enabled for RAW conversion.
+// RawTherapeeEnabled checks if RawTherapee is enabled for RAW conversion.
 func (c *Config) RawTherapeeEnabled() bool {
 	return !c.DisableRawTherapee()
 }
