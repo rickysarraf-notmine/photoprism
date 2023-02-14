@@ -10,13 +10,12 @@ import (
 	"github.com/photoprism/photoprism/pkg/report"
 )
 
-// ShowFlagsCommand configures the command name, flags, and action.
-var ShowFlagsCommand = cli.Command{
-	Name:    "flags",
-	Aliases: []string{"env", "vars"},
-	Usage:   "Displays supported environment variables and CLI flags",
-	Flags:   report.CliFlags,
-	Action:  showFlagsAction,
+// ShowConfigOptionsCommand configures the command name, flags, and action.
+var ShowConfigOptionsCommand = cli.Command{
+	Name:   "config-options",
+	Usage:  "Displays supported environment variables and CLI flags",
+	Flags:  report.CliFlags,
+	Action: showConfigOptionsAction,
 }
 
 var faceFlagsInfo = `!!! info ""
@@ -24,8 +23,8 @@ var faceFlagsInfo = `!!! info ""
 
 We recommend that only advanced users change these parameters:`
 
-// showFlagsAction displays supported environment variables and CLI flags.
-func showFlagsAction(ctx *cli.Context) error {
+// showConfigOptionsAction displays supported environment variables and CLI flags.
+func showConfigOptionsAction(ctx *cli.Context) error {
 	conf := config.NewConfig(ctx)
 	conf.SetLogLevel(logrus.FatalLevel)
 
@@ -57,7 +56,7 @@ func showFlagsAction(ctx *cli.Context) error {
 		{Start: "PHOTOPRISM_HTTPS_PROXY", Title: "Proxy Servers"},
 		{Start: "PHOTOPRISM_DISABLE_TLS", Title: "Web Server"},
 		{Start: "PHOTOPRISM_DATABASE_DRIVER", Title: "Database Connection"},
-		{Start: "PHOTOPRISM_DARKTABLE_BIN", Title: "File Converters"},
+		{Start: "PHOTOPRISM_SIPS_BIN", Title: "File Converters"},
 		{Start: "PHOTOPRISM_DOWNLOAD_TOKEN", Title: "Security Tokens"},
 		{Start: "PHOTOPRISM_THUMB_COLOR", Title: "Image Quality"},
 		{Start: "PHOTOPRISM_FACE_SIZE", Title: "Face Recognition",

@@ -105,9 +105,10 @@
                   @click.stop.prevent="onOpen($event, index, !isSharedView, photo.Type === 'live')">
                 <i v-if="photo.Type === 'raw'" class="action-raw" :title="$gettext('RAW')">photo_camera</i>
                 <i v-if="photo.Type === 'live'" class="action-live" :title="$gettext('Live')"><icon-live-photo/></i>
-                <i v-if="photo.Type === 'animated'" class="action-animated" :title="$gettext('Animated')">gif</i>
                 <i v-if="photo.Type === 'sphere'" class="action-sphere" :title="$gettext('Photosphere')">panorama_photosphere</i>
                 <i v-if="photo.Type === 'video'" class="action-play" :title="$gettext('Video')">play_arrow</i>
+                <i v-if="photo.Type === 'animated'" class="action-animated" :title="$gettext('Animated')">gif</i>
+                <i v-if="photo.Type === 'vector'" class="action-vector" :title="$gettext('Vector')">polyline</i>
                 <i v-if="photo.Type === 'image'" class="action-stack" :title="$gettext('Stack')">burst_mode</i>
             </button>
 
@@ -208,6 +209,11 @@
                         @click.exact="openPhoto(index)">
                   <i>gif_box</i>
                   {{ photo.getVideoInfo() }}
+                </button>
+                <button v-else-if="photo.Type === 'vector'" :title="$gettext('Vector')"
+                        @click.exact="openPhoto(index)">
+                  <i>polyline</i>
+                  {{ photo.getVectorInfo() }}
                 </button>
                 <button v-else :title="$gettext('Camera')" class="action-camera-edit"
                         :data-uid="photo.UID" @click.exact="editPhoto(index)">

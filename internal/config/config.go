@@ -42,6 +42,7 @@ var log = event.Log
 var once sync.Once
 var LowMem = false
 var TotalMem uint64
+var crc32Castagnoli = crc32.MakeTable(crc32.Castagnoli)
 
 // Config holds database, cache and all parameters of photoprism
 type Config struct {
@@ -155,6 +156,7 @@ func (c *Config) Options() *Options {
 
 // Propagate updates config options in other packages as needed.
 func (c *Config) Propagate() {
+	FlushCache()
 	log.SetLevel(c.LogLevel())
 
 	// Set thumbnail generation parameters.
@@ -220,7 +222,7 @@ func (c *Config) Init() error {
 	// Show warning if less than 1 GB RAM was detected.
 	if LowMem {
 		log.Warnf(`config: less than %d GB of memory detected, please upgrade if server becomes unstable or unresponsive`, MinMem/Gigabyte)
-		log.Warnf("config: tensorflow as well as indexing and conversion of RAW files have been disabled automatically")
+		log.Warnf("config: tensorflow as well as indexing and conversion of RAW images have been disabled automatically")
 	}
 
 	// Show swap info.
@@ -322,13 +324,13 @@ func (c *Config) Serial() string {
 func (c *Config) SerialChecksum() string {
 	var result []byte
 
-	hash := crc32.New(crc32.MakeTable(crc32.Castagnoli))
+	crc := crc32.New(crc32Castagnoli)
 
-	if _, err := hash.Write([]byte(c.Serial())); err != nil {
+	if _, err := crc.Write([]byte(c.Serial())); err != nil {
 		log.Warnf("config: %s", err)
 	}
 
-	return hex.EncodeToString(hash.Sum(result))
+	return hex.EncodeToString(crc.Sum(result))
 }
 
 // Name returns the app name.
@@ -354,6 +356,11 @@ func (c *Config) Edition() string {
 // Version returns the application version.
 func (c *Config) Version() string {
 	return c.options.Version
+}
+
+// VersionChecksum returns the application version checksum.
+func (c *Config) VersionChecksum() uint32 {
+	return crc32.ChecksumIEEE([]byte(c.Version()))
 }
 
 // UserAgent returns an HTTP user agent string based on the app config and version.
@@ -459,11 +466,11 @@ func (c *Config) SiteDescription() string {
 // SitePreview returns the site preview image URL for sharing.
 func (c *Config) SitePreview() string {
 	if c.options.SitePreview == "" || c.NoSponsor() {
-		return c.SiteUrl() + "static/img/preview.jpg"
+		return fmt.Sprintf("https://i.photoprism.app/prism?cover=64&style=centered%%20dark&caption=none&title=%s", url.QueryEscape(c.AppName()))
 	}
 
 	if !strings.HasPrefix(c.options.SitePreview, "http") {
-		return c.SiteUrl() + c.options.SitePreview
+		return c.SiteUrl() + strings.TrimPrefix(c.options.SitePreview, "/")
 	}
 
 	return c.options.SitePreview
@@ -566,11 +573,6 @@ func (c *Config) DetectNSFW() bool {
 // UploadNSFW checks if NSFW photos can be uploaded.
 func (c *Config) UploadNSFW() bool {
 	return c.options.UploadNSFW
-}
-
-// EnableExpvar tests if the expvar endpoint should be enabled.
-func (c *Config) EnableExpvar() bool {
-	return c.options.EnableExpvar
 }
 
 // LogLevel returns the Logrus log level.
