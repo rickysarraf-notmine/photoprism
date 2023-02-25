@@ -72,6 +72,7 @@ type ClientConfig struct {
 	Countries        entity.Countries    `json:"countries"`
 	People           entity.People       `json:"people"`
 	Thumbs           ThumbSizes          `json:"thumbs"`
+	License          string              `json:"license"`
 	Customer         string              `json:"customer"`
 	MapKey           string              `json:"mapKey"`
 	DownloadToken    string              `json:"downloadToken,omitempty"`
@@ -105,20 +106,23 @@ type Years []int
 
 // ClientDisable represents disabled client features a user cannot turn back on.
 type ClientDisable struct {
-	Backups        bool `json:"backups"`
 	WebDAV         bool `json:"webdav"`
 	Settings       bool `json:"settings"`
 	Places         bool `json:"places"`
-	ExifTool       bool `json:"exiftool"`
-	FFmpeg         bool `json:"ffmpeg"`
-	Raw            bool `json:"raw"`
-	Darktable      bool `json:"darktable"`
-	RawTherapee    bool `json:"rawtherapee"`
-	Sips           bool `json:"sips"`
-	HeifConvert    bool `json:"heifconvert"`
+	Backups        bool `json:"backups"`
 	TensorFlow     bool `json:"tensorflow"`
 	Faces          bool `json:"faces"`
 	Classification bool `json:"classification"`
+	Sips           bool `json:"sips"`
+	FFmpeg         bool `json:"ffmpeg"`
+	ExifTool       bool `json:"exiftool"`
+	Darktable      bool `json:"darktable"`
+	RawTherapee    bool `json:"rawtherapee"`
+	ImageMagick    bool `json:"imagemagick"`
+	HeifConvert    bool `json:"heifconvert"`
+	Vectors        bool `json:"vectors"`
+	JpegXL         bool `json:"jpegxl"`
+	Raw            bool `json:"raw"`
 }
 
 // ClientCounts represents photo, video and album counts for the client UI.
@@ -132,17 +136,22 @@ type ClientCounts struct {
 	Countries      int `json:"countries"`
 	Hidden         int `json:"hidden"`
 	Favorites      int `json:"favorites"`
-	Private        int `json:"private"`
 	Review         int `json:"review"`
 	Stories        int `json:"stories"`
+	Private        int `json:"private"`
 	Albums         int `json:"albums"`
+	PrivateAlbums  int `json:"private_albums"`
 	Moments        int `json:"moments"`
+	PrivateMoments int `json:"private_moments"`
 	Months         int `json:"months"`
+	PrivateMonths  int `json:"private_months"`
+	States         int `json:"states"`
+	PrivateStates  int `json:"private_states"`
 	Folders        int `json:"folders"`
+	PrivateFolders int `json:"private_folders"`
 	Files          int `json:"files"`
 	People         int `json:"people"`
 	Places         int `json:"places"`
-	States         int `json:"states"`
 	Labels         int `json:"labels"`
 	LabelMaxPhotos int `json:"labelMaxPhotos"`
 }
@@ -216,26 +225,29 @@ func (c *Config) ClientPublic() ClientConfig {
 		Settings: c.PublicSettings(),
 		ACL:      acl.Resources.Grants(acl.RoleUnknown),
 		Disable: ClientDisable{
-			Backups:        true,
 			WebDAV:         true,
 			Settings:       c.DisableSettings(),
 			Places:         c.DisablePlaces(),
-			ExifTool:       true,
-			FFmpeg:         true,
-			Raw:            true,
-			Darktable:      true,
-			RawTherapee:    true,
-			Sips:           true,
-			HeifConvert:    true,
+			Backups:        true,
 			TensorFlow:     true,
 			Faces:          true,
 			Classification: true,
+			Sips:           true,
+			FFmpeg:         true,
+			ExifTool:       true,
+			Darktable:      true,
+			RawTherapee:    true,
+			ImageMagick:    true,
+			HeifConvert:    true,
+			Vectors:        c.DisableVectors(),
+			JpegXL:         true,
+			Raw:            true,
 		},
 		Flags:            strings.Join(c.Flags(), " "),
 		Mode:             string(ClientPublic),
 		Name:             c.Name(),
-		About:            c.Edition(),
-		Edition:          c.Hub().Status,
+		About:            c.About(),
+		Edition:          c.Edition(),
 		BaseUri:          c.BaseUri(""),
 		StaticUri:        c.StaticUri(),
 		CssUri:           a.AppCssUri(),
@@ -275,6 +287,8 @@ func (c *Config) ClientPublic() ClientConfig {
 		Lenses:           entity.Lenses{},
 		Countries:        entity.Countries{},
 		People:           entity.People{},
+		License:          c.Hub().Status,
+		Customer:         "",
 		MapKey:           "",
 		Thumbs:           Thumbs,
 		Colors:           colors.All.List(),
@@ -296,26 +310,29 @@ func (c *Config) ClientShare() ClientConfig {
 		Settings: c.ShareSettings(),
 		ACL:      acl.Resources.Grants(acl.RoleVisitor),
 		Disable: ClientDisable{
-			Backups:        true,
 			WebDAV:         c.DisableWebDAV(),
 			Settings:       c.DisableSettings(),
 			Places:         c.DisablePlaces(),
-			ExifTool:       true,
+			Backups:        true,
+			TensorFlow:     true,
+			Faces:          c.DisableFaces(),
+			Classification: c.DisableClassification(),
+			Sips:           true,
 			FFmpeg:         true,
-			Raw:            true,
+			ExifTool:       true,
 			Darktable:      true,
 			RawTherapee:    true,
-			Sips:           true,
+			ImageMagick:    true,
 			HeifConvert:    true,
-			TensorFlow:     true,
-			Faces:          true,
-			Classification: true,
+			Vectors:        c.DisableVectors(),
+			JpegXL:         c.DisableJpegXL(),
+			Raw:            c.DisableRaw(),
 		},
 		Flags:            strings.Join(c.Flags(), " "),
 		Mode:             string(ClientShare),
 		Name:             c.Name(),
-		About:            c.Edition(),
-		Edition:          c.Hub().Status,
+		About:            c.About(),
+		Edition:          c.Edition(),
 		BaseUri:          c.BaseUri(""),
 		StaticUri:        c.StaticUri(),
 		CssUri:           a.AppCssUri(),
@@ -358,8 +375,9 @@ func (c *Config) ClientShare() ClientConfig {
 		People:           entity.People{},
 		Colors:           colors.All.List(),
 		Thumbs:           Thumbs,
-		MapKey:           c.Hub().MapKey(),
+		License:          c.Hub().Status,
 		Customer:         c.Hub().Customer(),
+		MapKey:           c.Hub().MapKey(),
 		DownloadToken:    c.DownloadToken(),
 		PreviewToken:     c.PreviewToken(),
 		ManifestUri:      c.ClientManifestUri(),
@@ -383,26 +401,29 @@ func (c *Config) ClientUser(withSettings bool) ClientConfig {
 	cfg := ClientConfig{
 		Settings: s,
 		Disable: ClientDisable{
-			Backups:        c.DisableBackups(),
 			WebDAV:         c.DisableWebDAV(),
 			Settings:       c.DisableSettings(),
 			Places:         c.DisablePlaces(),
-			ExifTool:       c.DisableExifTool(),
-			FFmpeg:         c.DisableFFmpeg(),
-			Raw:            c.DisableRaw(),
-			Darktable:      c.DisableDarktable(),
-			RawTherapee:    c.DisableRawTherapee(),
-			Sips:           c.DisableSips(),
-			HeifConvert:    c.DisableHeifConvert(),
+			Backups:        c.DisableBackups(),
 			TensorFlow:     c.DisableTensorFlow(),
 			Faces:          c.DisableFaces(),
 			Classification: c.DisableClassification(),
+			Sips:           c.DisableSips(),
+			FFmpeg:         c.DisableFFmpeg(),
+			ExifTool:       c.DisableExifTool(),
+			Darktable:      c.DisableDarktable(),
+			RawTherapee:    c.DisableRawTherapee(),
+			ImageMagick:    c.DisableImageMagick(),
+			HeifConvert:    c.DisableHeifConvert(),
+			Vectors:        c.DisableVectors(),
+			JpegXL:         c.DisableJpegXL(),
+			Raw:            c.DisableRaw(),
 		},
 		Flags:            strings.Join(c.Flags(), " "),
 		Mode:             string(ClientUser),
 		Name:             c.Name(),
-		About:            c.Edition(),
-		Edition:          c.Hub().Status,
+		About:            c.About(),
+		Edition:          c.Edition(),
 		BaseUri:          c.BaseUri(""),
 		StaticUri:        c.StaticUri(),
 		CssUri:           a.AppCssUri(),
@@ -446,8 +467,9 @@ func (c *Config) ClientUser(withSettings bool) ClientConfig {
 		People:           entity.People{},
 		Colors:           colors.All.List(),
 		Thumbs:           Thumbs,
-		MapKey:           c.Hub().MapKey(),
+		License:          c.Hub().Status,
 		Customer:         c.Hub().Customer(),
+		MapKey:           c.Hub().MapKey(),
 		DownloadToken:    c.DownloadToken(),
 		PreviewToken:     c.PreviewToken(),
 		ManifestUri:      c.ClientManifestUri(),
@@ -523,7 +545,9 @@ func (c *Config) ClientUser(withSettings bool) ClientConfig {
 	if hidePrivate {
 		c.Db().
 			Table("albums").
-			Select("SUM(album_type = ?) AS albums, SUM(album_type = ?) AS moments, SUM(album_type = ?) AS months, SUM(album_type = ?) AS states, SUM(album_type = ?) AS folders", entity.AlbumDefault, entity.AlbumMoment, entity.AlbumMonth, entity.AlbumState, entity.AlbumFolder).
+			Select("SUM(album_type = ?) AS albums, SUM(album_type = ?) AS moments, SUM(album_type = ?) AS months, SUM(album_type = ?) AS states, SUM(album_type = ?) AS folders, "+
+				"SUM(album_type = ? AND album_private = 1) AS private_albums, SUM(album_type = ? AND album_private = 1) AS private_moments, SUM(album_type = ? AND album_private = 1) AS private_months, SUM(album_type = ? AND album_private = 1) AS private_states, SUM(album_type = ? AND album_private = 1) AS private_folders",
+				entity.AlbumDefault, entity.AlbumMoment, entity.AlbumMonth, entity.AlbumState, entity.AlbumFolder, entity.AlbumDefault, entity.AlbumMoment, entity.AlbumMonth, entity.AlbumState, entity.AlbumFolder).
 			Where("deleted_at IS NULL AND (albums.album_type <> 'folder' OR albums.album_path IN (SELECT photos.photo_path FROM photos WHERE photos.photo_private = 0 AND photos.deleted_at IS NULL))").
 			Take(&cfg.Count)
 	} else {
@@ -537,7 +561,7 @@ func (c *Config) ClientUser(withSettings bool) ClientConfig {
 	c.Db().
 		Table("files").
 		Select("COUNT(*) AS files").
-		Where("file_missing = 0 AND file_root = ?", entity.RootOriginals).
+		Where("file_missing = 0 AND file_root = ? AND deleted_at IS NULL", entity.RootOriginals).
 		Take(&cfg.Count)
 
         c.Db().

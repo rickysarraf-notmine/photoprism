@@ -8,6 +8,7 @@ import (
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/internal/search"
 
+	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/media"
 	"github.com/photoprism/photoprism/pkg/sortby"
 )
@@ -54,6 +55,17 @@ func AlbumCoverByUID(uid string, public bool) (file entity.File, err error) {
 			}
 		}
 
+		// Automatically hide empty months.
+		switch a.AlbumType {
+		case entity.AlbumMonth, entity.AlbumState:
+			if err := a.Delete(); err != nil {
+				log.Errorf("%s: %s (hide)", a.AlbumType, err)
+			} else {
+				log.Infof("%s: %s hidden", a.AlbumType, clean.Log(a.AlbumTitle))
+			}
+		}
+
+		// Return without album cover.
 		return file, fmt.Errorf("no cover found")
 	}
 

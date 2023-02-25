@@ -393,6 +393,8 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 		if metaData := m.MetaData(); metaData.Error == nil {
 			file.FileCodec = metaData.Codec
 			file.SetMediaUTC(metaData.TakenAt)
+			file.SetDuration(metaData.Duration)
+			file.SetFPS(metaData.FPS)
 			file.SetFrames(metaData.Frames)
 			file.SetProjection(metaData.Projection)
 			file.SetHDR(metaData.IsHDR())
@@ -413,6 +415,11 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 			}
 		}
 
+		// Set the photo type to animated if it is an animated PNG.
+		if photo.TypeSrc == entity.SrcAuto && photo.PhotoType == entity.MediaImage && m.IsAnimatedImage() {
+			photo.PhotoType = entity.MediaAnimated
+		}
+		
 		// Update photo type only if not manually modified.
 		if photo.TypeSrc == entity.SrcAuto && m.IsMotionPhoto() {
 			// Change the src type to prevent the (non-primary) generated video file from changing it
@@ -444,7 +451,7 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 			log.Warn(err.Error())
 			file.FileError = err.Error()
 		}
-	case m.IsRaw(), m.IsDNG(), m.IsHEIC(), m.IsAVIF(), m.IsImageOther():
+	case m.IsRaw(), m.IsImage():
 		if metaData := m.MetaData(); metaData.Error == nil {
 			// Update basic metadata.
 			photo.SetTitle(metaData.Title, entity.SrcMeta)
@@ -506,7 +513,7 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 
 		// Update photo type if an image and not manually modified.
 		if photo.TypeSrc == entity.SrcAuto && photo.PhotoType == entity.MediaImage {
-			if m.IsAnimatedGif() {
+			if m.IsAnimatedImage() {
 				photo.PhotoType = entity.MediaAnimated
 			} else if m.IsRaw() {
 				photo.PhotoType = entity.MediaRaw

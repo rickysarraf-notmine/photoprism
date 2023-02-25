@@ -10,7 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+<<<<<<<< HEAD:internal/photoprism/convert_preview_test.go
 func TestConvert_ToPreview(t *testing.T) {
+========
+func TestConvert_ToImage(t *testing.T) {
+>>>>>>>> preview:internal/photoprism/convert_image_test.go
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
@@ -33,7 +37,11 @@ func TestConvert_ToPreview(t *testing.T) {
 			t.Fatal(err)
 		}
 
+<<<<<<<< HEAD:internal/photoprism/convert_preview_test.go
 		jpegFile, err := convert.ToPreview(mf, false)
+========
+		jpegFile, err := convert.ToImage(mf, false)
+>>>>>>>> preview:internal/photoprism/convert_image_test.go
 
 		if err != nil {
 			t.Fatal(err)
@@ -60,7 +68,11 @@ func TestConvert_ToPreview(t *testing.T) {
 			t.Fatal(err)
 		}
 
+<<<<<<<< HEAD:internal/photoprism/convert_preview_test.go
 		imageJpeg, err := convert.ToPreview(mf, false)
+========
+		imageJpeg, err := convert.ToImage(mf, false)
+>>>>>>>> preview:internal/photoprism/convert_image_test.go
 
 		if err != nil {
 			t.Fatal(err)
@@ -83,7 +95,11 @@ func TestConvert_ToPreview(t *testing.T) {
 			t.Fatalf("%s for %s", err.Error(), rawFilename)
 		}
 
+<<<<<<<< HEAD:internal/photoprism/convert_preview_test.go
 		imageRaw, err := convert.ToPreview(rawMediaFile, false)
+========
+		imageRaw, err := convert.ToImage(rawMediaFile, false)
+>>>>>>>> preview:internal/photoprism/convert_image_test.go
 
 		if err != nil {
 			t.Fatalf("%s for %s", err.Error(), rawFilename)
@@ -115,7 +131,11 @@ func TestConvert_ToPreview(t *testing.T) {
 			t.Fatal(err)
 		}
 
+<<<<<<<< HEAD:internal/photoprism/convert_preview_test.go
 		imageFile, err := convert.ToPreview(mediaFile, false)
+========
+		imageFile, err := convert.ToImage(mediaFile, false)
+>>>>>>>> preview:internal/photoprism/convert_image_test.go
 
 		if err != nil {
 			t.Fatal(err)
