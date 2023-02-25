@@ -57,4 +57,3 @@ const (
 	ProviderNone     = ""
 	ProviderPassword = "password"
 )
-

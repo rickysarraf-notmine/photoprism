@@ -121,7 +121,7 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 		// Retrieve the newly saved marker.
 		marker := file.LatestMarker()
 
-		faces, err := query.Faces(false, false, false)
+		faces, err := query.Faces(false, false, false, false)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})

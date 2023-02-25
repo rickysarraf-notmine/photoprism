@@ -99,6 +99,7 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
       libimage-exiftool-perl \
       rawtherapee \
       imagemagick \
+      libvips-dev \
       ffmpeg \
       libavcodec-extra \
       davfs2 \

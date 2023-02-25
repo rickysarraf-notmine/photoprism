@@ -18,6 +18,7 @@ import (
 // validation and return defaults if a value is empty.
 type Options struct {
 	Name                  string        `json:"-"`
+	About                 string        `json:"-"`
 	Edition               string        `json:"-"`
 	Version               string        `json:"-"`
 	Copyright             string        `json:"-"`
@@ -75,7 +76,8 @@ type Options struct {
 	DisableRawTherapee    bool          `yaml:"DisableRawTherapee" json:"DisableRawTherapee" flag:"disable-rawtherapee"`
 	DisableImageMagick    bool          `yaml:"DisableImageMagick" json:"DisableImageMagick" flag:"disable-imagemagick"`
 	DisableHeifConvert    bool          `yaml:"DisableHeifConvert" json:"DisableHeifConvert" flag:"disable-heifconvert"`
-	DisableVector         bool          `yaml:"DisableVector" json:"DisableVector" flag:"disable-vector"`
+	DisableVectors        bool          `yaml:"DisableVectors" json:"DisableVectors" flag:"disable-vectors"`
+	DisableJpegXL         bool          `yaml:"DisableJpegXL" json:"DisableJpegXL" flag:"disable-jpegxl"`
 	DisableRaw            bool          `yaml:"DisableRaw" json:"DisableRaw" flag:"disable-raw"`
 	RawPresets            bool          `yaml:"RawPresets" json:"RawPresets" flag:"raw-presets"`
 	ExifBruteForce        bool          `yaml:"ExifBruteForce" json:"ExifBruteForce" flag:"exif-bruteforce"`
@@ -176,8 +178,13 @@ func NewOptions(ctx *cli.Context) *Options {
 		c.Name = fmt.Sprintf("%s", s)
 	}
 
-	// Set app edition from metadata if possible.
+	// Set app about from metadata if possible.
 	if s, ok := ctx.App.Metadata["About"]; ok {
+		c.About = fmt.Sprintf("%s", s)
+	}
+
+	// Set app edition from metadata if possible.
+	if s, ok := ctx.App.Metadata["Edition"]; ok {
 		c.Edition = fmt.Sprintf("%s", s)
 	}
 

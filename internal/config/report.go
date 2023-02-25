@@ -65,6 +65,7 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"backup-path", c.BackupPath()},
 		{"cache-path", c.CachePath()},
 		{"cmd-cache-path", c.CmdCachePath()},
+		{"media-cache-path", c.MediaCachePath()},
 		{"thumb-cache-path", c.ThumbCachePath()},
 		{"import-path", c.ImportPath()},
 		{"import-dest", c.ImportDest()},
@@ -99,7 +100,8 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"disable-imagemagick", fmt.Sprintf("%t", c.DisableImageMagick())},
 		{"disable-heifconvert", fmt.Sprintf("%t", c.DisableHeifConvert())},
 		{"disable-rsvgconvert", fmt.Sprintf("%t", c.DisableRsvgConvert())},
-		{"disable-vector", fmt.Sprintf("%t", c.DisableVector())},
+		{"disable-vectors", fmt.Sprintf("%t", c.DisableVectors())},
+		{"disable-jpegxl", fmt.Sprintf("%t", c.DisableJpegXL())},
 		{"disable-raw", fmt.Sprintf("%t", c.DisableRaw())},
 
 		// Format Flags.
@@ -185,6 +187,7 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"imagemagick-blacklist", c.ImageMagickBlacklist()},
 		{"heifconvert-bin", c.HeifConvertBin()},
 		{"rsvgconvert-bin", c.RsvgConvertBin()},
+		{"jpegxldecoder-bin", c.JpegXLDecoderBin()},
 
 		// Thumbnails.
 		{"download-token", c.DownloadToken()},

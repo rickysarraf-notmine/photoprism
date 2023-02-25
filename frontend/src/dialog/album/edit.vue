@@ -58,7 +58,7 @@
                               class="input-filter"
                 ></v-text-field>
               </v-flex>
-              <v-flex xs12 md6 pa-2>
+	      <v-flex xs12 pa-2>
                 <v-combobox v-model="model.Category" hide-details box flat
                             :search-input.sync="model.Category"
                             :items="categories"
@@ -71,7 +71,7 @@
                 >
                 </v-combobox>
               </v-flex>
-              <v-flex xs12 md6 pa-2>
+              <v-flex xs12 sm6 pa-2>
                 <v-select
                     v-model="model.Order"
                     :label="$gettext('Sort Order')"
@@ -83,6 +83,26 @@
                     item-text="text"
                     color="secondary-dark">
                 </v-select>
+              </v-flex>
+              <v-flex sm3 pa-2>
+                <v-checkbox
+                    v-model="model.Favorite"
+                    :disabled="disabled"
+                    color="secondary-dark"
+                    :label="$gettext('Favorite')"
+                    hide-details flat
+                >
+                </v-checkbox>
+              </v-flex>
+              <v-flex v-if="featExperimental && featPrivate" sm3 pa-2>
+                <v-checkbox
+                    v-model="model.Private"
+                    :disabled="disabled"
+                    color="secondary-dark"
+                    :label="$gettext('Private')"
+                    hide-details flat
+                >
+                </v-checkbox>
               </v-flex>
             </v-layout>
           </v-container>
@@ -122,6 +142,8 @@ export default {
   },
   data() {
     return {
+      featExperimental: this.$config.get("experimental") && !this.$config.ce(),
+      featPrivate: this.$config.feature("private"),
       disabled: !this.$config.allow("albums", "manage"),
       model: new Album(),
       growDesc: false,

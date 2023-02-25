@@ -19,7 +19,7 @@ import (
 	"github.com/photoprism/photoprism/pkg/fs"
 )
 
-// ResetCommand resets the index, clears the cache, and removes sidecar files after confirmation.
+// ResetCommand configures the command name, flags, and action.
 var ResetCommand = cli.Command{
 	Name:  "reset",
 	Usage: "Resets the index, clears the cache, and removes sidecar files",
@@ -222,7 +222,7 @@ func resetIndexDb(c *config.Config) {
 	tables.Drop(c.Db())
 
 	log.Infoln("restoring default schema")
-	entity.InitDb(migrate.Opt(false, nil))
+	entity.InitDb(migrate.Opt(true, false, nil))
 
 	// Reset admin account?
 	if c.AdminPassword() == "" {

@@ -280,6 +280,11 @@ var Flags = CliFlags{
 			EnvVar: "PHOTOPRISM_DISABLE_HEIFCONVERT",
 		}}, {
 		Flag: cli.BoolFlag{
+			Name:   "disable-jpegxl",
+			Usage:  "disable JPEG XL file format support",
+			EnvVar: "PHOTOPRISM_DISABLE_JPEGXL",
+		}}, {
+		Flag: cli.BoolFlag{
 			Name:   "disable-raw",
 			Usage:  "disable indexing and conversion of RAW images",
 			EnvVar: "PHOTOPRISM_DISABLE_RAW",
@@ -613,7 +618,7 @@ var Flags = CliFlags{
 		Flag: cli.StringFlag{
 			Name:   "imagemagick-blacklist",
 			Usage:  "do not use ImageMagick to convert files with these `EXTENSIONS`",
-			Value:  "",
+			Value:  "heif,heic,heics,avif,avifs,jxl",
 			EnvVar: "PHOTOPRISM_IMAGEMAGICK_BLACKLIST",
 		}}, {
 		Flag: cli.StringFlag{

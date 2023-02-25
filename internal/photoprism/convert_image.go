@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -17,8 +18,8 @@ import (
 	"github.com/photoprism/photoprism/pkg/fs"
 )
 
-// ToPreview converts a media file to a directly supported image file format.
-func (c *Convert) ToPreview(f *MediaFile, force bool) (*MediaFile, error) {
+// ToImage converts a media file to a directly supported image file format.
+func (c *Convert) ToImage(f *MediaFile, force bool) (*MediaFile, error) {
 	if f == nil {
 		return nil, fmt.Errorf("convert: file is nil - possible bug")
 	}
@@ -70,6 +71,7 @@ func (c *Convert) ToPreview(f *MediaFile, force bool) (*MediaFile, error) {
 	fileName := f.RelName(c.conf.OriginalsPath())
 	xmpName := fs.SidecarXMP.Find(f.FileName(), false)
 
+	// Publish file conversion event.
 	event.Publish("index.converting", event.Data{
 		"fileType": f.FileType(),
 		"fileName": fileName,
@@ -79,20 +81,32 @@ func (c *Convert) ToPreview(f *MediaFile, force bool) (*MediaFile, error) {
 
 	start := time.Now()
 
+	// PNG, GIF, BMP, TIFF, and WebP can be handled natively.
 	if f.IsImageOther() {
 		log.Infof("convert: converting %s to %s (%s)", clean.Log(filepath.Base(fileName)), clean.Log(filepath.Base(imageName)), f.FileType())
 
-		_, err = thumb.Jpeg(f.FileName(), imageName, f.Orientation())
-
-		if err != nil {
-			return nil, err
+		// Create PNG or JPEG image from source file.
+		switch fs.LowerExt(imageName) {
+		case fs.ExtPNG:
+			_, err = thumb.Png(f.FileName(), imageName, f.Orientation())
+		case fs.ExtJPEG:
+			_, err = thumb.Jpeg(f.FileName(), imageName, f.Orientation())
+		default:
+			return nil, fmt.Errorf("convert: unspported target format %s (%s)", fs.LowerExt(imageName), clean.Log(f.RootRelName()))
 		}
 
-		log.Infof("convert: %s created in %s (%s)", clean.Log(filepath.Base(imageName)), time.Since(start), f.FileType())
-
-		return NewMediaFile(imageName)
+		// Check result.
+		if err == nil {
+			log.Infof("convert: %s created in %s (%s)", clean.Log(filepath.Base(imageName)), time.Since(start), f.FileType())
+			return NewMediaFile(imageName)
+		} else if !f.IsTIFF() && !f.IsWebP() {
+			// See https://github.com/photoprism/photoprism/issues/1612
+			// for TIFF file format compatibility.
+			return nil, err
+		}
 	}
 
+	// Run external commands for other formats.
 	var cmds []*exec.Cmd
 	var useMutex bool
 	var expectedMime string
@@ -100,10 +114,10 @@ func (c *Convert) ToPreview(f *MediaFile, force bool) (*MediaFile, error) {
 	switch fs.LowerExt(imageName) {
 	case fs.ExtPNG:
 		cmds, useMutex, err = c.PngConvertCommands(f, imageName)
-		expectedMime = fs.MimeTypePng
+		expectedMime = fs.MimeTypePNG
 	case fs.ExtJPEG:
 		cmds, useMutex, err = c.JpegConvertCommands(f, imageName, xmpName)
-		expectedMime = fs.MimeTypeJpeg
+		expectedMime = fs.MimeTypeJPEG
 	default:
 		return nil, fmt.Errorf("convert: unspported target format %s (%s)", fs.LowerExt(imageName), clean.Log(f.RootRelName()))
 	}
@@ -125,6 +139,7 @@ func (c *Convert) ToPreview(f *MediaFile, force bool) (*MediaFile, error) {
 		return NewMediaFile(imageName)
 	}
 
+	// Try compatible converters.
 	for _, cmd := range cmds {
 		// Fetch command output.
 		var out bytes.Buffer
@@ -143,11 +158,11 @@ func (c *Convert) ToPreview(f *MediaFile, force bool) (*MediaFile, error) {
 
 		// Run convert command.
 		if err = cmd.Run(); err != nil {
-			if stderr.String() != "" {
-				err = errors.New(stderr.String())
+			if errStr := strings.TrimSpace(stderr.String()); errStr != "" {
+				err = errors.New(errStr)
 			}
 
-			log.Tracef("convert: %s (%s)", err, filepath.Base(cmd.Path))
+			log.Tracef("convert: %s (%s)", strings.TrimSpace(err.Error()), filepath.Base(cmd.Path))
 			continue
 		} else if fs.FileExistsNotEmpty(imageName) {
 			log.Infof("convert: %s created in %s (%s)", clean.Log(filepath.Base(imageName)), time.Since(start), filepath.Base(cmd.Path))
