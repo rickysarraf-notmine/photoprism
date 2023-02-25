@@ -57,7 +57,6 @@ var SpecialWords = map[string]string{
 	"dci":                "DCI",
 	"xmp":                "XMP",
 	"xml":                "XML",
-	"svg":                "SVG",
 	"ai":                 "AI",
 	"psd":                "PSD",
 	"pdf":                "PDF",

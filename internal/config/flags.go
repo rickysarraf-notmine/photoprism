@@ -685,12 +685,6 @@ var Flags = CliFlags{
 			EnvVar: "PHOTOPRISM_PNG_SIZE",
 		}}, {
 		Flag: cli.IntFlag{
-			Name:   "png-size",
-			Usage:  "maximum size of created PNG sidecar files in `PIXELS` (720-30000)",
-			Value:  7680,
-			EnvVar: "PHOTOPRISM_PNG_SIZE",
-		}}, {
-		Flag: cli.IntFlag{
 			Name:   "face-size",
 			Usage:  "minimum size of faces in `PIXELS` (20-10000)",
 			Value:  face.SizeThreshold,
