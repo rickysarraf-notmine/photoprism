@@ -27,10 +27,10 @@ require (
 	github.com/karrick/godirwalk v1.17.0
 	github.com/klauspost/cpuid/v2 v2.2.4
 	github.com/leandro-lugaresi/hub v1.1.1
-	github.com/leonelquinteros/gotext v1.5.1
+	github.com/leonelquinteros/gotext v1.5.2
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0
-	github.com/mandykoh/prism v0.35.0
+	github.com/mandykoh/prism v0.35.1
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-sqlite3 v2.0.1+incompatible // indirect
 	github.com/montanaflynn/stats v0.7.0
@@ -39,15 +39,15 @@ require (
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58
 	github.com/sevlyar/go-daemon v0.1.6
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/studio-b12/gowebdav v0.0.0-20230203202212-3282f94193f2
 	github.com/tensorflow/tensorflow v1.15.2
 	github.com/tidwall/gjson v1.14.4
 	github.com/ulule/deepcopier v0.0.0-20200430083143-45decc6639b6
 	github.com/urfave/cli v1.22.12
 	go4.org v0.0.0-20201209231011-d4a079459e60 // indirect
-	golang.org/x/crypto v0.6.0
-	golang.org/x/net v0.7.0
+	golang.org/x/crypto v0.7.0
+	golang.org/x/net v0.8.0
 	gonum.org/v1/gonum v0.12.0
 	gopkg.in/photoprism/go-tz.v2 v2.1.1
 	gopkg.in/yaml.v2 v2.4.0
@@ -55,7 +55,7 @@ require (
 
 require (
 	github.com/go-xmlfmt/xmlfmt v1.1.2 // indirect
-	golang.org/x/image v0.5.0
+	golang.org/x/image v0.6.0
 )
 
 require github.com/olekukonko/tablewriter v0.0.5
@@ -64,11 +64,11 @@ require github.com/google/uuid v1.3.0
 
 require (
 	github.com/chzyer/readline v1.5.1 // indirect
-	github.com/zitadel/oidc v1.13.0
+	github.com/zitadel/oidc v1.13.1
 	golang.org/x/oauth2 v0.4.0 // indirect
 )
 
-require github.com/gabriel-vasile/mimetype v1.4.1
+require github.com/gabriel-vasile/mimetype v1.4.2
 
 require github.com/sethgrid/pester v1.1.0
 
@@ -117,8 +117,8 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.10 // indirect
 	golang.org/x/arch v0.2.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect

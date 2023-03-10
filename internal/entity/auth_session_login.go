@@ -10,27 +10,31 @@ import (
 	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/internal/i18n"
 	"github.com/photoprism/photoprism/internal/server/limiter"
+	"github.com/photoprism/photoprism/pkg/authn"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
 // Auth checks if the credentials are valid and returns the user and authentication provider.
-var Auth = func(f form.Login, m *Session, c *gin.Context) (user *User, provider string, err error) {
-	name := f.Name()
+var Auth = func(f form.Login, m *Session, c *gin.Context) (user *User, provider authn.ProviderType, err error) {
+	name := f.Username()
 
 	user = FindUserByName(name)
-	err = AuthPassword(user, f, m)
+	err = AuthLocal(user, f, m)
 
 	if err != nil {
-		return user, ProviderNone, err
+		return user, authn.ProviderNone, err
 	}
 
-	return user, ProviderPassword, err
+	// Update login timestamp.
+	user.UpdateLoginTime()
+
+	return user, authn.ProviderLocal, err
 }
 
-// AuthPassword checks if the username and password are valid and returns the user.
-func AuthPassword(user *User, f form.Login, m *Session) (err error) {
-	name := f.Name()
+// AuthLocal authenticates against the local user database with the specified username and password.
+func AuthLocal(user *User, f form.Login, m *Session) (err error) {
+	name := f.Username()
 
 	// User found?
 	if user == nil {
@@ -80,7 +84,7 @@ func (m *Session) LogIn(f form.Login, c *gin.Context) (err error) {
 	}
 
 	var user *User
-	var provider string
+	var provider authn.ProviderType
 
 	// Login credentials provided?
 	if f.HasCredentials() {
@@ -123,6 +127,7 @@ func (m *Session) LogIn(f form.Login, c *gin.Context) (err error) {
 			return i18n.Error(i18n.ErrInvalidLink)
 		} else {
 			m.SetData(data)
+			m.SetProvider(authn.ProviderToken)
 			event.AuditInfo([]string{m.IP(), "session %s", "token redeemed for %d shares"}, m.RefID, shares, data)
 		}
 
