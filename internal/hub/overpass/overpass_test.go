@@ -280,7 +280,7 @@ func TestFindState(t *testing.T) {
 		state := FindState("39e9ac0d2c4c")
 
 		// For Nepal the correct boundary is admin_level 3
-		assert.Equal(t, "Province #1", state)
+		assert.Equal(t, "कोशी प्रदेश", state)
 	})
 
 	t.Run("Paris, France", func(t *testing.T) {
