@@ -99,8 +99,6 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 	api.ClearMarkerSubject(APIv1)
 	api.PhotoPrimary(APIv1)
 	api.PhotoUnstack(APIv1)
-		api.GetPhotoFaces(v1)
-		api.CreatePhotoFace(v1)
 
 	// Photo Albums.
 	api.SearchAlbums(APIv1)
@@ -147,6 +145,8 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 	api.SearchFaces(APIv1)
 	api.GetFace(APIv1)
 	api.UpdateFace(APIv1)
+	api.GetPhotoFaces(APIv1)
+	api.CreatePhotoFace(APIv1)
 
 	// Batch Operations.
 	api.BatchPhotosApprove(APIv1)
