@@ -1,5 +1,10 @@
 /* PhotoPrism Search Result Styles */
 
+/* Disable native long-touch menu on iOS Safari */
+#photoprism .search-results .result {
+    -webkit-touch-callout: none;
+}
+
 /*
 For more information on the contain property, see https://developers.google.com/web/updates/2016/06/css-containment
 */
@@ -56,6 +61,14 @@ body.chrome #photoprism .search-results .result {
     position: absolute;
     left: 12px;
     top: 12px;
+}
+
+#photoprism .list-view .action-secondary {
+    opacity: 0.4;
+}
+
+#photoprism .list-view tr:hover .action-secondary {
+    opacity: 1;
 }
 
 #photoprism .p-clipboard.--ltr {

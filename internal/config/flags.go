@@ -129,7 +129,7 @@ var Flags = CliFlags{
 			Value:  DefaultResolutionLimit,
 			Usage:  "maximum resolution of media files in `MEGAPIXELS` (1-900; -1 to disable)",
 			EnvVar: "PHOTOPRISM_RESOLUTION_LIMIT",
-		}, Tags: []string{EnvSponsor}}, {
+		}}, {
 		Flag: cli.StringFlag{
 			Name:   "storage-path, s",
 			Usage:  "writable storage `PATH` for sidecar, cache, and database files",
@@ -381,8 +381,7 @@ var Flags = CliFlags{
 			Usage:  "login screen background image `URI`",
 			EnvVar: "PHOTOPRISM_WALLPAPER_URI",
 			Value:  "",
-		},
-		Tags: []string{EnvSponsor}}, {
+		}}, {
 		Flag: cli.StringFlag{
 			Name:   "cdn-url",
 			Usage:  "content delivery network `URL`",
