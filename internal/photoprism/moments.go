@@ -223,7 +223,7 @@ func (w *Moments) Start() (err error) {
                         }
 
                         if a := entity.FindAlbumByAttr(S{mom.Slug(), mom.TitleSlug()}, S{f.Serialize()}, entity.AlbumState); a != nil {
-                                if err := a.UpdateState(mom.Title(), mom.Slug(), mom.State, mom.Country); err != nil {
+                                if err := a.UpdateTitleAndState(mom.Title(), mom.Slug(), mom.State, mom.Country); err != nil {
                                         log.Errorf("moments: %s (update state)", err.Error())
                                 }
 
