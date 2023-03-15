@@ -143,7 +143,7 @@ func (w *Moments) Start() (err error) {
 
 		for _, mom := range results {
 			if a := entity.FindMonthAlbum(mom.Year, mom.Month); a != nil {
-				if err := a.UpdateSlug(mom.Title(), mom.Slug()); err != nil {
+				if err := a.UpdateTitleAndLocation(mom.Title(), "", "", "", mom.Slug()); err != nil {
 					log.Errorf("moments: %s (update slug)", err.Error())
 				}
 
@@ -184,7 +184,7 @@ func (w *Moments) Start() (err error) {
 			}
 
 			if a := entity.FindAlbumByAttr(S{mom.Slug(), mom.TitleSlug()}, S{f.Serialize()}, entity.AlbumMoment); a != nil {
-				if err := a.UpdateSlug(mom.Title(), mom.Slug()); err != nil {
+				if err := a.UpdateTitleAndLocation(mom.Title(), "", mom.State, mom.Country, mom.Slug()); err != nil {
 					log.Errorf("moments: %s (update slug)", err.Error())
 				}
 
@@ -196,7 +196,7 @@ func (w *Moments) Start() (err error) {
 				restoreAlbum(a)
 			} else if a := entity.NewMomentsAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
 				a.AlbumYear = mom.Year
-				a.AlbumCountry = mom.Country
+				a.SetLocation("", mom.State, mom.Country)
 
 				if err := a.Create(); err != nil {
 					log.Errorf("moments: %s", err)
@@ -223,7 +223,7 @@ func (w *Moments) Start() (err error) {
                         }
 
                         if a := entity.FindAlbumByAttr(S{mom.Slug(), mom.TitleSlug()}, S{f.Serialize()}, entity.AlbumState); a != nil {
-                                if err := a.UpdateState(mom.Title(), mom.Slug(), mom.State, mom.Country); err != nil {
+                                if err := a.UpdateTitleAndState(mom.Title(), mom.Slug(), mom.State, mom.Country); err != nil {
                                         log.Errorf("moments: %s (update state)", err.Error())
                                 }
 
@@ -265,7 +265,7 @@ func (w *Moments) Start() (err error) {
 			}
 
 			if a := entity.FindAlbumByAttr(S{mom.Slug(), mom.TitleSlug()}, S{f.Serialize()}, entity.AlbumState); a != nil {
-				if err := a.UpdateState(mom.Title(), mom.Slug(), mom.State, mom.Country); err != nil {
+				if err := a.UpdateTitleAndState(mom.Title(), mom.Slug(), mom.State, mom.Country); err != nil {
 					log.Errorf("moments: %s (update state)", err.Error())
 				}
 
@@ -276,9 +276,7 @@ func (w *Moments) Start() (err error) {
 				// Restore the album if it has been automatically deleted.
 				restoreAlbum(a)
 			} else if a := entity.NewStateAlbum(mom.Title(), mom.Slug(), f.Serialize()); a != nil {
-				a.AlbumLocation = mom.CountryName()
-				a.AlbumCountry = mom.Country
-				a.AlbumState = mom.State
+				a.SetLocation(mom.CountryName(), mom.State, mom.Country)
 
 				if err := a.Create(); err != nil {
 					log.Errorf("moments: %s", err)
@@ -311,7 +309,7 @@ func (w *Moments) Start() (err error) {
 			}
 
 			if a := entity.FindAlbumByAttr(S{mom.Slug(), mom.TitleSlug()}, S{f.Serialize()}, entity.AlbumMoment); a != nil {
-				if err := a.UpdateSlug(mom.Title(), mom.Slug()); err != nil {
+				if err := a.UpdateTitleAndLocation(mom.Title(), "", "", "", mom.Slug()); err != nil {
 					log.Errorf("moments: %s (update slug)", err.Error())
 				}
 

@@ -427,8 +427,21 @@ func (m *User) CanUpload() bool {
 	}
 }
 
+// DefaultBasePath returns the default base path of the user based on the user name.
+func (m *User) DefaultBasePath() string {
+	if s := m.Handle(); s == "" {
+		return ""
+	} else {
+		return fmt.Sprintf("users/%s", s)
+	}
+}
+
 // GetBasePath returns the user's relative base path.
 func (m *User) GetBasePath() string {
+	if m.BasePath == "" && m.HasRole("contributor") {
+		m.BasePath = m.DefaultBasePath()
+	}
+
 	return m.BasePath
 }
 
@@ -436,8 +449,8 @@ func (m *User) GetBasePath() string {
 func (m *User) SetBasePath(dir string) *User {
 	if list.Contains(list.List{"", ".", "./", "/", "\\"}, dir) {
 		m.BasePath = ""
-	} else if dir == "~" && m.UserUID != "" {
-		m.BasePath = fmt.Sprintf("users/%s", m.UserUID)
+	} else if dir == "~" && m.UserName != "" {
+		m.BasePath = m.DefaultBasePath()
 	} else {
 		m.BasePath = clean.UserPath(dir)
 	}
@@ -453,8 +466,8 @@ func (m *User) GetUploadPath() string {
 		return basePath
 	} else if basePath != "" && strings.HasPrefix(m.UploadPath, basePath+"/") {
 		return m.UploadPath
-	} else if basePath == "" && m.UploadPath == "~" && m.UserUID != "" {
-		return fmt.Sprintf("users/%s", m.UserUID)
+	} else if basePath == "" && m.UploadPath == "~" && m.UserName != "" {
+		return m.DefaultBasePath()
 	}
 
 	return path.Join(basePath, m.UploadPath)
@@ -466,8 +479,8 @@ func (m *User) SetUploadPath(dir string) *User {
 
 	if list.Contains(list.List{"", ".", "./", "/", "\\"}, dir) {
 		m.UploadPath = ""
-	} else if basePath == "" && dir == "~" && m.UserUID != "" {
-		m.UploadPath = fmt.Sprintf("users/%s", m.UserUID)
+	} else if basePath == "" && dir == "~" && m.UserName != "" {
+		m.UploadPath = m.DefaultBasePath()
 	} else {
 		m.UploadPath = clean.UserPath(dir)
 	}
@@ -491,7 +504,7 @@ func (m *User) Provider() authn.ProviderType {
 	if m.AuthProvider != "" {
 		return authn.ProviderType(m.AuthProvider)
 	} else if m.ID == Visitor.ID {
-		return authn.ProviderToken
+		return authn.ProviderLink
 	} else if m.ID == 1 {
 		return authn.ProviderLocal
 	} else if m.UserName != "" && m.ID > 0 {
@@ -578,8 +591,7 @@ func (m *User) Email() string {
 
 // Handle returns the user's login handle.
 func (m *User) Handle() string {
-	handle, _, _ := strings.Cut(m.UserName, "@")
-	return handle
+	return clean.Handle(m.UserName)
 }
 
 // FullName returns the name of the user for display purposes.
@@ -593,6 +605,25 @@ func (m *User) FullName() string {
 	}
 
 	return clean.NameCapitalized(strings.ReplaceAll(m.Handle(), ".", " "))
+}
+
+// SetRole sets the user role specified as string.
+func (m *User) SetRole(role string) *User {
+	role = clean.Role(role)
+
+	switch role {
+	case "", "0", "false", "nil", "null", "nan":
+		m.UserRole = acl.RoleUnknown.String()
+	default:
+		m.UserRole = acl.ValidRoles[role].String()
+	}
+
+	return m
+}
+
+// HasRole checks the user role specified as string.
+func (m *User) HasRole(role string) bool {
+	return m.AclRole().String() == acl.ValidRoles[clean.Role(role)].String()
 }
 
 // AclRole returns the user role for ACL permission checks.
@@ -842,7 +873,7 @@ func (m *User) SetFormValues(frm form.User) *User {
 	m.SuperAdmin = frm.SuperAdmin
 	m.CanLogin = frm.CanLogin
 	m.WebDAV = frm.WebDAV
-	m.UserRole = frm.Role()
+	m.SetRole(frm.Role())
 	m.UserAttr = frm.Attr()
 	m.SetBasePath(frm.BasePath)
 	m.SetUploadPath(frm.UploadPath)
@@ -1011,7 +1042,7 @@ func (m *User) SaveForm(f form.User, updateRights bool) error {
 
 	// Update user rights only if explicitly requested.
 	if updateRights {
-		m.UserRole = f.Role()
+		m.SetRole(f.Role())
 		m.SuperAdmin = f.SuperAdmin
 
 		m.CanLogin = f.CanLogin
@@ -1025,12 +1056,12 @@ func (m *User) SaveForm(f form.User, updateRights bool) error {
 
 	// Ensure super admins never have a non-admin role.
 	if m.SuperAdmin {
-		m.UserRole = acl.RoleAdmin.String()
+		m.SetRole(acl.RoleAdmin.String())
 	}
 
 	// Make sure that the initial admin user cannot lock itself out.
 	if m.ID == Admin.ID && (m.AclRole() != acl.RoleAdmin || !m.SuperAdmin || !m.CanLogin) {
-		m.UserRole = acl.RoleAdmin.String()
+		m.SetRole(acl.RoleAdmin.String())
 		m.SuperAdmin = true
 		m.CanLogin = true
 	}
