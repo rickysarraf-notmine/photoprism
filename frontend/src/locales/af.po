@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: ci@photoprism.app\n"
-"PO-Revision-Date: 2023-03-13 21:26+0000\n"
+"PO-Revision-Date: 2023-03-22 16:54+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language: af\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -54,7 +54,7 @@ msgid "A click will copy it to your clipboard."
 msgstr "'n Klik sal dit na jou knipbord kopieer."
 
 #: src/component/admin/users/edit.vue:265 src/page/about/about.vue:4
-#: src/page/about/about.vue:222 src/page/settings/account.vue:313
+#: src/page/about/about.vue:204 src/page/settings/account.vue:313
 #: src/component/navigation.vue:460 src/component/navigation.vue:59
 #: src/page/help.vue:43 src/page/people/recognized.vue:434
 msgid "About"
@@ -66,12 +66,12 @@ msgstr "Afgrond"
 
 #: src/component/navigation.vue:98 src/component/navigation.vue:1996
 #: src/dialog/share/upload.vue:108 src/model/service.js:98
-#: src/model/user.js:140 src/page/settings.vue:84
+#: src/model/user.js:165 src/page/settings.vue:84
 #: src/page/settings/general.vue:473
 msgid "Account"
 msgstr "Rekening"
 
-#: src/component/admin/users/add.vue:81 src/dialog/service/add.vue:35
+#: src/component/admin/users/add.vue:86 src/dialog/service/add.vue:35
 msgid "Account created"
 msgstr "Rekening geskep"
 
@@ -133,7 +133,7 @@ msgstr "Voeg fotos by die soekresultate deur dit te kies."
 msgid "Add to album"
 msgstr "Voeg aan album"
 
-#: src/dialog/photo/edit/files.vue:203 src/dialog/photo/edit/files.vue:200
+#: src/dialog/photo/edit/files.vue:210 src/dialog/photo/edit/files.vue:207
 msgid "Added"
 msgstr "Bygevoeg"
 
@@ -347,12 +347,8 @@ msgstr "Aangesien dit ons help om meer kenmerke aan die publiek te verskaf, moed
 msgid "Aspect Ratio"
 msgstr "Aspekverhouding"
 
-#: src/page/about/about.vue:19
-msgid "At PhotoPrism, we believe that every moment captured through a photograph is precious, and our mission is to enable people to cherish those moments for generations to come."
-msgstr "By PhotoPrism glo ons dat elke oomblik wat deur 'n foto vasgevang word, kosbaar is, en ons missie is om mense in staat te stel om daardie oomblikke vir geslagte te koester."
-
-#: src/component/admin/users/add.vue:213 src/component/admin/users/edit.vue:364
-#: src/page/admin/sessions.vue:59 src/page/admin/sessions.vue:31
+#: src/component/admin/users/add.vue:214 src/component/admin/users/edit.vue:364
+#: src/page/admin/sessions.vue:69 src/page/admin/sessions.vue:31
 #: src/page/admin/users.vue:37
 msgid "Authentication"
 msgstr "Stawing"
@@ -501,9 +497,10 @@ msgstr "Verander fototitels, liggings en ander metadata."
 msgid "Change private flag"
 msgstr "Verander privaat vlag"
 
-#: src/component/admin/users/edit.vue:66 src/component/admin/users/edit.vue:164
-#: src/dialog/album/edit.vue:56 src/dialog/service/edit.vue:102
-#: src/dialog/share.vue:88 src/dialog/share.vue:104 src/page/albums.vue:547
+#: src/component/admin/users/edit.vue:66 src/component/admin/users/edit.vue:162
+#: src/dialog/album/edit.vue:56 src/dialog/photo/edit/files.vue:110
+#: src/dialog/service/edit.vue:102 src/dialog/share.vue:88
+#: src/dialog/share.vue:104 src/page/albums.vue:547
 #: src/page/settings/account.vue:114 src/page/settings/account.vue:129
 #: src/page/settings/advanced.vue:43 src/page/settings/general.vue:105
 #: src/page/settings/library.vue:50
@@ -514,11 +511,11 @@ msgstr "Veranderinge suksesvol gestoor"
 msgid "Checked"
 msgstr "Gekontroleer"
 
-#: src/dialog/photo/edit/files.vue:189 src/dialog/photo/edit/files.vue:186
+#: src/dialog/photo/edit/files.vue:196 src/dialog/photo/edit/files.vue:193
 msgid "Chroma"
 msgstr "Chroma"
 
-#: src/page/admin/sessions.vue:103 src/component/photo-viewer.vue:71
+#: src/page/admin/sessions.vue:113 src/component/photo-viewer.vue:71
 #: src/dialog/photo/edit/details.vue:113 src/dialog/share.vue:87
 #: src/page/library/errors.vue:60
 msgid "Close"
@@ -532,7 +529,7 @@ msgstr "Kodek"
 msgid "Color"
 msgstr "Kleur"
 
-#: src/dialog/photo/edit/files.vue:177 src/dialog/photo/edit/files.vue:174
+#: src/dialog/photo/edit/files.vue:184 src/dialog/photo/edit/files.vue:181
 msgid "Color Profile"
 msgstr "Kleur profiel"
 
@@ -625,7 +622,7 @@ msgstr "Skep rekening"
 msgid "Create album"
 msgstr "Skep album"
 
-#: src/page/admin/sessions.vue:65 src/dialog/photo/edit/info.vue:167
+#: src/page/admin/sessions.vue:75 src/dialog/photo/edit/info.vue:167
 msgid "Created"
 msgstr "Geskep"
 
@@ -702,7 +699,7 @@ msgstr "Gedetailleerde instruksies kan gevind word in ons gebruikersgids."
 msgid "Details"
 msgstr "Besonderhede"
 
-#: src/dialog/photo/edit/files.vue:35
+#: src/dialog/photo/edit/files.vue:37
 msgid "Dimensions"
 msgstr "Afmetings"
 
@@ -767,7 +764,7 @@ msgstr "Deaktiveer video-transkodering en duimnael-onttrekking."
 msgid "Discover"
 msgstr "Ontdek"
 
-#: src/component/admin/users/add.vue:120 src/component/admin/users/edit.vue:99
+#: src/component/admin/users/add.vue:121 src/component/admin/users/edit.vue:99
 #: src/page/admin/users.vue:35 src/page/settings/account.vue:193
 msgid "Display Name"
 msgstr "Vertoon Naam"
@@ -837,7 +834,7 @@ msgstr "Laai enkele lêers en zip-argiewe af."
 #: src/component/file/clipboard.vue:46 src/component/label/clipboard.vue:80
 #: src/component/photo-viewer.vue:161 src/component/photo/cards.vue:133
 #: src/component/photo/clipboard.vue:210 src/component/photo/list.vue:124
-#: src/component/subject/clipboard.vue:55 src/dialog/photo/edit/files.vue:69
+#: src/component/subject/clipboard.vue:55 src/dialog/photo/edit/files.vue:77
 #: src/page/library/browse.vue:107
 msgid "Downloading…"
 msgstr "Laai tans af …"
@@ -896,7 +893,7 @@ msgstr "Redigeer foto"
 msgid "Edited"
 msgstr "Geredigeer"
 
-#: src/component/admin/users/add.vue:145 src/component/admin/users/edit.vue:317
+#: src/component/admin/users/add.vue:146 src/component/admin/users/edit.vue:317
 #: src/page/settings/account.vue:222 src/page/settings/account.vue:647
 msgid "Email"
 msgstr "E-pos"
@@ -945,7 +942,7 @@ msgstr "Brei Soek uit"
 msgid "Experimental Features"
 msgstr "Eksperimentele kenmerke"
 
-#: src/page/admin/sessions.vue:77 src/dialog/service/edit.vue:249
+#: src/page/admin/sessions.vue:87 src/dialog/service/edit.vue:249
 #: src/dialog/share.vue:64
 msgid "Expires"
 msgstr "Verval"
@@ -1015,7 +1012,7 @@ msgstr "Kontak ons gerus by hello@photoprism.app as jy enige vrae het."
 msgid "Female"
 msgstr "Vroulik"
 
-#: src/model/file.js:294
+#: src/model/file.js:295
 msgid "File"
 msgstr "lêer"
 
@@ -1185,7 +1182,7 @@ msgstr "As dit nie help nie, of as jy ander vrae het:"
 msgid "image"
 msgstr "beeld"
 
-#: src/model/file.js:216 src/options/options.js:314
+#: src/model/file.js:217 src/options/options.js:314
 msgid "Image"
 msgstr "Beeld"
 
@@ -1218,8 +1215,8 @@ msgstr "Voer tans %{name} in …"
 msgid "Importing files to originals…"
 msgstr "Voer tans lêers na oorspronklikes in …"
 
-#: src/dialog/photo/edit/files.vue:206 src/dialog/photo/edit/files.vue:215
-#: src/dialog/photo/edit/files.vue:203 src/dialog/photo/edit/files.vue:212
+#: src/dialog/photo/edit/files.vue:213 src/dialog/photo/edit/files.vue:222
+#: src/dialog/photo/edit/files.vue:210 src/dialog/photo/edit/files.vue:219
 msgid "in"
 msgstr "in"
 
@@ -1272,7 +1269,7 @@ msgstr "Geval ID"
 msgid "Interval"
 msgstr "Interval"
 
-#: src/component/admin/users/add.vue:123 src/component/admin/users/add.vue:148
+#: src/component/admin/users/add.vue:124 src/component/admin/users/add.vue:149
 #: src/component/admin/users/edit.vue:127
 #: src/component/admin/users/edit.vue:154
 #: src/component/admin/users/edit.vue:211
@@ -1356,7 +1353,7 @@ msgstr "Lanczos: Detailbewaring, minimale artefakte"
 msgid "Language"
 msgstr "Taal"
 
-#: src/page/admin/sessions.vue:71 src/page/admin/sessions.vue:33
+#: src/page/admin/sessions.vue:81 src/page/admin/sessions.vue:33
 msgid "Last Active"
 msgstr "Laas aktief"
 
@@ -1495,7 +1492,7 @@ msgstr "Lae resolusie"
 msgid "Magenta"
 msgstr "Magenta"
 
-#: src/dialog/photo/edit/files.vue:183 src/dialog/photo/edit/files.vue:180
+#: src/dialog/photo/edit/files.vue:190 src/dialog/photo/edit/files.vue:187
 msgid "Main Color"
 msgstr "Hoofkleur"
 
@@ -1539,7 +1536,7 @@ msgstr "Boodskap gestuur"
 msgid "Minimize"
 msgstr "Minimaliseer"
 
-#: src/dialog/photo/edit/files.vue:195 src/dialog/photo/edit/files.vue:192
+#: src/dialog/photo/edit/files.vue:202 src/dialog/photo/edit/files.vue:199
 msgid "Missing"
 msgstr "Vermis"
 
@@ -1592,7 +1589,7 @@ msgstr "Moet ten minste %{n} karakters hê."
 
 #: src/page/about/feedback.vue:172 src/component/photo/cards.vue:517
 #: src/component/photo/list.vue:139 src/component/photo/list.vue:235
-#: src/dialog/album/edit.vue:105 src/dialog/photo/edit/files.vue:34
+#: src/dialog/album/edit.vue:105 src/dialog/photo/edit/files.vue:36
 #: src/dialog/photo/edit/info.vue:31 src/dialog/photo/edit/labels.vue:43
 #: src/dialog/photo/edit/labels.vue:159 src/dialog/photo/edit/people.vue:21
 #: src/dialog/photo/edit/people.vue:225 src/dialog/service/edit.vue:427
@@ -1808,7 +1805,7 @@ msgid "Original Name"
 msgstr "Oorspronklike naam"
 
 #: src/component/navigation.vue:377 src/dialog/service/edit.vue:108
-#: src/model/file.js:194 src/page/library/browse.vue:6
+#: src/model/file.js:195 src/page/library/browse.vue:6
 #: src/page/settings/general.vue:429 src/page/settings/general.vue:647
 msgid "Originals"
 msgstr "Oorspronklikes"
@@ -1816,6 +1813,12 @@ msgstr "Oorspronklikes"
 #: src/options/options.js:431 src/options/options.js:444
 msgid "Other"
 msgstr "Ander"
+
+#: src/page/about/about.vue:19
+msgid "Our mission is to provide the most user- and privacy-friendly solution to keep your pictures organized and accessible."
+msgstr ""
+"Ons missie is om die mees gebruikers- en privaatheidsvriendelike oplossing "
+"te bied om jou foto's georganiseer en toeganklik te hou."
 
 #: src/page/connect.vue:109
 msgid "Our team decides this on an ongoing basis depending on the support effort required, server and licensing costs, and whether the features are generally needed by everyone or mainly requested by organizations and advanced users."
@@ -1837,7 +1840,7 @@ msgstr "Panorama"
 msgid "Panoramas"
 msgstr "Panoramas"
 
-#: src/component/admin/users/add.vue:168 src/dialog/service/add.vue:126
+#: src/component/admin/users/add.vue:169 src/dialog/service/add.vue:126
 #: src/dialog/service/edit.vue:487 src/dialog/share.vue:24
 #: src/page/auth/login.vue:118
 msgid "Password"
@@ -1870,7 +1873,7 @@ msgstr "Verwyder lêers permanent om berging vry te maak."
 msgid "Phone"
 msgstr "Foon"
 
-#: src/model/photo.js:1091
+#: src/model/photo.js:1111
 msgid "Photo"
 msgstr "Foto"
 
@@ -1957,7 +1960,7 @@ msgstr "Voorskou"
 
 #: src/dialog/photo/edit/files.vue:35 src/dialog/photo/edit/files.vue:133
 #: src/dialog/photo/edit/files.vue:32 src/dialog/photo/edit/files.vue:130
-#: src/dialog/photo/edit/files.vue:28
+#: src/dialog/photo/edit/files.vue:30
 msgid "Primary"
 msgstr "Primêr"
 
@@ -2089,7 +2092,7 @@ msgstr "Verwyder ingevoerde lêers om berging te bespaar. Nie-ondersteunde lêer
 msgid "Request failed - invalid response"
 msgstr "Versoek het misluk – ongeldige antwoord"
 
-#: src/component/admin/users/add.vue:100 src/component/admin/users/add.vue:172
+#: src/component/admin/users/add.vue:100 src/component/admin/users/add.vue:173
 #: src/component/admin/users/edit.vue:102 src/page/about/feedback.vue:130
 #: src/page/about/feedback.vue:150 src/page/about/feedback.vue:193
 #: src/page/settings/account.vue:196 src/page/about/feedback.vue:192
@@ -2116,7 +2119,8 @@ msgstr "Tik wagwoord weer in"
 msgid "Review"
 msgstr "Resensie"
 
-#: src/component/admin/users/add.vue:192 src/component/admin/users/edit.vue:341
+#: src/component/admin/users/add.vue:193 src/component/admin/users/edit.vue:341
+#: src/page/admin/sessions.vue:62 src/page/admin/sessions.vue:2
 #: src/page/admin/users.vue:36
 msgid "Role"
 msgstr "Rol"
@@ -2274,7 +2278,7 @@ msgstr "Wys bedienerlogboeke in Biblioteek."
 msgid "Shows more detailed log messages. Requires a restart."
 msgstr "Wys meer gedetailleerde log boodskappe. Vereis 'n herbegin."
 
-#: src/model/file.js:212 src/page/settings/general.vue:689
+#: src/model/file.js:213 src/page/settings/general.vue:689
 msgid "Sidecar"
 msgstr "Syspan"
 
@@ -2287,7 +2291,7 @@ msgid "Similar"
 msgstr "Soortgelyk"
 
 #: src/dialog/photo/edit/files.vue:83 src/dialog/photo/edit/files.vue:80
-#: src/dialog/photo/edit/files.vue:36 src/dialog/service/edit.vue:226
+#: src/dialog/photo/edit/files.vue:38 src/dialog/service/edit.vue:226
 msgid "Size"
 msgstr "Grootte"
 
@@ -2353,7 +2357,7 @@ msgstr "State"
 msgid "Static Size Limit: %{n}px"
 msgstr "Statiese groottelimiet: %{n}px"
 
-#: src/dialog/photo/edit/files.vue:38
+#: src/dialog/photo/edit/files.vue:40
 msgid "Status"
 msgstr "Status"
 
@@ -2504,7 +2508,7 @@ msgid "Try again using other filters or keywords."
 msgstr "Probeer weer met ander filters of sleutelwoorde."
 
 #: src/dialog/photo/edit/files.vue:95 src/dialog/photo/edit/files.vue:92
-#: src/dialog/photo/edit/files.vue:37 src/dialog/photo/edit/info.vue:15
+#: src/dialog/photo/edit/files.vue:39 src/dialog/photo/edit/info.vue:15
 #: src/dialog/service/edit.vue:528
 msgid "Type"
 msgstr "Tik"
@@ -2524,7 +2528,7 @@ msgstr "Unieke ID"
 #: src/dialog/photo/edit/details.vue:23 src/dialog/photo/edit/info.vue:24
 #: src/model/album.js:179 src/model/photo.js:700 src/model/photo.js:721
 #: src/model/photo.js:744 src/model/photo.js:762 src/model/photo.js:883
-#: src/model/photo.js:896 src/model/user.js:126 src/options/options.js:27
+#: src/model/photo.js:896 src/model/user.js:151 src/options/options.js:27
 #: src/options/options.js:41 src/options/options.js:58
 #: src/options/options.js:72 src/options/options.js:84
 #: src/page/library/errors.vue:173 src/page/library/errors.vue:180
@@ -2546,7 +2550,7 @@ msgstr "Ongesorteer"
 msgid "Unstack"
 msgstr "Ontstapel"
 
-#: src/dialog/photo/edit/files.vue:212 src/dialog/photo/edit/files.vue:209
+#: src/dialog/photo/edit/files.vue:219 src/dialog/photo/edit/files.vue:216
 #: src/dialog/photo/edit/info.vue:175
 msgid "Updated"
 msgstr "Opgedateer"
@@ -2563,7 +2567,7 @@ msgstr "Dateer indeks op"
 msgid "Updating moments"
 msgstr "Dateer tans oomblikke op"
 
-#: src/component/admin/users/edit.vue:161 src/page/settings/account.vue:124
+#: src/component/admin/users/edit.vue:159 src/page/settings/account.vue:124
 msgid "Updating picture…"
 msgstr "Dateer tans prent op …"
 
@@ -2642,7 +2646,8 @@ msgid "Use Presets"
 msgstr "Gebruik voorafinstellings"
 
 #: src/options/admin.js:7 src/options/admin.js:23
-#: src/page/admin/sessions.vue:53 src/model/user.js:205
+#: src/page/admin/sessions.vue:54 src/page/admin/sessions.vue:2
+#: src/model/user.js:230
 msgid "User"
 msgstr "Gebruiker"
 
@@ -2685,7 +2690,7 @@ msgstr "Geverifieer"
 
 #: src/component/photo/cards.vue:302 src/component/photo/cards.vue:479
 #: src/component/photo/list.vue:206 src/component/photo/mosaic.vue:222
-#: src/model/file.js:219 src/model/photo.js:828 src/model/photo.js:844
+#: src/model/file.js:220 src/model/photo.js:828 src/model/photo.js:844
 #: src/options/options.js:330
 msgid "Video"
 msgstr "Video"
@@ -2714,7 +2719,8 @@ msgstr "Kyker"
 msgid "Visit docs.photoprism.app/user-guide to learn how to sync, organize, and share your pictures."
 msgstr "Besoek docs.photoprism.app/user-guide om te leer hoe om jou prente te sinkroniseer, te organiseer en te deel."
 
-#: src/options/admin.js:11
+#: src/options/admin.js:11 src/page/admin/sessions.vue:65
+#: src/page/admin/sessions.vue:5
 msgid "Visitor"
 msgstr "Besoeker"
 
@@ -2739,12 +2745,12 @@ msgstr "Ons doen ons bes om binne vyf werksdae of minder te reageer."
 msgid "We'll do our best to answer all your questions. In return, we ask you to back us on Patreon or GitHub Sponsors."
 msgstr "Ons sal ons bes doen om al jou vrae te beantwoord. In ruil daarvoor vra ons u om ons op Patreon- of GitHub-borge te ondersteun."
 
-#: src/component/admin/users/add.vue:231 src/component/admin/users/edit.vue:453
+#: src/component/admin/users/add.vue:232 src/component/admin/users/edit.vue:453
 #: src/page/admin/users.vue:39
 msgid "Web Login"
 msgstr "Web aanmeld"
 
-#: src/component/admin/users/add.vue:248 src/component/admin/users/edit.vue:470
+#: src/component/admin/users/add.vue:249 src/component/admin/users/edit.vue:470
 #: src/page/admin/users.vue:47
 msgid "WebDAV"
 msgstr "WebDAV"
@@ -2801,10 +2807,10 @@ msgstr "Yellowstone"
 #: src/dialog/confirm.vue:18 src/dialog/people/merge.vue:18
 #: src/dialog/photo/archive.vue:18 src/dialog/photo/edit/files.vue:104
 #: src/dialog/photo/edit/files.vue:136 src/dialog/photo/edit/files.vue:144
-#: src/dialog/photo/edit/files.vue:152 src/dialog/photo/edit/files.vue:198
+#: src/dialog/photo/edit/files.vue:152 src/dialog/photo/edit/files.vue:205
 #: src/dialog/photo/edit/files.vue:101 src/dialog/photo/edit/files.vue:133
 #: src/dialog/photo/edit/files.vue:141 src/dialog/photo/edit/files.vue:149
-#: src/dialog/photo/edit/files.vue:195 src/dialog/photo/edit/info.vue:259
+#: src/dialog/photo/edit/files.vue:202 src/dialog/photo/edit/info.vue:259
 #: src/dialog/photo/edit/info.vue:280 src/dialog/photo/edit/info.vue:301
 #: src/dialog/photo/edit/info.vue:322 src/dialog/photo/edit/info.vue:342
 msgid "Yes"
@@ -2842,6 +2848,9 @@ msgstr "Jou biblioteek word voortdurend ontleed om outomaties albums van spesial
 #: src/component/photo-viewer.vue:176
 msgid "Zoom in/out"
 msgstr "Zoem in/uit"
+
+#~ msgid "At PhotoPrism, we believe that every moment captured through a photograph is precious, and our mission is to enable people to cherish those moments for generations to come."
+#~ msgstr "By PhotoPrism glo ons dat elke oomblik wat deur 'n foto vasgevang word, kosbaar is, en ons missie is om mense in staat te stel om daardie oomblikke vir geslagte te koester."
 
 #~ msgid "It makes use of the latest technologies to tag and find pictures automatically without getting in your way."
 #~ msgstr "Dit maak gebruik van die nuutste tegnologie om foto's outomaties te merk en te vind sonder om in jou pad te kom."
