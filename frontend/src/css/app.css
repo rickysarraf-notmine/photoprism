@@ -82,6 +82,19 @@ main {
     background-color: rgba(0, 0, 0, 0.2);
 }
 
+#busy-overlay.progress {
+    cursor: wait;
+    background-color: rgba(0, 0, 0, 0.32);
+}
+
+#busy-overlay.progress .splash-center {
+    display: block;
+}
+
+#busy-overlay .splash-center {
+    display: none;
+}
+
 /* General App Styles */
 
 #photoprism .v-badge__badge {
@@ -168,8 +181,8 @@ ol, ul {
     padding: 1px 0 1px 8px !important;
 }
 
-#photoprism .v-list__tile .v-icon {
-    color: inherit!important;
+body #photoprism .v-list__tile .v-icon {
+    color: inherit;
 }
 
 /* Image Orientation */

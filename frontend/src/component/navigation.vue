@@ -489,7 +489,7 @@
               </v-list-tile-content>
             </v-list-tile>
 
-            <v-list-tile v-show="isAdmin && !isPublic && !isDemo && featUpgrade" :to="{ name: 'upgrade' }" class="nav-upgrade" :exact="true" @click.stop="">
+            <v-list-tile v-show="isSuperAdmin && !isPublic && !isDemo && featUpgrade" :to="{ name: 'upgrade' }" class="nav-upgrade" :exact="true" @click.stop="">
               <v-list-tile-content>
                 <v-list-tile-title :class="`menu-item ${rtl ? '--rtl' : ''}`">
                   <translate key="Upgrade">Upgrade</translate>
@@ -702,7 +702,7 @@ export default {
       canAccessPrivate: !isRestricted && this.$config.allow("photos", "access_private"),
       canManagePhotos: this.$config.allow("photos", "manage"),
       canManagePeople: this.$config.allow("people", "manage"),
-      canManageUsers: !isPublic && this.$config.allow("users", "manage"),
+      canManageUsers: (!isPublic || isDemo) && this.$config.allow("users", "manage"),
       appNameSuffix: appNameSuffix,
       appName: this.$config.getName(),
       appAbout: this.$config.getAbout(),
@@ -716,6 +716,7 @@ export default {
       isPublic: isPublic,
       isReadOnly: isReadOnly,
       isAdmin: this.$session.isAdmin(),
+      isSuperAdmin: this.$session.isSuperAdmin(),
       isSponsor: this.$config.isSponsor(),
       isTest: this.$config.test,
       session: this.$session,

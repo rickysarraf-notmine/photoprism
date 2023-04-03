@@ -2,17 +2,23 @@
   <div class="p-page p-page-upgrade">
     <v-toolbar flat color="secondary" :dense="$vuetify.breakpoint.smAndDown">
       <v-toolbar-title>
+        <translate>Membership</translate>
+        <v-icon v-if="rtl">navigate_before</v-icon>
+        <v-icon v-else>navigate_next</v-icon>
         <span v-if="busy">
           <translate>Busy, please wait…</translate>
         </span>
         <span v-else-if="success">
-          <translate>Verified</translate>
+          <translate>Successfully Connected</translate>
         </span>
         <span v-else-if="error">
           <translate>Invalid</translate>
         </span>
+        <span v-else-if="form.token || !membership || membership === 'ce'">
+          <translate>Upgrade</translate>
+        </span>
         <span v-else>
-          <translate>PhotoPrism+ Membership</translate>
+          <translate>Successfully Connected</translate>
         </span>
       </v-toolbar-title>
 
@@ -59,28 +65,26 @@
         </v-flex>
       </v-layout>
       <v-layout v-else-if="success" row wrap>
-        <v-flex xs12 d-flex class="text-sm-left pa-2">
-          <v-alert
-              :value="true"
-              color="success"
-              icon="diamond"
-              class="mt-3"
-              outline
-          >
-            <translate>Successfully Connected</translate>
-          </v-alert>
+        <v-flex xs12 d-flex class="pa-2">
+          <p class="subheading text-xs-left">
+            <translate>Your account has been successfully connected.</translate>
+            <span v-if="$config.values.restart">
+            <translate>Please restart your instance for the changes to take effect.</translate>
+            </span>
+          </p>
         </v-flex>
         <v-flex xs12 grow class="pa-2">
           <v-btn href="https://my.photoprism.app/dashboard" target="_blank" color="primary-button lighten-2" :block="$vuetify.breakpoint.xsOnly"
-                 class="ml-0"
-                 outline
-                 :disabled="busy">
-              <translate>Manage account</translate>
+                 class="ml-0" outline :disabled="busy">
+              <translate>Manage Account</translate>
           </v-btn>
-          <v-btn v-if="!isSponsor" href="https://my.photoprism.app/get-started" target="_blank" color="primary-button" :block="$vuetify.breakpoint.xsOnly"
-                 class="white--text ml-0"
-                 depressed
-                 :disabled="busy">
+          <v-btn v-if="$config.values.restart" color="primary-button" :block="$vuetify.breakpoint.xsOnly"
+                 class="white--text ml-0" depressed :disabled="busy" @click.stop.p.prevent="onRestart">
+            <translate>Restart</translate>
+            <v-icon :right="!rtl" :left="rtl" dark>restart_alt</v-icon>
+          </v-btn>
+          <v-btn v-if="membership === ''" href="https://my.photoprism.app/get-started" target="_blank" color="primary-button" :block="$vuetify.breakpoint.xsOnly"
+                 class="white--text ml-0" depressed :disabled="busy">
             <translate>Upgrade Now</translate>
             <v-icon v-if="rtl" left dark>navigate_before</v-icon>
             <v-icon v-else right dark>navigate_next</v-icon>
@@ -103,13 +107,20 @@
                         background-color="secondary-light" :label="$gettext('Activation Code')" type="text">
           </v-text-field>
           <div class="action-buttons text-xs-left mt-3">
-            <v-btn color="secondary-dark" :block="$vuetify.breakpoint.xsOnly"
+            <v-btn v-if="membership && membership !== 'ce'" href="https://my.photoprism.app/dashboard" target="_blank" color="primary-button lighten-2" :block="$vuetify.breakpoint.xsOnly"
+                   class="ml-0"
+                   outline
+                   :disabled="busy">
+              <translate>Manage Account</translate>
+            </v-btn>
+            <v-btn v-else color="primary-button lighten-2" :block="$vuetify.breakpoint.xsOnly"
                    class="ml-0"
                    outline
                    :disabled="busy"
                    @click.stop="compare">
               <translate>Compare Editions</translate>
             </v-btn>
+
             <v-btn v-if="!form.token.length" color="primary-button"
                    class="white--text ml-0 action-proceed" :block="$vuetify.breakpoint.xsOnly"
                    depressed
@@ -133,7 +144,7 @@
         </v-flex>
         <v-flex xs12 class="px-2 pt-3 pb-0">
           <p class="body-1 text-selectable">
-            <translate>Feel free to contact us at hello@photoprism.app if you have any questions.</translate>
+            <translate>You are welcome to contact us at members@photoprism.app for questions regarding your membership.</translate>
             <translate>By using the software and services we provide, you agree to our terms of service, privacy policy, and code of conduct.</translate>
           </p>
         </v-flex>
@@ -169,11 +180,13 @@
 <script>
 import * as options from "options/options";
 import Api from "common/api";
+import {restart} from "common/server";
 
 export default {
   name: 'PPageConnect',
   data() {
     const token = this.$route.params.token ? this.$route.params.token : "";
+    const membership = this.$config.getMembership();
     return {
       success: false,
       busy: false,
@@ -184,7 +197,8 @@ export default {
       isAdmin: this.$session.isAdmin(),
       isDemo: this.$config.isDemo(),
       isSponsor: this.$config.isSponsor(),
-      showInfo: !token,
+      membership: membership,
+      showInfo: !token && membership === "ce",
       rtl: this.$rtl,
       tokenMask: 'nnnn-nnnn-nnnn',
       form: {
@@ -194,12 +208,15 @@ export default {
   },
   created() {
     this.$config.load().then(() => {
-      if (this.$config.isPublic() || !this.$session.isAdmin()) {
+      if (this.$config.isPublic() || !this.$session.isSuperAdmin()) {
         this.$router.push({name: "home"});
       }
     });
   },
   methods: {
+    onRestart() {
+      restart(this.$router.resolve({ name: "about" }).href);
+    },
     reset() {
       this.success = false;
       this.busy = false;
@@ -244,6 +261,20 @@ export default {
         this.$router.push({name: "upgrade"});
       }
 
+    },
+    getMembership() {
+      const m = this.$config.getMembership();
+      switch (m) {
+        case "":
+        case "ce":
+          return "Community";
+        case "cloud":
+          return "Cloud";
+        case "essentials":
+          return "Essentials";
+        default:
+          return "Plus";
+      }
     },
   },
 };

@@ -8,7 +8,7 @@ FROM debian:bookworm-slim
 
 # Add Open Container Initiative (OCI) annotations.
 # See: https://github.com/opencontainers/image-spec/blob/main/annotations.md
-LABEL org.opencontainers.image.title="PhotoPrism® Dev (Debian 12)"
+LABEL org.opencontainers.image.title="PhotoPrism® Build Image (Debian 12)"
 LABEL org.opencontainers.image.description="Debian 12 (Bookworm)"
 LABEL org.opencontainers.image.url="https://hub.docker.com/repository/docker/photoprism/develop"
 LABEL org.opencontainers.image.source="https://github.com/photoprism/photoprism"
