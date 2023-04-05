@@ -2,13 +2,13 @@
   <div class="p-page p-page-about">
     <v-toolbar flat color="secondary" :dense="$vuetify.breakpoint.smAndDown">
       <v-toolbar-title>
-        {{ $config.getAbout() }} {{ getMembership() }}
+        {{ $config.getAbout() }}{{ getMembership() }}
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
 
       <v-btn icon href="https://www.photoprism.app/" target="_blank" class="action-info" :title="$gettext('Learn more')">
-        <v-icon size="26" v-html="'$vuetify.icons.prism'"></v-icon>
+        <v-icon size="26" color="secondary-dark" v-html="'$vuetify.icons.prism'"></v-icon>
       </v-btn>
     </v-toolbar>
     <v-container fluid class="px-4 pt-4 pb-1">
@@ -59,7 +59,7 @@
         <p class="text-selectable">
           <translate>PhotoPrism is 100% self-funded and independent.</translate>
           <translate>Your continued support helps us provide regular updates and remain independent, so we can fulfill our mission and protect your privacy.</translate>
-          <translate>You are welcome to contact us at members@photoprism.app for questions regarding your membership.</translate>
+          <translate>You are welcome to contact us at membership@photoprism.app for questions regarding your membership.</translate>
         </p>
         <p class="text-xs-center my-4">
           <v-btn
@@ -92,7 +92,7 @@
         <p>Before reporting a bug, please use our <a href="https://docs.photoprism.app/getting-started/troubleshooting/" class="text-link" target="_blank">Troubleshooting Checklists</a>
           to determine the cause of your problem. If you have a general question, need help, it could be a local configuration
           issue, or a misunderstanding in how the software works, you are welcome to ask in our <a href="https://link.photoprism.app/chat" class="text-link" target="_blank">Community Chat</a>
-          or post your question in <a href="https://link.photoprism.app/discussions" class="text-link" target="_blank">GitHub Discussions</a></p>
+          or post your question in <a href="https://link.photoprism.app/discussions" class="text-link" target="_blank">GitHub Discussions</a>.</p>
         <p>When reporting a problem, always include the software versions you are using and <a href="https://www.photoprism.app/kb/reporting-bugs" class="text-link" target="_blank">other information about your environment</a>
           such as <a href="https://docs.photoprism.app/getting-started/troubleshooting/browsers/" class="text-link" target="_blank">browser, browser plugins</a>, operating system, storage type,
           memory size, and processor.</p>
@@ -157,15 +157,20 @@ export default {
   },
   methods: {
     getMembership() {
+      if (this.isDemo) {
+        return "";
+      }
+
       const m = this.$config.getMembership();
       switch (m) {
+        case "":
         case "ce":
         case "cloud":
           return "";
         case "essentials":
-          return "Essentials";
+          return " Essentials";
         default:
-          return "Plus";
+          return " Plus";
       }
     }
   },
