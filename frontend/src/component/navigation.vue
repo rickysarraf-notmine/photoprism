@@ -489,7 +489,7 @@
               </v-list-tile-content>
             </v-list-tile>
 
-            <v-list-tile v-show="isAdmin && !isPublic && !isDemo && featUpgrade" :to="{ name: 'upgrade' }" class="nav-upgrade" :exact="true" @click.stop="">
+            <v-list-tile v-show="isSuperAdmin && !isPublic && !isDemo && featUpgrade" :to="{ name: 'upgrade' }" class="nav-upgrade" :exact="true" @click.stop="">
               <v-list-tile-content>
                 <v-list-tile-title :class="`menu-item ${rtl ? '--rtl' : ''}`">
                   <translate key="Upgrade">Upgrade</translate>
@@ -646,16 +646,17 @@
             <v-icon>auto_stories</v-icon>
             <translate>User Guide</translate>
           </a></div>
-          <div v-if="config.legalUrl && isSponsor" class="menu-action nav-legal"><a :href="config.legalUrl"
-                                                                                      target="_blank">
-            <v-icon>info</v-icon>
-            <translate>Legal Information</translate>
-          </a></div>
+          <div v-if="config.legalUrl && isSponsor" class="menu-action nav-legal">
+            <a :href="config.legalUrl" target="_blank">
+              <v-icon>info</v-icon>
+              <translate>Legal Information</translate>
+            </a>
+          </div>
         </div>
       </div>
     </div>
     <div v-if="config.legalInfo && visible" id="legal-info">
-      <a v-if="config.legalUrl" :href="config.legalUrl" target="_blank">{{ config.legalInfo }}</a>
+      <span v-if="config.legalUrl" class="clickable" @click.stop.prevent="onInfo()">{{ config.legalInfo }}</span>
       <span v-else>{{ config.legalInfo }}</span>
     </div>
     <p-reload-dialog :show="reload.dialog" @close="reload.dialog = false"></p-reload-dialog>
@@ -702,7 +703,7 @@ export default {
       canAccessPrivate: !isRestricted && this.$config.allow("photos", "access_private"),
       canManagePhotos: this.$config.allow("photos", "manage"),
       canManagePeople: this.$config.allow("people", "manage"),
-      canManageUsers: !isPublic && this.$config.allow("users", "manage"),
+      canManageUsers: (!isPublic || isDemo) && this.$config.allow("users", "manage"),
       appNameSuffix: appNameSuffix,
       appName: this.$config.getName(),
       appAbout: this.$config.getAbout(),
@@ -716,6 +717,7 @@ export default {
       isPublic: isPublic,
       isReadOnly: isReadOnly,
       isAdmin: this.$session.isAdmin(),
+      isSuperAdmin: this.$session.isSuperAdmin(),
       isSponsor: this.$config.isSponsor(),
       isTest: this.$config.test,
       session: this.$session,
@@ -822,6 +824,13 @@ export default {
     },
     onAccount: function () {
       this.$router.push({name: "settings_account"});
+    },
+    onInfo() {
+      if (this.isSponsor && this.config.legalUrl) {
+        window.open(this.config.legalUrl, '_blank').focus();
+      } else {
+        this.$router.push({name: "about"});
+      }
     },
     onLogout() {
       this.$session.logout();

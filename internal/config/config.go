@@ -126,6 +126,11 @@ func (c *Config) Unsafe() bool {
 	return c.options.Unsafe
 }
 
+// Restart checks if the application should be restarted, e.g. after an update or a config changes.
+func (c *Config) Restart() bool {
+	return mutex.Restart.Load()
+}
+
 // CliContext returns the cli context if set.
 func (c *Config) CliContext() *cli.Context {
 	if c.cliCtx == nil {
@@ -191,6 +196,10 @@ func (c *Config) Propagate() {
 	face.ClusterCore = c.FaceClusterCore()
 	face.ClusterDist = c.FaceClusterDist()
 	face.MatchDist = c.FaceMatchDist()
+
+	// Set default theme and locale.
+	customize.DefaultTheme = c.DefaultTheme()
+	customize.DefaultLocale = c.DefaultLocale()
 
 	c.Settings().Propagate()
 	c.Hub().Propagate()
@@ -496,7 +505,7 @@ func (c *Config) SitePreview() string {
 // LegalInfo returns the legal info text for the page footer.
 func (c *Config) LegalInfo() string {
 	if c.NoSponsor() {
-		return MsgSponsor
+		return SignUpInfo
 	}
 
 	if s := c.CliGlobalString("imprint"); s != "" {

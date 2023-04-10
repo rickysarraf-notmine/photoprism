@@ -23,7 +23,7 @@ FROM debian:buster-slim
 
 # Add Open Container Initiative (OCI) annotations.
 # See: https://github.com/opencontainers/image-spec/blob/main/annotations.md
-LABEL org.opencontainers.image.title="PhotoPrism® Community Edition (Debian 10)"
+LABEL org.opencontainers.image.title="PhotoPrism® (Debian 10)"
 LABEL org.opencontainers.image.description="Debian 10 (Buster)"
 LABEL org.opencontainers.image.url="https://hub.docker.com/repository/docker/photoprism/photoprism"
 LABEL org.opencontainers.image.source="https://github.com/photoprism/photoprism"
