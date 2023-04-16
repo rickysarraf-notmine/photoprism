@@ -21,6 +21,15 @@ func (faces *Faces) Append(f Face) {
 	*faces = append(*faces, f)
 }
 
+// AppendIfNotContains adds all faces that do not conflict with existing ones.
+func (faces *Faces) AppendIfNotContains(others ...Face) {
+	for _, other := range others {
+		if !faces.Contains(other) {
+			faces.Append(other)
+		}
+	}
+}
+
 // Count returns the number of faces detected.
 func (faces Faces) Count() int {
 	return len(faces)
