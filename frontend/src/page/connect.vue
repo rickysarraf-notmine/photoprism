@@ -14,11 +14,8 @@
         <span v-else-if="error">
           <translate>Invalid</translate>
         </span>
-        <span v-else-if="form.token || !membership || membership === 'ce'">
-          <translate>Upgrade</translate>
-        </span>
         <span v-else>
-          <translate>Successfully Connected</translate>
+          <translate>Upgrade</translate>
         </span>
       </v-toolbar-title>
 
@@ -83,7 +80,7 @@
             <translate>Restart</translate>
             <v-icon :right="!rtl" :left="rtl" dark>restart_alt</v-icon>
           </v-btn>
-          <v-btn v-if="membership === ''" href="https://my.photoprism.app/get-started" target="_blank" color="primary-button" :block="$vuetify.breakpoint.xsOnly"
+          <v-btn v-if="$config.getTier() < 4" href="https://my.photoprism.app/dashboard/membership" target="_blank" color="primary-button" :block="$vuetify.breakpoint.xsOnly"
                  class="white--text ml-0" depressed :disabled="busy">
             <translate>Upgrade Now</translate>
             <v-icon v-if="rtl" left dark>navigate_before</v-icon>
@@ -107,7 +104,7 @@
                         background-color="secondary-light" :label="$gettext('Activation Code')" type="text">
           </v-text-field>
           <div class="action-buttons text-xs-left mt-3">
-            <v-btn v-if="membership && membership !== 'ce'" href="https://my.photoprism.app/dashboard" target="_blank" color="primary-button lighten-2" :block="$vuetify.breakpoint.xsOnly"
+            <v-btn v-if="$config.getTier() >= 4" href="https://my.photoprism.app/dashboard" target="_blank" color="primary-button lighten-2" :block="$vuetify.breakpoint.xsOnly"
                    class="ml-0"
                    outline
                    :disabled="busy">
@@ -153,14 +150,6 @@
             <translate>Frequently Asked Questions</translate>
           </h3>
           <p class="subheading text-selectable">
-            <translate>Why are some features only available to sponsors?</translate>
-          </p>
-          <p class="body-1 text-selectable">
-            <translate>PhotoPrism is 100% self-funded and independent.</translate>
-            <translate>Voluntary donations do not cover the cost of a team working full time to provide you with updates, documentation, and support.</translate>
-            <translate>It is your decision whether you want to sign up to enjoy additional benefits.</translate>
-          </p>
-          <p class="subheading text-selectable">
             <translate>What functionality is generally available?</translate>
           </p>
           <p class="body-1 text-selectable">
@@ -197,6 +186,7 @@ export default {
       isAdmin: this.$session.isAdmin(),
       isDemo: this.$config.isDemo(),
       isSponsor: this.$config.isSponsor(),
+      tier: this.$config.getTier(),
       membership: membership,
       showInfo: !token && membership === "ce",
       rtl: this.$rtl,
