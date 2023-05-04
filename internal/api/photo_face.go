@@ -11,10 +11,10 @@ import (
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/internal/face"
+	"github.com/photoprism/photoprism/internal/get"
 
 	"github.com/photoprism/photoprism/internal/photoprism"
 	"github.com/photoprism/photoprism/internal/query"
-	"github.com/photoprism/photoprism/internal/service"
 )
 
 // GET /api/v1/photos/:uid/faces
@@ -23,21 +23,21 @@ import (
 //   uid: string PhotoUID as returned by the API
 func GetPhotoFaces(router *gin.RouterGroup) {
 	router.GET("/photos/:uid/faces", func(c *gin.Context) {
-		s := Auth(SessionID(c), acl.ResourcePhotos, acl.ActionRead)
+		s := Auth(c, acl.ResourcePhotos, acl.ActionUpdate)
 
 		if s.Invalid() {
 			AbortUnauthorized(c)
 			return
 		}
 
-		f, err := query.FileByPhotoUID(clean.IdString(c.Param("uid")))
+		f, err := query.FileByPhotoUID(clean.UID(c.Param("uid")))
 
 		if err != nil {
 			AbortEntityNotFound(c)
 			return
 		}
 
-		conf := service.Config()
+		conf := get.Config()
 		faces, err := face.DetectAll(photoprism.FileName(f.FileRoot, f.FileName), conf.FaceSize())
 
 		if err != nil {
@@ -55,14 +55,14 @@ func GetPhotoFaces(router *gin.RouterGroup) {
 //   uid: string PhotoUID as returned by the API
 func CreatePhotoFace(router *gin.RouterGroup) {
 	router.POST("/photos/:uid/faces", func(c *gin.Context) {
-		s := Auth(SessionID(c), acl.ResourcePhotos, acl.ActionUpdate)
+		s := Auth(c, acl.ResourcePhotos, acl.ActionUpdate)
 
 		if s.Invalid() {
 			AbortUnauthorized(c)
 			return
 		}
 
-		file, err := query.FileByPhotoUID(clean.IdString(c.Param("uid")))
+		file, err := query.FileByPhotoUID(clean.UID(c.Param("uid")))
 
 		if err != nil {
 			AbortEntityNotFound(c)
@@ -85,7 +85,7 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 		}
 
 		// Calculate the embeddings vector for the given face region.
-		net := service.FaceNet()
+		net := get.FaceNet()
 		embeddings, err := net.Embeddings(photoprism.FileName(file.FileRoot, file.FileName), f)
 
 		if err != nil {
@@ -123,7 +123,7 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 		// Retrieve the newly saved marker.
 		marker := file.LatestMarker()
 
-		faces, err := query.Faces(false, false, false)
+		faces, err := query.Faces(false, false, false, false)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
