@@ -95,6 +95,7 @@ require (
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
+	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mandykoh/go-parallel v0.1.0 // indirect
