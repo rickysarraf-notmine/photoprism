@@ -66,6 +66,23 @@ func (t *Net) Detect(fileName string, minSize int, cacheCrop bool, expected int)
 	return faces, nil
 }
 
+// Embeddings computes the embeddings vector for a given face region.
+func (t *Net) Embeddings(fileName string, face Face) (Embeddings, error) {
+	err := t.loadModel()
+
+	if err != nil {
+		return nil, err
+	}
+
+	img, err := crop.ImageFromThumb(fileName, face.CropArea(), CropSize, false)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return t.getEmbeddings(img), nil
+}
+
 // ModelLoaded tests if the TensorFlow model is loaded.
 func (t *Net) ModelLoaded() bool {
 	return t.model != nil

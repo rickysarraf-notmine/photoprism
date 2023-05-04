@@ -221,6 +221,26 @@ func UserAlbums(f form.SearchAlbums, sess *entity.Session) (results AlbumResults
 		return results, result.Error
 	}
 
+	// Update the counts for smart albums. This is a very suboptimal way of doing it, but it's the easiest.
+	for idx := range results {
+		album := &results[idx]
+
+		if album.AlbumType == entity.AlbumManual && album.AlbumFilter != "" {
+			f := form.SearchPhotos{Filter: album.AlbumFilter}
+
+			if err := f.ParseQueryString(); err != nil {
+				return results, err
+			}
+
+			_, count, err := PhotoIds(f)
+			if err != nil {
+				return results, err
+			}
+
+			album.PhotoCount = count
+		}
+	}
+
 	// Log number of results.
 	log.Debugf("albums: found %s [%s]", english.Plural(len(results), "result", "results"), time.Since(start))
 

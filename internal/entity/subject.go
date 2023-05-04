@@ -325,6 +325,14 @@ func (m *Subject) SaveForm(f form.Subject) (changed bool, err error) {
 		changed = true
 	}
 
+	// Change thumbnail?
+	if m.Thumb != f.SubjThumb {
+		m.Thumb = f.SubjThumb
+		m.ThumbSrc = f.SubjThumbSrc
+
+		changed = true
+	}
+
 	// Change visibility?
 	if m.SubjHidden != f.SubjHidden || m.SubjPrivate != f.SubjPrivate || m.SubjExcluded != f.SubjExcluded {
 		m.SubjHidden = f.SubjHidden
@@ -354,6 +362,8 @@ func (m *Subject) SaveForm(f form.Subject) (changed bool, err error) {
 			"SubjHidden":   m.SubjHidden,
 			"SubjPrivate":  m.SubjPrivate,
 			"SubjExcluded": m.SubjExcluded,
+			"Thumb": m.Thumb,
+			"ThumbSrc": m.ThumbSrc,
 		}
 
 		if err := m.Updates(values); err == nil {

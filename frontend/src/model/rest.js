@@ -158,6 +158,10 @@ export class Rest extends Model {
     });
   }
 
+  collectionResource() {
+    return this.constructor.getCollectionResource();
+  }
+
   modelName() {
     return this.constructor.getModelName();
   }

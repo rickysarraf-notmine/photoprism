@@ -25,6 +25,7 @@ const (
 	MediaVideo    = string(media.Video)
 	MediaVector   = string(media.Vector)
 	MediaText     = string(media.Text)
+	MediaSphere   = string(media.Sphere)
 )
 
 // Storage root folders.
@@ -42,6 +43,13 @@ const (
 	Created = "created"
 	Updated = "updated"
 	Deleted = "deleted"
+)
+
+// Date Modes.
+const (
+	DateModeLast    = "last"
+	DateModeFirst   = "first"
+	DateModeAverage = "average"
 )
 
 // Photo stack states.

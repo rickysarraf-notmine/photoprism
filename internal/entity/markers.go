@@ -23,7 +23,7 @@ func (m Markers) Save(file *File) (count int, err error) {
 		}
 
 		if created, err := CreateMarkerIfNotExists(&m[i]); err != nil {
-			log.Errorf("markers: %s (save)", err)
+			return 0, err
 		} else {
 			m[i] = *created
 		}

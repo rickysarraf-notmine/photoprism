@@ -207,7 +207,12 @@
                   </button>
                 </div>
 
-                <div v-else-if="album.Type === 'album'" class="caption mb-2">
+                <div v-if="album.Type === 'folder'" class="caption mb-2">
+                  <button @click.exact="edit(album)">
+                    /{{ album.Path | truncate(100) }}
+                  </button>
+                </div>
+                <div v-if="['album', 'country', 'folder', 'month', 'state'].includes(album.Type)" class="caption mb-2">
                   <button v-if="album.PhotoCount === 1" @click.exact="edit(album)">
                     <translate>Contains one picture.</translate>
                   </button>
@@ -216,11 +221,6 @@
                   </button>
                   <button v-else @click.stop.prevent="$router.push({name: 'browse'})">
                     <translate>Add pictures from search results by selecting them.</translate>
-                  </button>
-                </div>
-                <div v-else-if="album.Type === 'folder'" class="caption mb-2">
-                  <button @click.exact="edit(album)">
-                    /{{ album.Path | truncate(100) }}
                   </button>
                 </div>
                 <div v-if="album.Category !== ''" class="caption mb-2 d-inline-block">

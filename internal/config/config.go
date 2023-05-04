@@ -627,6 +627,11 @@ func (c *Config) UploadNSFW() bool {
 	return c.options.UploadNSFW
 }
 
+// EnableExpvar tests if the expvar endpoint should be enabled.
+func (c *Config) EnableExpvar() bool {
+	return c.options.EnableExpvar
+}
+
 // LogLevel returns the Logrus log level.
 func (c *Config) LogLevel() logrus.Level {
 	// Normalize string.

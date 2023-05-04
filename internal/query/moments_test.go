@@ -67,9 +67,9 @@ func TestMomentsTime(t *testing.T) {
 	})
 }
 
-func TestMomentsCountries(t *testing.T) {
+func TestMomentsCountriesbyYear(t *testing.T) {
 	t.Run("PublicOnly", func(t *testing.T) {
-		results, err := MomentsCountries(1, true)
+		results, err := MomentsCountriesByYear(1, true)
 
 		if err != nil {
 			t.Fatal(err)
@@ -97,7 +97,7 @@ func TestMomentsCountries(t *testing.T) {
 		}
 	})
 	t.Run("IncludePrivate", func(t *testing.T) {
-		results, err := MomentsCountries(1, false)
+		results, err := MomentsCountriesByYear(1, false)
 
 		if err != nil {
 			t.Fatal(err)

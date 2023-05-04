@@ -70,13 +70,14 @@
                     <i class="select-on">check_circle</i>
                     <i class="select-off">radio_button_off</i>
                   </button>
-                  <button v-else-if="photo.Type === 'video' || photo.Type === 'live' || photo.Type === 'animated'"
+                  <button v-else-if="['animated', 'live', 'sphere', 'video'].includes(props.item.Type)"
                         class="input-open"
                         @click.stop.prevent="openPhoto(index, false, photo.Type === 'live')">
                     <i v-if="photo.Type === 'live'" class="action-live" :title="$gettext('Live')"><icon-live-photo/></i>
                     <i v-if="photo.Type === 'animated'" class="action-animated" :title="$gettext('Animated')">gif</i>
                     <i v-if="photo.Type === 'vector'" class="action-vector" :title="$gettext('Vector')">font_download</i>
                     <i v-if="photo.Type === 'video'" class="action-play" :title="$gettext('Video')">play_arrow</i>
+                    <i v-if="photo.Type === 'sphere'" class="action-sphere" :title="$gettext('Photosphere')">panorama_photosphere</i>
                   </button>
                 </div>
               </td>

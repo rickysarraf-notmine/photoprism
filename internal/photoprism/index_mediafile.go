@@ -421,6 +421,18 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 		if photo.TypeSrc == entity.SrcAuto && photo.PhotoType == entity.MediaImage && m.IsAnimatedImage() {
 			photo.PhotoType = entity.MediaAnimated
 		}
+
+		// Update photo type only if not manually modified.
+		if photo.TypeSrc == entity.SrcAuto && m.IsMotionPhoto() {
+			// Change the src type to prevent the (non-primary) generated video file from changing it
+			photo.PhotoType = entity.MediaLive
+			photo.TypeSrc = entity.SrcDefault
+		}
+
+		if m.IsPhotosphere() {
+			photo.PhotoType = entity.MediaSphere
+		}
+
 	case m.IsXMP():
 		if metaData, err := meta.XMP(m.FileName()); err == nil {
 			// Update basic metadata.
@@ -509,6 +521,10 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 				photo.PhotoType = entity.MediaRaw
 			} else if m.IsLive() {
 				photo.PhotoType = entity.MediaLive
+			} else if m.IsMotionPhoto() {
+				// Change the src type to prevent the (non-primary) generated video file from changing it
+				photo.PhotoType = entity.MediaLive
+				photo.TypeSrc = entity.SrcDefault
 			} else if m.IsVector() {
 				photo.PhotoType = entity.MediaVector
 			}

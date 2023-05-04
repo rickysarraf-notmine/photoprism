@@ -42,7 +42,7 @@ func AlbumCoverByUID(uid string, public bool) (file entity.File, err error) {
 		return file, err
 	} else if !a.HasID() {
 		return file, fmt.Errorf("album uid %s is invalid", clean.Log(uid))
-	} else if a.AlbumType != entity.AlbumManual { // TODO: Optimize
+	} else if a.AlbumType != entity.AlbumManual || a.AlbumFilter != "" { // TODO: Optimize
 		if a.AlbumFilter == "" {
 			return file, fmt.Errorf("smart album %s has no filter specified", a.AlbumUID)
 		}
@@ -70,17 +70,6 @@ func AlbumCoverByUID(uid string, public bool) (file entity.File, err error) {
 			}
 		}
 
-		// Automatically hide empty months.
-		switch a.AlbumType {
-		case entity.AlbumMonth, entity.AlbumState:
-			if err := a.Delete(); err != nil {
-				log.Errorf("%s: %s (hide)", a.AlbumType, err)
-			} else {
-				log.Infof("%s: %s hidden", a.AlbumType, clean.Log(a.AlbumTitle))
-			}
-		}
-
-		// Return without album cover.
 		return file, fmt.Errorf("no cover found")
 	}
 
@@ -105,19 +94,35 @@ func AlbumCoverByUID(uid string, public bool) (file entity.File, err error) {
 }
 
 // UpdateAlbumDates updates the year, month and day of the album based on the indexed photo metadata.
-func UpdateAlbumDates() error {
+func UpdateAlbumDates(mode string) error {
 	mutex.Index.Lock()
 	defer mutex.Index.Unlock()
 
+	var f string
+
+	switch mode {
+	case entity.DateModeFirst:
+		f = "MIN(%s)"
+		break
+	case entity.DateModeLast:
+		f = "MAX(%s)"
+		break
+	case entity.DateModeAverage:
+		f = "FROM_UNIXTIME(AVG(UNIX_TIMESTAMP(%s)))"
+		break
+	default:
+		return fmt.Errorf("invalid album date mode %s", mode)
+	}
+
 	switch DbDialect() {
 	case MySQL:
-		return UnscopedDb().Exec(`UPDATE albums INNER JOIN (
-             SELECT photo_path, MAX(taken_at_local) AS taken_max
+		return UnscopedDb().Exec(fmt.Sprintf(`UPDATE albums INNER JOIN (
+             SELECT photo_path, %s AS taken_date
 			 FROM photos WHERE taken_src = 'meta' AND photos.photo_quality >= 3 AND photos.deleted_at IS NULL
 			 GROUP BY photo_path
 	    ) AS p ON albums.album_path = p.photo_path
-		SET albums.album_year = YEAR(taken_max), albums.album_month = MONTH(taken_max), albums.album_day = DAY(taken_max)
-		WHERE albums.album_type = 'folder' AND albums.album_path IS NOT NULL AND p.taken_max IS NOT NULL`).Error
+		SET albums.album_year = YEAR(taken_date), albums.album_month = MONTH(taken_date), albums.album_day = DAY(taken_date)
+		WHERE albums.album_type = 'folder' AND albums.album_path IS NOT NULL AND p.taken_date IS NOT NULL`, fmt.Sprintf(f, "taken_at_local"))).Error
 	default:
 		return nil
 	}

@@ -163,6 +163,9 @@ type Options struct {
 	PIDFilename           string        `yaml:"PIDFilename" json:"-" flag:"pid-filename"`
 	LogFilename           string        `yaml:"LogFilename" json:"-" flag:"log-filename"`
 	DetachServer          bool          `yaml:"DetachServer" json:"-" flag:"detach-server"`
+
+	// New config options
+	EnableExpvar bool `yaml:"EnableExpvar" json:"EnableExpvar" flag:"enable-expvar"`
 }
 
 // NewOptions creates a new configuration entity by using two methods:

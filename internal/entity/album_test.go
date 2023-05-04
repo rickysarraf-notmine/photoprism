@@ -53,13 +53,13 @@ func TestAlbum_SetName(t *testing.T) {
 		assert.Equal(t, txt.Slug(expected), album.AlbumSlug)
 	})
 	t.Run("long name", func(t *testing.T) {
-		longName := `A value in decimal degrees to a precision of 4 decimal places is precise to 11.132 meters at the 
-equator. A value in decimal degrees to 5 decimal places is precise to 1.1132 meter at the equator. Elevation also 
-introduces a small error. At 6,378 m elevation, the radius and surface distance is increased by 0.001 or 0.1%. 
-Because the earth is not flat, the precision of the longitude part of the coordinates increases 
-the further from the equator you get. The precision of the latitude part does not increase so much, 
-more strictly however, a meridian arc length per 1 second depends on the latitude at the point in question. 
-The discrepancy of 1 second meridian arc length between equator and pole is about 0.3 metres because the earth 
+		longName := `A value in decimal degrees to a precision of 4 decimal places is precise to 11.132 meters at the
+equator. A value in decimal degrees to 5 decimal places is precise to 1.1132 meter at the equator. Elevation also
+introduces a small error. At 6,378 m elevation, the radius and surface distance is increased by 0.001 or 0.1%.
+Because the earth is not flat, the precision of the longitude part of the coordinates increases
+the further from the equator you get. The precision of the latitude part does not increase so much,
+more strictly however, a meridian arc length per 1 second depends on the latitude at the point in question.
+The discrepancy of 1 second meridian arc length between equator and pole is about 0.3 metres because the earth
 is an oblate spheroid.`
 		expected := txt.Shorten(longName, txt.ClipDefault, txt.Ellipsis)
 		slugExpected := txt.Clip(longName, txt.ClipSlug)
@@ -222,7 +222,7 @@ func TestAddPhotoToAlbums(t *testing.T) {
 
 func TestNewFolderAlbum(t *testing.T) {
 	t.Run("name Christmas 2018", func(t *testing.T) {
-		album := NewFolderAlbum("Dogs", "dogs", "label:dog")
+		album := NewFolderAlbum("Dogs", "dogs", "label:dog", "added")
 		assert.Equal(t, "Dogs", album.AlbumTitle)
 		assert.Equal(t, "dogs", album.AlbumSlug)
 		assert.Equal(t, AlbumFolder, album.AlbumType)
@@ -230,7 +230,7 @@ func TestNewFolderAlbum(t *testing.T) {
 		assert.Equal(t, "label:dog", album.AlbumFilter)
 	})
 	t.Run("title empty", func(t *testing.T) {
-		album := NewFolderAlbum("", "dogs", "label:dog")
+		album := NewFolderAlbum("", "dogs", "label:dog", "")
 		assert.Nil(t, album)
 	})
 }

@@ -35,6 +35,18 @@
         </v-btn>
 
         <v-btn
+            v-if="navigatorCanShare && context !== 'archive' && context !== 'review'" fab dark
+            small
+            :title="$gettext('Share')"
+            color="share"
+            :disabled="selection.length === 0"
+            class="action-webshare"
+            @click.stop="webShare()"
+        >
+          <v-icon>share</v-icon>
+        </v-btn>
+
+        <v-btn
             v-if="canManage && context === 'review'" fab dark
             small
             :title="$gettext('Approve')"
@@ -123,6 +135,17 @@
           <v-icon>eject</v-icon>
         </v-btn>
         <v-btn
+            v-if="canEdit && album && context !== 'archive'" fab dark
+            small
+            :title="$gettext('Set as cover')"
+            color="cover"
+            :disabled="selection.length != 1"
+            class="action-cover"
+            @click.stop="setCover"
+        >
+          <v-icon>insert_photo</v-icon>
+        </v-btn>
+        <v-btn
             v-if="canDelete && !album && context === 'archive'" fab dark
             small
             :title="$gettext('Delete')"
@@ -155,10 +178,13 @@
 </template>
 <script>
 import Api from "common/api";
+import * as src from "common/src";
+import Util from "common/util";
 import Notify from "common/notify";
 import Event from "pubsub-js";
 import download from "common/download";
 import Photo from "model/photo";
+import Subject from "model/subject";
 
 export default {
   name: 'PPhotoClipboard',
@@ -196,6 +222,7 @@ export default {
       config: this.$config.values,
       expanded: false,
       isAlbum: this.album && this.album.Type === 'album',
+      navigatorCanShare: navigator.canShare,
       dialog: {
         archive: false,
         delete: false,
@@ -297,7 +324,7 @@ export default {
       if (this.busy) {
         return;
       }
-      
+
       this.busy = true;
       this.dialog.album = false;
 
@@ -343,7 +370,7 @@ export default {
       this.busy = true;
 
       switch (this.selection.length) {
-        case 0: 
+        case 0:
           this.busy = false;
           return;
         case 1:
@@ -353,7 +380,7 @@ export default {
               this.busy = false;
             });
           break;
-        default: 
+        default:
           Api.post("zip", {"photos": this.selection})
             .then(r => {
               this.onDownload(`${this.$config.apiUri}/zip/${r.data.filename}?t=${this.$config.downloadToken}`);
@@ -370,12 +397,59 @@ export default {
     onDownload(path) {
       download(path, "photos.zip");
     },
+    webShare() {
+      switch (this.selection.length) {
+        case 0: return;
+        case 1: new Photo().find(this.selection[0]).then(p => p.webShare()); break;
+        default:
+          // Resolve selection into Photo objects and download them as blobs
+          const photos = this.selection.map((uid) => new Photo().find(uid).then((p) => fetch(p.getDownloadUrl()).then((res) => res.blob()).then((blob) => {
+            p.Blob = blob;
+            return p;
+          })));
+          // Wait for all downloads, then open native browser share dialog
+          Promise.all(photos).then((blobs) => {
+            const filesArray = blobs.map((p) => Util.JSFileFromPhoto(p.Blob, p.mainFile()));
+            const shareData = {
+              files: filesArray,
+            };
+            return navigator.share(shareData);
+          }).catch((e) => {
+            this.$notify.error(this.$gettext("sharing photos failed"));
+            console.warn(e);
+          })
+      }
+
+      Notify.success(this.$gettext("Downloading & Sharing…"));
+
+      this.expanded = false;
+    },
     edit() {
       // Open Edit Dialog
       Event.PubSub.publish("dialog.edit", {selection: this.selection, album: this.album, index: 0});
     },
     onShared() {
       this.dialog.share = false;
+      this.clearClipboard();
+    },
+    setCover() {
+      if (!this.canEdit) {
+        return;
+      }
+
+      new Photo().find(this.selection[0]).then(p => {
+        let thumb = p.mainFileHash();
+
+        // For subjects we need to find the subject marker within the main file.
+        if (this.album.collectionResource() === Subject.getCollectionResource()) {
+          thumb = p.mainFile().Markers.find(m => m.SubjUID === this.album.getId()).Thumb;
+        }
+
+        Api.put(this.album.getEntityResource(), {Thumb: thumb, ThumbSrc: src.Manual}).then(() => this.onSetCover());
+      });
+    },
+    onSetCover() {
+      Notify.success(this.$gettext("Cover has been updated"));
       this.clearClipboard();
     },
   }

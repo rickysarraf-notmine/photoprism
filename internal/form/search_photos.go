@@ -52,6 +52,7 @@ type SearchPhotos struct {
 	Diff      uint32    `form:"diff" notes:"Differential Perceptual Hash (000000-FFFFFF)"`
 	Mono      bool      `form:"mono" notes:"Finds pictures with few or no colors"`
 	Geo       bool      `form:"geo" notes:"Finds pictures with GPS location"`
+	NoGeo     bool      `form:"nogeo" notes:"Finds pictures without GPS location"`
 	Keywords  string    `form:"keywords"  example:"keywords:\"buffalo&water\"" notes:"Keywords, can be combined with & and |"`                                                                                        // Filter by keyword(s)
 	Label     string    `form:"label" example:"label:cat|dog" notes:"Label Name, OR search with |"`                                                                                                                   // Label name
 	Category  string    `form:"category"  notes:"Location Category Name"`                                                                                                                                             // Moments
@@ -76,6 +77,8 @@ type SearchPhotos struct {
 	Lens      string    `form:"lens" example:"lens:ef24" notes:"Lens Make/Model Name"`                                                                                                                                // Lens UID or name
 	Before    time.Time `form:"before" time_format:"2006-01-02" notes:"Finds pictures taken before this date"`                                                                                                        // Finds images taken before date
 	After     time.Time `form:"after" time_format:"2006-01-02" notes:"Finds pictures taken after this date"`                                                                                                          // Finds images taken after date
+	BeforeT   time.Time `form:"beforet" time_format:"2006-01-02 15:04:05" notes:"Finds pictures taken before this date and time"`                                                                                     // Finds images taken before date
+	AfterT    time.Time `form:"aftert" time_format:"2006-01-02 15:04:05" notes:"Finds pictures taken after this date and time"`                                                                                       // Finds images taken after date
 	Count     int       `form:"count" binding:"required" serialize:"-"`                                                                                                                                               // Result FILE limit
 	Offset    int       `form:"offset" serialize:"-"`                                                                                                                                                                 // Result FILE offset
 	Order     string    `form:"order" serialize:"-"`                                                                                                                                                                  // Sort order
@@ -93,6 +96,12 @@ func (f *SearchPhotos) SetQuery(q string) {
 func (f *SearchPhotos) ParseQueryString() error {
 	if err := ParseQueryString(f); err != nil {
 		return err
+	}
+
+	if f.Filter != "" {
+		if err := Unserialize(f, f.Filter); err != nil {
+			return err
+		}
 	}
 
 	if f.Path != "" {
@@ -114,12 +123,6 @@ func (f *SearchPhotos) ParseQueryString() error {
 	} else if f.People != "" {
 		f.Subjects = f.People
 		f.People = ""
-	}
-
-	if f.Filter != "" {
-		if err := Unserialize(f, f.Filter); err != nil {
-			return err
-		}
 	}
 
 	// Strip file extensions if any.

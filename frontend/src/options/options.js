@@ -1,10 +1,11 @@
-import { timeZonesNames } from "@vvo/tzdb";
+import { getTimeZones, timeZonesNames } from "@vvo/tzdb";
 import { $gettext } from "common/vm";
 import { Info } from "luxon";
 import { config } from "app/session";
 import {
   MediaImage,
   MediaLive,
+  MediaSphere,
   MediaVideo,
   MediaAnimated,
   MediaVector,
@@ -16,6 +17,29 @@ export const TimeZones = () =>
     { ID: "UTC", Name: "UTC" },
     { ID: "", Name: $gettext("Local Time") },
   ].concat(timeZonesNames);
+
+export const CountriesTimeZones = () =>
+  getTimeZones().reduce((tzmap, tz) => {
+    const cc = tz.countryCode;
+
+    if (!(cc in tzmap)) {
+      tzmap[cc] = [];
+    }
+
+    tzmap[cc].push(tz);
+    return tzmap;
+  }, {});
+
+export const PreferredTimeZones = () => {
+  return {
+    CL: "America/Santiago",
+    CN: "Asia/Shanghai",
+    ES: "Europe/Madrid",
+    NZ: "Pacific/Auckland",
+    PT: "Europe/Lisbon",
+    UA: "Europe/Zaporozhye",
+  };
+};
 
 export const Days = () => {
   let result = [];
@@ -263,6 +287,87 @@ export const Languages = () => [
   },
 ];
 
+export const Pages = () => [
+  {
+    text: $gettext("Search"),
+    value: "/browse",
+  },
+  {
+    text: $gettext("Moments"),
+    value: "/moments",
+  },
+  {
+    text: $gettext("Albums"),
+    value: "/albums",
+  },
+  {
+    text: $gettext("Calendar"),
+    value: "/calendar",
+  },
+  {
+    text: $gettext("Folders"),
+    value: "/folders",
+  },
+  {
+    text: $gettext("Favorites"),
+    value: "/favorites",
+  },
+  {
+    text: $gettext("Places"),
+    value: "/places",
+  },
+];
+
+export const FoldersDateMode = () => [
+  {
+    text: $gettext("Last"),
+    value: "last",
+  },
+  {
+    text: $gettext("First"),
+    value: "first",
+  },
+  {
+    text: $gettext("Average"),
+    value: "average",
+  },
+];
+
+export const FoldersSortOrder = () => [
+  {
+    text: $gettext("Added"),
+    value: "added",
+  },
+  {
+    text: $gettext("Newest"),
+    value: "newest",
+  },
+  {
+    text: $gettext("Oldest"),
+    value: "oldest",
+  },
+  {
+    text: $gettext("Name"),
+    value: "name",
+  },
+  {
+    text: $gettext("Similar"),
+    value: "similar",
+  },
+  {
+    text: $gettext("Relevance"),
+    value: "relevance",
+  },
+  {
+    text: $gettext("Edited"),
+    value: "edited",
+  },
+  {
+    text: $gettext("Random"),
+    value: "random",
+  },
+];
+
 export const MapsAnimate = () => [
   {
     text: $gettext("None"),
@@ -329,6 +434,10 @@ export const PhotoTypes = () => [
   {
     text: $gettext("Live"),
     value: MediaLive,
+  },
+  {
+    text: $gettext("Photosphere"),
+    value: MediaSphere,
   },
   {
     text: $gettext("Video"),

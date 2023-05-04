@@ -163,6 +163,17 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 		s = s.Order(sortby.RandomExpr(s.Dialect()))
 	case sortby.Default, sortby.Imported, sortby.Added:
 		s = s.Order("files.media_id")
+	case entity.SortOrderRandom:
+		switch entity.DbDialect() {
+		case entity.MySQL:
+			s = s.Joins("JOIN (SELECT DISTINCT photo_id FROM files ORDER BY RAND() LIMIT ?) AS rnd on files.photo_id = rnd.photo_id", f.Count)
+		case entity.SQLite3:
+			s = s.Joins("JOIN (SELECT DISTINCT photo_id FROM files ORDER BY RANDOM() LIMIT ?) AS rnd on files.photo_id = rnd.photo_id", f.Count)
+		default:
+			err := fmt.Errorf("unknown sql dialect %s", entity.DbDialect())
+			log.Errorf("photos: %s", err)
+			return results, 0, err
+		}
 	default:
 		return PhotoResults{}, 0, ErrBadSortOrder
 	}
@@ -322,11 +333,11 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 	// Filter by location.
 	if f.Geo == true {
 		s = s.Where("photos.cell_id <> 'zz'")
+	} else if f.NoGeo {
+		s = s.Where("photos.cell_id = 'zz'")
+	}
 
-		for _, where := range LikeAnyKeyword("k.keyword", f.Query) {
-			s = s.Where("files.photo_id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
-		}
-	} else if f.Query != "" {
+	if f.Query != "" {
 		if err := Db().Where(AnySlug("custom_slug", f.Query, " ")).Find(&labels).Error; len(labels) == 0 || err != nil {
 			log.Debugf("search: label %s not found, using fuzzy search", txt.LogParamLower(f.Query))
 
@@ -637,10 +648,14 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 
 	if !f.Before.IsZero() {
 		s = s.Where("photos.taken_at <= ?", f.Before.Format("2006-01-02"))
+	} else if !f.BeforeT.IsZero() {
+		s = s.Where("photos.taken_at <= ?", f.BeforeT.Format("2006-01-02 15:04:05"))
 	}
 
 	if !f.After.IsZero() {
 		s = s.Where("photos.taken_at >= ?", f.After.Format("2006-01-02"))
+	} else if !f.AfterT.IsZero() {
+		s = s.Where("photos.taken_at >= ?", f.AfterT.Format("2006-01-02 15:04:05"))
 	}
 
 	// Find stacks only.

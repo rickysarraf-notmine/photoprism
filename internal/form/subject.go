@@ -13,6 +13,8 @@ type Subject struct {
 	SubjHidden   bool   `json:"Hidden"`
 	SubjPrivate  bool   `json:"Private"`
 	SubjExcluded bool   `json:"Excluded"`
+	SubjThumb    string `json:"Thumb"`
+	SubjThumbSrc string `json:"ThumbSrc"`
 }
 
 func NewSubject(m interface{}) (f Subject, err error) {

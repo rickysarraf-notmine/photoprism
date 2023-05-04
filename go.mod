@@ -1,6 +1,7 @@
 module github.com/photoprism/photoprism
 
 require (
+	github.com/alfg/mp4 v0.0.0-20210728035756-55ea58c08aeb
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/disintegration/imaging v1.6.2
 	github.com/djherbis/times v1.5.0
@@ -13,6 +14,7 @@ require (
 	github.com/dsoprea/go-tiff-image-structure/v2 v2.0.0-20221003165014-8ecc4f52edca
 	github.com/dustin/go-humanize v1.0.1
 	github.com/esimov/pigo v1.4.6
+	github.com/gin-contrib/expvar v0.0.1
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.9.0
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
@@ -56,6 +58,8 @@ require (
 )
 
 require github.com/olekukonko/tablewriter v0.0.5
+
+require github.com/sethgrid/pester v1.1.0
 
 require github.com/google/uuid v1.3.0
 
