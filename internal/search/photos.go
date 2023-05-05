@@ -163,17 +163,6 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 		s = s.Order(sortby.RandomExpr(s.Dialect()))
 	case sortby.Default, sortby.Imported, sortby.Added:
 		s = s.Order("files.media_id")
-	case entity.SortOrderRandom:
-		switch entity.DbDialect() {
-		case entity.MySQL:
-			s = s.Joins("JOIN (SELECT DISTINCT photo_id FROM files ORDER BY RAND() LIMIT ?) AS rnd on files.photo_id = rnd.photo_id", f.Count)
-		case entity.SQLite3:
-			s = s.Joins("JOIN (SELECT DISTINCT photo_id FROM files ORDER BY RANDOM() LIMIT ?) AS rnd on files.photo_id = rnd.photo_id", f.Count)
-		default:
-			err := fmt.Errorf("unknown sql dialect %s", entity.DbDialect())
-			log.Errorf("photos: %s", err)
-			return results, 0, err
-		}
 	default:
 		return PhotoResults{}, 0, ErrBadSortOrder
 	}
