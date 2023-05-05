@@ -90,7 +90,7 @@ func TestConvert_ToAvc(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		avcFile, err := convert.ToAvc(mf, "", false, false)
+		avcFile, err := convert.ToAvc(mf, ffmpeg.SoftwareEncoder, false, false)
 
 		if err != nil {
 			t.Fatal(err)

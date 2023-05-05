@@ -68,7 +68,7 @@ func TestConvert_ToImage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		jpegFile, err := convert.ToJpeg(mf, false)
+		jpegFile, err := convert.ToImage(mf, false)
 
 		if err != nil {
 			t.Fatal(err)

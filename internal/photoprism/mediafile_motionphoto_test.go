@@ -52,7 +52,7 @@ func TestMediaFile_IsMotionPhoto(t *testing.T) {
 	t.Run("samsung-heic-motion-photo", func(t *testing.T) {
 		conf := config.TestConfig()
 
-		conf.InitializeTestData(t)
+		conf.InitializeTestData()
 
 		tf := classify.New(conf.AssetsPath(), conf.DisableTensorFlow())
 		nd := nsfw.New(conf.NSFWModelPath())
