@@ -45,13 +45,6 @@ const (
 	Deleted = "deleted"
 )
 
-// Date Modes.
-const (
-	DateModeLast    = "last"
-	DateModeFirst   = "first"
-	DateModeAverage = "average"
-)
-
 // Photo stack states.
 const (
 	IsStacked   int8 = 1

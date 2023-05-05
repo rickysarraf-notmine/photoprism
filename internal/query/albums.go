@@ -12,6 +12,7 @@ import (
 	"github.com/photoprism/photoprism/pkg/media"
 	"github.com/photoprism/photoprism/pkg/rnd"
 	"github.com/photoprism/photoprism/pkg/sortby"
+	"github.com/photoprism/photoprism/pkg/time"
 )
 
 // Albums returns a slice of albums.
@@ -101,13 +102,13 @@ func UpdateAlbumDates(mode string) error {
 	var f string
 
 	switch mode {
-	case entity.DateModeFirst:
+	case time.DateModeFirst:
 		f = "MIN(%s)"
 		break
-	case entity.DateModeLast:
+	case time.DateModeLast:
 		f = "MAX(%s)"
 		break
-	case entity.DateModeAverage:
+	case time.DateModeAverage:
 		f = "FROM_UNIXTIME(AVG(UNIX_TIMESTAMP(%s)))"
 		break
 	default:
