@@ -242,7 +242,7 @@ func NewCountryAlbum(albumTitle, albumSlug, albumFilter string) *Album {
 	now := TimeStamp()
 
 	result := &Album{
-		AlbumOrder:  SortOrderNewest,
+		AlbumOrder:  sortby.Newest,
 		AlbumType:   AlbumCountry,
 		AlbumTitle:  albumTitle,
 		AlbumSlug:   albumSlug,

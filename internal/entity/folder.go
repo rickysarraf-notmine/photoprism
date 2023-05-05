@@ -13,7 +13,6 @@ import (
 	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/rnd"
-	"github.com/photoprism/photoprism/pkg/sortby"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
