@@ -9,6 +9,8 @@ import (
 	"github.com/photoprism/photoprism/internal/i18n"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
+	"github.com/photoprism/photoprism/pkg/sortby"
+	"github.com/photoprism/photoprism/pkg/time"
 )
 
 const (
@@ -19,6 +21,7 @@ const (
 type Settings struct {
 	UI        UISettings       `json:"ui" yaml:"UI"`
 	Search    SearchSettings   `json:"search" yaml:"Search"`
+	Folders   FoldersSettings  `json:"folders" yaml:"Folders"`
 	Maps      MapsSettings     `json:"maps" yaml:"Maps"`
 	Features  FeatureSettings  `json:"features" yaml:"Features"`
 	Import    ImportSettings   `json:"import" yaml:"Import"`
@@ -42,9 +45,14 @@ func NewSettings(theme, lang string) *Settings {
 			Zoom:      false,
 			Theme:     theme,
 			Language:  lang,
+			Homepage:  "/all",
 		},
 		Search: SearchSettings{
 			BatchSize: 0,
+		},
+		Folders: FoldersSettings{
+			DateMode:  time.DateModeLast,
+			SortOrder: sortby.Added,
 		},
 		Maps: MapsSettings{
 			Animate: 0,

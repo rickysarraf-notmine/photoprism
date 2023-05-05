@@ -1,4 +1,4 @@
-package config
+package customize
 
 // FoldersSettings represents folder-related settings.
 type FoldersSettings struct {
