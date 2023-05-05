@@ -41,7 +41,7 @@ func SharePreview(router *gin.RouterGroup) {
 			return
 		}
 
-		album, err := entity.CachedAlbumByUID(share)
+		album, err := entity.CachedAlbumByUID(shared)
 
 		if err != nil {
 			log.Error(err)

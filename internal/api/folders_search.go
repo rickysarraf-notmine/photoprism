@@ -72,7 +72,7 @@ func SearchFolders(router *gin.RouterGroup, urlPath, rootName, rootPath string) 
 			f.Public = true
 		}
 
-		conf := service.Config()
+		conf := get.Config()
 		foldersSortOrder := conf.Settings().Folders.SortOrder
 
 		cache := get.FolderCache()
