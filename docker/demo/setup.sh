@@ -40,11 +40,12 @@ echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
 echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/80recommends && \
 echo 'APT::Install-Suggests "false";' > /etc/apt/apt.conf.d/80suggests && \
 echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/80forceyes && \
-echo 'APT::Get::Fix-Missing "true";' > /etc/apt/apt.conf.d/80fixmissing
+echo 'APT::Get::Fix-Missing "true";' > /etc/apt/apt.conf.d/80fixmissing && \
+echo 'force-confold' > /etc/dpkg/dpkg.cfg.d/force-confold
 
 # update operating system
 apt-get update
-apt dist-upgrade 2>/dev/null
+apt upgrade 2>/dev/null
 
 # install dependencies
 apt-get -qq install --no-install-recommends apt-transport-https ca-certificates \

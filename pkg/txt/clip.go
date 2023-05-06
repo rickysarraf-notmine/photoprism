@@ -6,14 +6,25 @@ import (
 
 const (
 	Ellipsis      = "…"
+	ClipCountry   = 2
+	ClipRole      = 32
 	ClipKeyword   = 40
-	ClipUsername  = 64
+	ClipIP        = 48
+	ClipRealm     = 64
+	ClipUserName  = 64
+	ClipPassword  = 72
 	ClipSlug      = 80
 	ClipCategory  = 100
+	ClipTokenName = 128
 	ClipDefault   = 160
 	ClipName      = 160
-	ClipTitle     = 200
+	ClipLongName  = 200
+	ClipEmail     = 255
 	ClipPath      = 500
+	ClipComment   = 512
+	ClipURL       = 512
+	ClipLog       = 512
+	ClipFlags     = 767
 	ClipShortText = 1024
 	ClipText      = 2048
 	ClipLongText  = 4096
@@ -30,7 +41,7 @@ func Clip(s string, size int) string {
 	runes := []rune(s)
 
 	if len(runes) > size {
-		s = string(runes[0 : size-1])
+		s = string(runes[0:size])
 	}
 
 	return strings.TrimSpace(s)

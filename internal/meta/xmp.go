@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"runtime/debug"
 	"strconv"
+	"time"
 
 	jpegstructure "github.com/dsoprea/go-jpeg-image-structure/v2"
 
@@ -14,7 +15,7 @@ import (
 
 // XMP parses an XMP file and returns a Data struct.
 func XMP(fileName string) (data Data, err error) {
-	err = data.XMP(fileName, fs.XmpFile)
+	err = data.XMP(fileName, fs.SidecarXMP)
 
 	return data, err
 }
@@ -37,7 +38,7 @@ func (data *Data) XMP(fileName string, fileType fs.Type) (err error) {
 	doc := XmpDocument{}
 
 	// All unsupported types will be silently ignored, otherwise we will polute the log with warnings
-	if fileType == fs.XmpFile {
+	if fileType == fs.SidecarXMP {
 		if err := doc.Load(fileName); err != nil {
 			return fmt.Errorf("metadata: cannot read %s (xmp)", logName)
 		}
@@ -95,8 +96,11 @@ func (data *Data) XMP(fileName string, fileType fs.Type) (err error) {
 		data.LensModel = doc.LensModel()
 	}
 
-	if takenAt := doc.TakenAt(); !takenAt.IsZero() {
-		data.TakenAt = takenAt
+	if takenAt := doc.TakenAt(data.TimeZone); !takenAt.IsZero() {
+		data.TakenAt = takenAt.UTC()
+		if data.TimeZone == "" {
+			data.TimeZone = time.UTC.String()
+		}
 	}
 
 	if len(doc.Keywords()) != 0 {

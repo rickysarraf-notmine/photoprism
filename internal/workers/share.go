@@ -2,10 +2,8 @@ package workers
 
 import (
 	"fmt"
-	"path/filepath"
+	"path"
 	"runtime/debug"
-
-	"github.com/photoprism/photoprism/pkg/fs"
 
 	"github.com/photoprism/photoprism/internal/config"
 	"github.com/photoprism/photoprism/internal/entity"
@@ -17,6 +15,7 @@ import (
 	"github.com/photoprism/photoprism/internal/remote/webdav"
 	"github.com/photoprism/photoprism/internal/search"
 	"github.com/photoprism/photoprism/internal/thumb"
+	"github.com/photoprism/photoprism/pkg/fs"
 )
 
 // Share represents a share worker.
@@ -30,17 +29,17 @@ func NewShare(conf *config.Config) *Share {
 }
 
 // logError logs an error message if err is not nil.
-func (worker *Share) logError(err error) {
+func (w *Share) logError(err error) {
 	if err != nil {
 		log.Errorf("share: %s", err.Error())
 	}
 }
 
 // Start starts the share worker.
-func (worker *Share) Start() (err error) {
+func (w *Share) Start() (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("share: %s (panic)\nstack: %s", r, debug.Stack())
+			err = fmt.Errorf("share: %s (worker panic)\nstack: %s", r, debug.Stack())
 			log.Error(err)
 		}
 	}()
@@ -51,7 +50,7 @@ func (worker *Share) Start() (err error) {
 
 	defer mutex.ShareWorker.Stop()
 
-	f := form.SearchAccounts{
+	f := form.SearchServices{
 		Share: true,
 	}
 
@@ -71,7 +70,7 @@ func (worker *Share) Start() (err error) {
 		files, err := query.FileShares(a.ID, entity.FileShareNew)
 
 		if err != nil {
-			worker.logError(err)
+			w.logError(err)
 			continue
 		}
 
@@ -90,36 +89,37 @@ func (worker *Share) Start() (err error) {
 			}
 		}
 
-		client := webdav.New(a.AccURL, a.AccUser, a.AccPass, webdav.Timeout(a.AccTimeout))
-		existingDirs := make(map[string]string)
+		client, err := webdav.NewClient(a.AccURL, a.AccUser, a.AccPass, webdav.Timeout(a.AccTimeout))
+
+		if err != nil {
+			return err
+		}
 
 		for _, file := range files {
 			if mutex.ShareWorker.Canceled() {
 				return nil
 			}
 
-			dir := filepath.Dir(file.RemoteName)
+			dir := path.Dir(file.RemoteName)
 
-			if _, ok := existingDirs[dir]; !ok {
-				if err := client.CreateDir(dir); err != nil {
-					log.Errorf("share: failed creating folder %s", dir)
-					continue
-				}
+			// Ensure remote folder exists.
+			if err := client.MkdirAll(dir); err != nil {
+				log.Debugf("share: %s", err)
 			}
 
 			srcFileName := photoprism.FileName(file.File.FileRoot, file.File.FileName)
 
 			if fs.ImageJPEG.Equal(file.File.FileType) && size.Width > 0 && size.Height > 0 {
-				srcFileName, err = thumb.FromFile(srcFileName, file.File.FileHash, worker.conf.ThumbCachePath(), size.Width, size.Height, file.File.FileOrientation, size.Options...)
+				srcFileName, err = thumb.FromFile(srcFileName, file.File.FileHash, w.conf.ThumbCachePath(), size.Width, size.Height, file.File.FileOrientation, size.Options...)
 
 				if err != nil {
-					worker.logError(err)
+					w.logError(err)
 					continue
 				}
 			}
 
 			if err := client.Upload(srcFileName, file.RemoteName); err != nil {
-				worker.logError(err)
+				w.logError(err)
 				file.Errors++
 				file.Error = err.Error()
 			} else {
@@ -138,7 +138,7 @@ func (worker *Share) Start() (err error) {
 				return nil
 			}
 
-			worker.logError(entity.Db().Save(&file).Error)
+			w.logError(entity.Db().Save(&file).Error)
 		}
 	}
 
@@ -155,7 +155,7 @@ func (worker *Share) Start() (err error) {
 		files, err := query.ExpiredFileShares(a)
 
 		if err != nil {
-			worker.logError(err)
+			w.logError(err)
 			continue
 		}
 
@@ -164,7 +164,11 @@ func (worker *Share) Start() (err error) {
 			continue
 		}
 
-		client := webdav.New(a.AccURL, a.AccUser, a.AccPass, webdav.Timeout(a.AccTimeout))
+		client, err := webdav.NewClient(a.AccURL, a.AccUser, a.AccPass, webdav.Timeout(a.AccTimeout))
+
+		if err != nil {
+			return err
+		}
 
 		for _, file := range files {
 			if mutex.ShareWorker.Canceled() {
@@ -182,7 +186,7 @@ func (worker *Share) Start() (err error) {
 			}
 
 			if err := entity.Db().Save(&file).Error; err != nil {
-				worker.logError(err)
+				w.logError(err)
 			}
 		}
 	}

@@ -12,13 +12,13 @@ export PATH="/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/scrip
 # detect environment
 case $DOCKER_ENV in
   prod)
-    export PATH="/usr/local/sbin:/usr/sbin:/sbin:/bin:/scripts:/opt/photoprism/bin:/usr/local/bin:/usr/bin";
+    export PATH="/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/scripts:/opt/photoprism/bin";
     INIT_SCRIPT="/scripts/entrypoint-init.sh";
     ;;
 
   develop)
-    export PATH="/usr/local/sbin:/usr/sbin:/sbin:/bin:/scripts:/usr/local/go/bin:/go/bin:/usr/local/bin:/usr/bin";
-    INIT_SCRIPT="/go/src/github.com/photoprism/photoprism/scripts/dist/entrypoint-init.sh";
+    export PATH="/usr/local/sbin:/usr/sbin:/sbin:/usr/local/go/bin:/go/bin:/usr/local/bin:/usr/bin:/bin:/scripts";
+    INIT_SCRIPT="/scripts/entrypoint-init.sh";
     ;;
 
   *)
@@ -88,6 +88,9 @@ echo "backup path...: ${PHOTOPRISM_BACKUP_PATH:-default}"
 echo "import path...: ${PHOTOPRISM_IMPORT_PATH:-default}"
 echo "originals path: ${PHOTOPRISM_ORIGINALS_PATH:-default}"
 
+# error code of the last executed command
+ret=0
+
 # change to another user and group on request
 if [[ ${INIT_SCRIPT} ]] && [[ $(/usr/bin/id -u) == "0" ]] && [[ ${PHOTOPRISM_UID} =~ $re ]] && [[ ${PHOTOPRISM_UID} != "0" ]]; then
   # check uid and gid env variables
@@ -96,15 +99,15 @@ if [[ ${INIT_SCRIPT} ]] && [[ $(/usr/bin/id -u) == "0" ]] && [[ ${PHOTOPRISM_UID
     echo "${@}"
 
     # run command as uid:gid
-    ([[ ${DOCKER_ENV} != "prod" ]] || /usr/local/sbin/gosu "${PHOTOPRISM_UID}:${PHOTOPRISM_GID}" "/scripts/audit.sh") \
-     && /usr/local/sbin/gosu "${PHOTOPRISM_UID}:${PHOTOPRISM_GID}" "$@" &
+    ([[ ${DOCKER_ENV} != "prod" ]] || /usr/bin/setpriv --reuid "${PHOTOPRISM_UID}" --regid "${PHOTOPRISM_GID}" --init-groups --inh-caps -all "/scripts/audit.sh") \
+     && (while /usr/bin/setpriv --reuid "${PHOTOPRISM_UID}" --regid "${PHOTOPRISM_GID}" --init-groups --inh-caps -all "$@"; ret=$?; [[ $ret -eq 0 ]]; do echo "${@}"; done) &
   else
     echo "switching to uid ${PHOTOPRISM_UID}"
     echo "${@}"
 
     # run command as uid
-    ([[ ${DOCKER_ENV} != "prod" ]] || /usr/local/sbin/gosu "${PHOTOPRISM_UID}" "/scripts/audit.sh") \
-     && /usr/local/sbin/gosu "${PHOTOPRISM_UID}" "$@" &
+    ([[ ${DOCKER_ENV} != "prod" ]] || /usr/bin/setpriv --reuid "${PHOTOPRISM_UID}" --regid "$(/usr/bin/id -g "${PHOTOPRISM_UID}")" --init-groups --inh-caps -all "/scripts/audit.sh") \
+     && (while /usr/bin/setpriv --reuid "${PHOTOPRISM_UID}" --regid "${PHOTOPRISM_GID}" --init-groups --inh-caps -all "$@"; ret=$?; [[ $ret -eq 0 ]]; do echo "${@}"; done) &
   fi
 else
   echo "running as uid $(id -u)"
@@ -112,10 +115,10 @@ else
 
   # run command
   ([[ ${DOCKER_ENV} != "prod" ]] || "/scripts/audit.sh") \
-   && "$@" &
+   && (while "$@"; ret=$?; [[ $ret -eq 0 ]]; do echo "${@}"; done) &
 fi
 
 PID=$!
 
-trap "kill $PID" INT TERM
+trap "kill -USR1 $PID" INT TERM
 wait

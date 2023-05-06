@@ -47,7 +47,7 @@ func (c *Counts) Refresh() {
 		Take(c)
 
 	Db().Table("albums").
-		Select("SUM(album_type = ?) AS albums, SUM(album_type = ?) AS moments, SUM(album_type = ?) AS folders, SUM(album_type = ?) AS countries", entity.AlbumDefault, entity.AlbumMoment, entity.AlbumFolder, entity.AlbumCountry).
+		Select("SUM(album_type = ?) AS albums, SUM(album_type = ?) AS moments, SUM(album_type = ?) AS folders, SUM(album_type = ?) AS countries", entity.AlbumManual, entity.AlbumMoment, entity.AlbumFolder, entity.AlbumCountry).
 		Where("deleted_at IS NULL").
 		Take(c)
 

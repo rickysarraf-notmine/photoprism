@@ -3,7 +3,7 @@ package query
 import (
 	"testing"
 
-	"github.com/photoprism/photoprism/internal/entity"
+	"github.com/photoprism/photoprism/pkg/time"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,7 +31,7 @@ func TestAlbumByUID(t *testing.T) {
 
 func TestAlbumCoverByUID(t *testing.T) {
 	t.Run("existing uid default album", func(t *testing.T) {
-		file, err := AlbumCoverByUID("at9lxuqxpogaaba8")
+		file, err := AlbumCoverByUID("at9lxuqxpogaaba8", true)
 
 		if err != nil {
 			t.Fatal(err)
@@ -41,7 +41,7 @@ func TestAlbumCoverByUID(t *testing.T) {
 	})
 
 	t.Run("existing uid folder album", func(t *testing.T) {
-		file, err := AlbumCoverByUID("at1lxuqipogaaba1")
+		file, err := AlbumCoverByUID("at1lxuqipogaaba1", true)
 
 		if err != nil {
 			t.Fatal(err)
@@ -51,20 +51,20 @@ func TestAlbumCoverByUID(t *testing.T) {
 	})
 
 	t.Run("existing uid empty moment album", func(t *testing.T) {
-		file, err := AlbumCoverByUID("at7axuzitogaaiax")
+		file, err := AlbumCoverByUID("at7axuzitogaaiax", true)
 
 		assert.EqualError(t, err, "no cover found", err)
 		assert.Equal(t, "", file.FileName)
 	})
 
 	t.Run("not existing uid", func(t *testing.T) {
-		file, err := AlbumCoverByUID("3765")
+		file, err := AlbumCoverByUID("3765", true)
 		assert.Error(t, err, "record not found")
 		t.Log(file)
 	})
 
 	t.Run("existing uid empty month album", func(t *testing.T) {
-		file, err := AlbumCoverByUID("at1lxuqipogaabj9")
+		file, err := AlbumCoverByUID("at1lxuqipogaabj9", true)
 
 		assert.EqualError(t, err, "no cover found", err)
 		assert.Equal(t, "", file.FileName)
@@ -73,17 +73,17 @@ func TestAlbumCoverByUID(t *testing.T) {
 
 func TestUpdateAlbumDates(t *testing.T) {
 	t.Run("success with mode first", func(t *testing.T) {
-		if err := UpdateAlbumDates(entity.DateModeFirst); err != nil {
+		if err := UpdateAlbumDates(time.DateModeFirst); err != nil {
 			t.Fatal(err)
 		}
 	})
 	t.Run("success with mode last", func(t *testing.T) {
-		if err := UpdateAlbumDates(entity.DateModeLast); err != nil {
+		if err := UpdateAlbumDates(time.DateModeLast); err != nil {
 			t.Fatal(err)
 		}
 	})
 	t.Run("success with mode average", func(t *testing.T) {
-		if err := UpdateAlbumDates(entity.DateModeAverage); err != nil {
+		if err := UpdateAlbumDates(time.DateModeAverage); err != nil {
 			t.Fatal(err)
 		}
 	})

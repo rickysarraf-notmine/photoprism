@@ -4,20 +4,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/photoprism/photoprism/internal/form"
-
 	"github.com/stretchr/testify/assert"
+
+	"github.com/photoprism/photoprism/internal/form"
+	"github.com/photoprism/photoprism/pkg/sortby"
 )
 
 func TestNewFolder(t *testing.T) {
 	t.Run("2020/05", func(t *testing.T) {
-		folder := NewFolder(RootOriginals, "2020/05", time.Now().UTC(), SortOrderName)
+		folder := NewFolder(RootOriginals, "2020/05", time.Now().UTC(), sortby.Name)
 		assert.Equal(t, RootOriginals, folder.Root)
 		assert.Equal(t, "2020/05", folder.Path)
 		assert.Equal(t, "May 2020", folder.FolderTitle)
 		assert.Equal(t, "", folder.FolderDescription)
 		assert.Equal(t, "", folder.FolderType)
-		assert.Equal(t, SortOrderName, folder.FolderOrder)
+		assert.Equal(t, sortby.Name, folder.FolderOrder)
 		assert.IsType(t, "", folder.FolderUID)
 		assert.Equal(t, false, folder.FolderFavorite)
 		assert.Equal(t, false, folder.FolderIgnore)
@@ -157,20 +158,20 @@ func TestFindFolder(t *testing.T) {
 
 func TestFolder_Updates(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		folder := NewFolder("oldRoot", "oldPath", time.Now().UTC(), SortOrderNewest)
+		folder := NewFolder("oldRoot", "oldPath", time.Now().UTC(), sortby.Newest)
 
 		assert.Equal(t, "oldRoot", folder.Root)
 		assert.Equal(t, "oldPath", folder.Path)
-		assert.Equal(t, SortOrderNewest, folder.FolderOrder)
+		assert.Equal(t, sortby.Newest, folder.FolderOrder)
 
-		err := folder.Updates(Folder{Root: "newRoot", Path: "newPath", FolderOrder: SortOrderRandom})
+		err := folder.Updates(Folder{Root: "newRoot", Path: "newPath", FolderOrder: sortby.Random})
 
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "newRoot", folder.Root)
 		assert.Equal(t, "newPath", folder.Path)
-		assert.Equal(t, SortOrderRandom, folder.FolderOrder)
+		assert.Equal(t, sortby.Random, folder.FolderOrder)
 	})
 }
 
@@ -180,12 +181,12 @@ func TestFolder_SetForm(t *testing.T) {
 
 		folderForm, err := form.NewFolder(formValues)
 
-		folder := NewFolder("oldRoot", "oldPath", time.Now().UTC(), SortOrderAdded)
+		folder := NewFolder("oldRoot", "oldPath", time.Now().UTC(), sortby.Added)
 
 		assert.Equal(t, "oldRoot", folder.Root)
 		assert.Equal(t, "oldPath", folder.Path)
 		assert.Equal(t, "OldPath", folder.FolderTitle)
-		assert.Equal(t, SortOrderAdded, folder.FolderOrder)
+		assert.Equal(t, sortby.Added, folder.FolderOrder)
 
 		err = folder.SetForm(folderForm)
 

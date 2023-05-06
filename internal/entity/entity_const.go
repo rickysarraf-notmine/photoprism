@@ -19,11 +19,11 @@ const (
 const (
 	MediaUnknown  = ""
 	MediaImage    = string(media.Image)
-	MediaVector   = string(media.Vector)
+	MediaRaw      = string(media.Raw)
 	MediaAnimated = string(media.Animated)
 	MediaLive     = string(media.Live)
 	MediaVideo    = string(media.Video)
-	MediaRaw      = string(media.Raw)
+	MediaVector   = string(media.Vector)
 	MediaText     = string(media.Text)
 	MediaSphere   = string(media.Sphere)
 )
@@ -50,32 +50,4 @@ const (
 	IsStacked   int8 = 1
 	IsStackable int8 = 0
 	IsUnstacked int8 = -1
-)
-
-// Sort options.
-const (
-	SortOrderDefault   = ""
-	SortOrderRelevance = "relevance"
-	SortOrderCount     = "count"
-	SortOrderAdded     = "added"
-	SortOrderImported  = "imported"
-	SortOrderEdited    = "edited"
-	SortOrderNewest    = "newest"
-	SortOrderOldest    = "oldest"
-	SortOrderPlace     = "place"
-	SortOrderMoment    = "moment"
-	SortOrderName      = "name"
-	SortOrderPath      = "path"
-	SortOrderSlug      = "slug"
-	SortOrderCategory  = "category"
-	SortOrderSimilar   = "similar"
-	SortOrderRandom    = "random"
-)
-
-// Date Modes
-
-const (
-	DateModeLast    = "last"
-	DateModeFirst   = "first"
-	DateModeAverage = "average"
 )

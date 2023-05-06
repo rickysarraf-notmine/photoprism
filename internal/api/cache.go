@@ -2,27 +2,16 @@ package api
 
 import (
 	"fmt"
-	"strconv"
 
+	"github.com/gin-gonic/gin"
+
+	"github.com/photoprism/photoprism/internal/get"
 	"github.com/photoprism/photoprism/internal/query"
-
-	"github.com/photoprism/photoprism/internal/service"
 	"github.com/photoprism/photoprism/internal/thumb"
 )
 
-// MaxAge represents a cache TTL in seconds.
-type MaxAge int
-
-// String returns the cache TTL in seconds as string.
-func (a MaxAge) String() string {
-	return strconv.Itoa(int(a))
-}
-
-// Default cache TTL times in seconds.
-var (
-	CoverCacheTTL MaxAge = 3600           // 1 hour
-	ThumbCacheTTL MaxAge = 3600 * 24 * 90 // ~ 3 months
-)
+// CoverMaxAge specifies the number of seconds to cache album covers.
+var CoverMaxAge thumb.MaxAge = 3600 // 1 hour
 
 type ThumbCache struct {
 	FileName  string
@@ -40,7 +29,7 @@ func CacheKey(ns, uid, name string) string {
 
 // RemoveFromFolderCache removes an item from the folder cache e.g. after indexing.
 func RemoveFromFolderCache(rootName string) {
-	cache := service.FolderCache()
+	cache := get.FolderCache()
 
 	cacheKey := fmt.Sprintf("folder:%s:%t:%t", rootName, true, false)
 
@@ -55,7 +44,7 @@ func RemoveFromFolderCache(rootName string) {
 
 // RemoveFromAlbumCoverCache removes covers by album UID e.g. after adding or removing photos.
 func RemoveFromAlbumCoverCache(uid string) {
-	cache := service.CoverCache()
+	cache := get.CoverCache()
 
 	for thumbName := range thumb.Sizes {
 		cacheKey := CacheKey(albumCover, uid, string(thumbName))
@@ -72,11 +61,34 @@ func RemoveFromAlbumCoverCache(uid string) {
 
 // FlushCoverCache clears the complete cover cache.
 func FlushCoverCache() {
-	service.CoverCache().Flush()
+	get.CoverCache().Flush()
 
 	if err := query.UpdateCovers(); err != nil {
 		log.Error(err)
 	}
 
 	log.Debugf("albums: flushed cover cache")
+}
+
+// AddCacheHeader adds a cache control header to the response.
+func AddCacheHeader(c *gin.Context, maxAge thumb.MaxAge, public bool) {
+	if public {
+		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%s, no-transform", maxAge.String()))
+	} else {
+		c.Header("Cache-Control", fmt.Sprintf("private, max-age=%s, no-transform", maxAge.String()))
+	}
+}
+
+// AddCoverCacheHeader adds cover image cache control headers to the response.
+func AddCoverCacheHeader(c *gin.Context) {
+	AddCacheHeader(c, CoverMaxAge, thumb.CachePublic)
+}
+
+// AddImmutableCacheHeader adds cache control headers to the response for immutable content like thumbnails.
+func AddImmutableCacheHeader(c *gin.Context) {
+	if thumb.CachePublic {
+		c.Header("Cache-Control", fmt.Sprintf("public, max-age=%s, no-transform, immutable", thumb.CacheMaxAge.String()))
+	} else {
+		c.Header("Cache-Control", fmt.Sprintf("private, max-age=%s, no-transform, immutable", thumb.CacheMaxAge.String()))
+	}
 }

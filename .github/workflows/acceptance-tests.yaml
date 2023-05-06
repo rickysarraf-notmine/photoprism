@@ -20,11 +20,8 @@ jobs:
         targets:
           - acceptance-auth-run-chromium
           - acceptance-public-run-chromium
-          - acceptance-auth-run-firefox
-          - acceptance-public-run-firefox
           - acceptance-run-chromium-short
           - acceptance-run-chromium
-          - acceptance-run-firefox
 
     steps:
       - uses: actions/checkout@v2

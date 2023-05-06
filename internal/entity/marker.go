@@ -13,7 +13,6 @@ import (
 	"github.com/photoprism/photoprism/internal/crop"
 	"github.com/photoprism/photoprism/internal/face"
 	"github.com/photoprism/photoprism/internal/form"
-
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/rnd"
 )
@@ -36,7 +35,7 @@ type Marker struct {
 	SubjUID        string          `gorm:"type:VARBINARY(42);index:idx_markers_subj_uid_src;" json:"SubjUID" yaml:"SubjUID,omitempty"`
 	SubjSrc        string          `gorm:"type:VARBINARY(8);index:idx_markers_subj_uid_src;default:'';" json:"SubjSrc" yaml:"SubjSrc,omitempty"`
 	subject        *Subject        `gorm:"foreignkey:SubjUID;association_foreignkey:SubjUID;association_autoupdate:false;association_autocreate:false;association_save_reference:false"`
-	FaceID         string          `gorm:"type:VARBINARY(42);index;" json:"FaceID" yaml:"FaceID,omitempty"`
+	FaceID         string          `gorm:"type:VARBINARY(64);index;" json:"FaceID" yaml:"FaceID,omitempty"`
 	FaceDist       float64         `gorm:"default:-1;" json:"FaceDist" yaml:"FaceDist,omitempty"`
 	face           *Face           `gorm:"foreignkey:FaceID;association_foreignkey:ID;association_autoupdate:false;association_autocreate:false;association_save_reference:false"`
 	EmbeddingsJSON json.RawMessage `gorm:"type:MEDIUMBLOB;" json:"-" yaml:"EmbeddingsJSON,omitempty"`
@@ -55,14 +54,14 @@ type Marker struct {
 	UpdatedAt      time.Time
 }
 
-// TableName returns the entity database table name.
+// TableName returns the entity table name.
 func (Marker) TableName() string {
 	return "markers"
 }
 
 // BeforeCreate creates a random UID if needed before inserting a new row to the database.
 func (m *Marker) BeforeCreate(scope *gorm.Scope) error {
-	if rnd.ValidID(m.MarkerUID, 'm') {
+	if rnd.IsUnique(m.MarkerUID, 'm') {
 		return nil
 	}
 
@@ -99,8 +98,8 @@ func NewMarker(file File, area crop.Area, subjUID, markerSrc, markerType string,
 }
 
 // NewFaceMarker creates a new entity.
-func NewFaceMarker(f face.Face, file File, subjUID string) *Marker {
-	m := NewMarker(file, f.CropArea(), subjUID, SrcImage, MarkerFace, f.Size(), f.Score)
+func NewFaceMarker(f face.Face, file File, subjUid string) *Marker {
+	m := NewMarker(file, f.CropArea(), subjUid, SrcImage, MarkerFace, f.Size(), f.Score)
 
 	// Failed creating new marker?
 	if m == nil {
@@ -137,17 +136,20 @@ func (m *Marker) UpdateFile(file *File) (updated bool) {
 		log.Errorf("faces: failed assigning marker %s to file %s (%s)", m.MarkerUID, m.FileUID, err)
 		return false
 	} else {
+		UpdateFaces.Store(true)
 		return true
 	}
 }
 
 // Updates multiple columns in the database.
 func (m *Marker) Updates(values interface{}) error {
+	UpdateFaces.Store(true)
 	return UnscopedDb().Model(m).Updates(values).Error
 }
 
 // Update updates a column in the database.
 func (m *Marker) Update(attr string, value interface{}) error {
+	UpdateFaces.Store(true)
 	return UnscopedDb().Model(m).Update(attr, value).Error
 }
 
@@ -193,10 +195,10 @@ func (m *Marker) SaveForm(f form.Marker) (changed bool, err error) {
 	}
 
 	if changed {
-		return changed, m.Save()
+		return true, m.Save()
 	}
 
-	return changed, nil
+	return false, nil
 }
 
 // HasFace tests if the marker already has the best matching face.
@@ -237,6 +239,8 @@ func (m *Marker) SetFace(f *Face, dist float64) (updated bool, err error) {
 	} else {
 		return false, nil
 	}
+
+	UpdateFaces.Store(true)
 
 	// Update face with known subject from marker?
 	if m.SubjSrc == SrcAuto || m.SubjUID == "" || f.SubjUID != "" {
@@ -375,11 +379,13 @@ func (m *Marker) InvalidArea() error {
 	return fmt.Errorf("invalid %s crop area x=%d%% y=%d%% w=%d%% h=%d%%", TypeString(m.MarkerType), int(m.X*100), int(m.Y*100), int(m.W*100), int(m.H*100))
 }
 
-// Save updates the existing or inserts a new row.
+// Save updates the record in the database or inserts a new record if it does not already exist.
 func (m *Marker) Save() error {
 	if err := m.InvalidArea(); err != nil {
 		return err
 	}
+
+	UpdateFaces.Store(true)
 
 	return Db().Save(m).Error
 }
@@ -389,6 +395,8 @@ func (m *Marker) Create() error {
 	if err := m.InvalidArea(); err != nil {
 		return err
 	}
+
+	UpdateFaces.Store(true)
 
 	return Db().Create(m).Error
 }
@@ -459,7 +467,7 @@ func (m *Marker) ClearSubject(src string) error {
 		if count, err := DeleteOrphanPeople(); err != nil {
 			log.Errorf("faces: %s while clearing subject of marker %s [%s]", err, clean.Log(m.MarkerUID), time.Since(start))
 		} else if count > 0 {
-			log.Debugf("faces: %s marked as missing while clearing subject of marker %s [%s]", english.Plural(count, "person", "people"), clean.Log(m.MarkerUID), time.Since(start))
+			log.Debugf("faces: %s flagged as missing while clearing subject of marker %s [%s]", english.Plural(count, "person", "people"), clean.Log(m.MarkerUID), time.Since(start))
 		}
 	}()
 
@@ -533,6 +541,7 @@ func (m *Marker) ClearFace() (updated bool, err error) {
 		return false, m.Matched()
 	}
 
+	UpdateFaces.Store(true)
 	updated = true
 
 	// Remove face references.

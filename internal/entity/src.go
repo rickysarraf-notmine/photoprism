@@ -11,6 +11,7 @@ const (
 	SrcEstimate = "estimate"           // Prio 2
 	SrcName     = "name"               // Prio 4
 	SrcYaml     = "yaml"               // Prio 8
+	SrcLDAP     = "ldap"               // Prio 8
 	SrcLocation = classify.SrcLocation // Prio 8
 	SrcMarker   = "marker"             // Prio 8
 	SrcImage    = classify.SrcImage    // Prio 8
@@ -18,6 +19,7 @@ const (
 	SrcMeta     = "meta"               // Prio 16
 	SrcXmp      = "xmp"                // Prio 32
 	SrcManual   = "manual"             // Prio 64
+	SrcAdmin    = "admin"              // Prio 128
 )
 
 // SrcString returns a source string for logging.
@@ -36,6 +38,7 @@ var SrcPriority = Priorities{
 	SrcEstimate: 2,
 	SrcName:     4,
 	SrcYaml:     8,
+	SrcLDAP:     8,
 	SrcLocation: 8,
 	SrcMarker:   8,
 	SrcImage:    8,
@@ -43,4 +46,5 @@ var SrcPriority = Priorities{
 	SrcMeta:     16,
 	SrcXmp:      32,
 	SrcManual:   64,
+	SrcAdmin:    128,
 }

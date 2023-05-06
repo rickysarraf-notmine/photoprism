@@ -9,17 +9,26 @@ import (
 )
 
 // Updates the local list of remote files so that they can be downloaded in batches
-func (worker *Sync) refresh(a entity.Account) (complete bool, err error) {
+func (w *Sync) refresh(a entity.Service) (complete bool, err error) {
 	if a.AccType != remote.ServiceWebDAV {
 		return false, nil
 	}
 
-	client := webdav.New(a.AccURL, a.AccUser, a.AccPass, webdav.Timeout(a.AccTimeout))
+	client, err := webdav.NewClient(a.AccURL, a.AccUser, a.AccPass, webdav.Timeout(a.AccTimeout))
+
+	if err != nil {
+		return false, err
+	}
+
+	// Ensure remote folder exists.
+	if err = client.MkdirAll(a.SyncPath); err != nil {
+		log.Debugf("sync: %s", err)
+	}
 
 	subDirs, err := client.Directories(a.SyncPath, true, webdav.MaxRequestDuration)
 
 	if err != nil {
-		log.Error(err)
+		log.Errorf("sync: %s", err)
 		return false, err
 	}
 
@@ -30,7 +39,7 @@ func (worker *Sync) refresh(a entity.Account) (complete bool, err error) {
 			return false, nil
 		}
 
-		files, err := client.Files(dir)
+		files, err := client.Files(dir, false)
 
 		if err != nil {
 			log.Error(err)
@@ -67,11 +76,11 @@ func (worker *Sync) refresh(a entity.Account) (complete bool, err error) {
 			}
 
 			if f.Status == entity.FileSyncIgnore && a.SyncRaw && (content == media.Raw || content == media.Video) {
-				worker.logError(f.Update("Status", entity.FileSyncNew))
+				w.logError(f.Update("Status", entity.FileSyncNew))
 			}
 
 			if f.Status == entity.FileSyncDownloaded && !f.RemoteDate.Equal(file.Date) {
-				worker.logError(f.Updates(map[string]interface{}{
+				w.logError(f.Updates(map[string]interface{}{
 					"Status":     entity.FileSyncNew,
 					"RemoteDate": file.Date,
 					"RemoteSize": file.Size,

@@ -29,13 +29,20 @@ type Location struct {
 // ApiName is the backend API name.
 const ApiName = "places"
 
+// ServiceUrls specifies the reverse geocoding service URLs.
+var ServiceUrls = []string{
+	"https://places.photoprism.app/v1/location/%s",
+}
+
+// Retries specifies the number of attempts to retry the service request.
+var Retries = 2
+
+// RetryDelay specifies the waiting time between retries.
+var RetryDelay = 100 * time.Millisecond
+
 var Key = "f60f5b25d59c397989e3cd374f81cdd7710a4fca"
 var Secret = "photoprism"
 var UserAgent = ""
-var ReverseLookupURL = "https://places.photoprism.app/v1/location/%s"
-
-var Retries = 3
-var RetryDelay = 33 * time.Millisecond
 
 // FindLocation retrieves location details from the backend API.
 func FindLocation(id string) (result Location, err error) {
@@ -62,64 +69,19 @@ func FindLocation(id string) (result Location, err error) {
 	}
 
 	// Location details cached?
-	if hit, ok := cache.Get(id); ok {
+	if hit, ok := clientCache.Get(id); ok {
 		log.Tracef("places: cache hit for lat %f, lng %f", lat, lng)
 		cached := hit.(Location)
 		cached.Cached = true
 		return cached, nil
 	}
 
-	// Compose request URL.
-	url := fmt.Sprintf(ReverseLookupURL, id)
-
-	// Log request URL.
-	log.Tracef("places: sending request to %s", url)
-
-	// Create GET request instance.
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-
-	// Ok?
-	if err != nil {
-		log.Errorf("places: %s", err.Error())
-		return result, err
-	}
-
-	// Set user agent.
-	if UserAgent != "" {
-		req.Header.Set("User-Agent", UserAgent)
-	} else {
-		req.Header.Set("User-Agent", "PhotoPrism/Test")
-	}
-
-	// Add API key?
-	if Key != "" {
-		req.Header.Set("X-Key", Key)
-		req.Header.Set("X-Signature", fmt.Sprintf("%x", sha1.Sum([]byte(Key+url+Secret))))
-	}
-
 	var r *http.Response
 
-	// Create new http.Client.
-	//
-	// NOTE: Timeout specifies a time limit for requests made by
-	// this Client. The timeout includes connection time, any
-	// redirects, and reading the response body. The timer remains
-	// running after Get, Head, Post, or Do return and will
-	// interrupt reading of the Response.Body.
-	client := &http.Client{Timeout: 60 * time.Second}
-
-	// Perform request.
-	for i := 0; i < Retries; i++ {
-		r, err = client.Do(req)
-
-		// Successful?
-		if err == nil {
+	// Try all the specified backend service URLs.
+	for _, serviceUrl := range ServiceUrls {
+		if r, err = PerformRequest(serviceUrl, id); err == nil {
 			break
-		}
-
-		// Wait before trying again?
-		if RetryDelay.Nanoseconds() > 0 {
-			time.Sleep(RetryDelay)
 		}
 	}
 
@@ -144,12 +106,71 @@ func FindLocation(id string) (result Location, err error) {
 		return result, fmt.Errorf("no result for %s", id)
 	}
 
-	cache.SetDefault(id, result)
+	clientCache.SetDefault(id, result)
 	log.Tracef("places: cached cell %s [%s]", clean.Log(id), time.Since(start))
 
 	result.Cached = false
 
 	return result, nil
+}
+
+// PerformRequest fetches the cell ID data from the service URL.
+func PerformRequest(serviceUrl, id string) (r *http.Response, err error) {
+	var req *http.Request
+
+	// Compose request URL with S2 cell ID.
+	reqUrl := fmt.Sprintf(serviceUrl, id)
+
+	// Log request URL.
+	log.Tracef("places: sending request to %s", reqUrl)
+
+	// Create GET request instance.
+	req, err = http.NewRequest(http.MethodGet, reqUrl, nil)
+
+	// Ok?
+	if err != nil {
+		log.Errorf("places: %s", err.Error())
+		return r, err
+	}
+
+	// Set user agent.
+	if UserAgent != "" {
+		req.Header.Set("User-Agent", UserAgent)
+	} else {
+		req.Header.Set("User-Agent", "PhotoPrism/Test")
+	}
+
+	// Add API key?
+	if Key != "" {
+		req.Header.Set("X-Key", Key)
+		req.Header.Set("X-Signature", fmt.Sprintf("%x", sha1.Sum([]byte(Key+reqUrl+Secret))))
+	}
+
+	// Create new http.Client.
+	//
+	// NOTE: Timeout specifies a time limit for requests made by
+	// this Client. The timeout includes connection time, any
+	// redirects, and reading the response body. The timer remains
+	// running after Get, Head, Post, or Do return and will
+	// interrupt reading of the Response.Body.
+	client := &http.Client{Timeout: 60 * time.Second}
+
+	// Perform request.
+	for i := 0; i < Retries; i++ {
+		r, err = client.Do(req)
+
+		// Ok?
+		if err == nil {
+			return r, nil
+		}
+
+		// Wait before trying again?
+		if RetryDelay.Nanoseconds() > 0 {
+			time.Sleep(RetryDelay)
+		}
+	}
+
+	return r, err
 }
 
 // CellID returns the S2 cell identifier string.
