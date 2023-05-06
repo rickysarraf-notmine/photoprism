@@ -33,7 +33,7 @@ jobs:
         id: acceptance_tests
         run: docker-compose -f docker-compose.ci.yml exec -T photoprism make all build ${{ matrix.targets }}
 
-      - name: "Look for screenshots"
+      - name: Look for screenshots
         run: docker-compose -f docker-compose.ci.yml exec -T photoprism find frontend/tests/acceptance/screenshots/
         if: always() && steps.acceptance_tests.outcome == 'failure'
 
@@ -41,12 +41,29 @@ jobs:
         run: docker compose -f docker-compose.ci.yml cp photoprism:/go/src/github.com/photoprism/photoprism/frontend/tests/acceptance/screenshots/ screenshots/
         if: always() && steps.acceptance_tests.outcome == 'failure'
 
+      - name: Look for videos
+        run: docker-compose -f docker-compose.ci.yml exec -T photoprism find frontend/tests/acceptance/videos/
+        if: always() && steps.acceptance_tests.outcome == 'failure'
+
+      - name: Copy videos from container to host
+        run: docker compose -f docker-compose.ci.yml cp photoprism:/go/src/github.com/photoprism/photoprism/frontend/tests/acceptance/videos/ videos/
+        if: always() && steps.acceptance_tests.outcome == 'failure'
+
       - name: Tear down stack
         run: docker-compose -f docker-compose.ci.yml down
 
-      - uses: actions/upload-artifact@v3
+      - name: Archive screenshots
+        uses: actions/upload-artifact@v3
         if: always() && steps.acceptance_tests.outcome == 'failure'
         continue-on-error: true
         with:
           name: screenshots-${{ matrix.targets }}
           path: screenshots/
+
+      - name: Archive videos
+        uses: actions/upload-artifact@v3
+        if: always() && steps.acceptance_tests.outcome == 'failure'
+        continue-on-error: true
+        with:
+          name: videos-${{ matrix.targets }}
+          path: videos/
