@@ -47,6 +47,23 @@ import { config, session } from "./session";
 const c = window.__CONFIG__;
 const siteTitle = c.siteTitle ? c.siteTitle : c.name;
 
+function homepage() {
+  // Luckily the route name can be retrieved from the homepage url by just stripping the
+  // leading slash, however in future not all routes might be so consistently named.
+  var homepage = c.settings.ui.homepage;
+  if (homepage.charAt(0) === "/") {
+    homepage = homepage.slice(1);
+  }
+
+  if (config.allowAny(homepage, ["access_own", "search", "view"])) {
+    return homepage;
+  } else if (config.deny("photos", "search")) {
+    return "albums";
+  } else {
+    return "browse";
+  }
+}
+
 export default [
   {
     name: "home",
@@ -86,20 +103,7 @@ export default [
       if (session.loginRequired()) {
         next();
       } else {
-        // Luckily the route name can be retrieved from the homepage url by just stripping the
-        // leading slash, however in future not all routes might be so consistently named.
-        var homepage = c.settings.ui.homepage;
-        if (homepage.charAt(0) === "/") {
-          homepage = homepage.slice(1);
-        }
-
-        if (config.allowAny("photos", ["access_own", "search", "view"])) {
-          next({ name: homepage });
-        } else if (config.deny("photos", "search")) {
-          next({ name: "albums" });
-        } else {
-          next({ name: "browse" });
-        }
+        next({ name: homepage() });
       }
     },
   },
@@ -145,8 +149,9 @@ export default [
     beforeEnter: (to, from, next) => {
       if (session.loginRequired()) {
         next({ name: "login" });
-      } else if (config.deny("photos", "search")) {
-        next({ name: "albums" });
+      } else if (to.name !== homepage()) {
+        // Prevent recursive redirects
+        next({ name: homepage() });
       } else {
         next();
       }
