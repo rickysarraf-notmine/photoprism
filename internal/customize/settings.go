@@ -45,7 +45,7 @@ func NewSettings(theme, lang string) *Settings {
 			Zoom:      false,
 			Theme:     theme,
 			Language:  lang,
-			Homepage:  "/all",
+			Homepage:  "/browse",
 		},
 		Search: SearchSettings{
 			BatchSize: 0,
