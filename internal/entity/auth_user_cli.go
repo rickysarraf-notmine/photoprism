@@ -26,6 +26,11 @@ func (m *User) SetValuesFromCli(ctx *cli.Context) error {
 		m.SetRole(frm.Role())
 	}
 
+	// Authentication Provider.
+	if ctx.IsSet("auth") {
+		m.AuthProvider = frm.AuthProvider
+	}
+
 	// Super-admin status.
 	if ctx.IsSet("superadmin") {
 		m.SuperAdmin = frm.SuperAdmin

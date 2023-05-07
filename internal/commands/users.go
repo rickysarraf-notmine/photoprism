@@ -4,6 +4,7 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/photoprism/photoprism/internal/acl"
+	"github.com/photoprism/photoprism/pkg/authn"
 )
 
 // Usage hints for the user management subcommands.
@@ -12,6 +13,7 @@ const (
 	UserEmailUsage    = "unique `EMAIL` address of the user"
 	UserPasswordUsage = "`PASSWORD` for local authentication"
 	UserRoleUsage     = "user role `NAME` (leave blank for default)"
+	UserAuthUsage     = "authentication provider (leave blank for default)"
 	UserAdminUsage    = "make user super admin with full access"
 	UserNoLoginUsage  = "disable login on the web interface"
 	UserWebDAVUsage   = "allow to sync files via WebDAV"
@@ -51,6 +53,11 @@ var UserFlags = []cli.Flag{
 		Name:  "role, r",
 		Usage: UserRoleUsage,
 		Value: acl.RoleAdmin.String(),
+	},
+	cli.StringFlag{
+		Name:  "auth, a",
+		Usage: UserAuthUsage,
+		Value: string(authn.ProviderDefault),
 	},
 	cli.BoolFlag{
 		Name:  "superadmin, s",
