@@ -70,7 +70,7 @@
                     <i class="select-on">check_circle</i>
                     <i class="select-off">radio_button_off</i>
                   </button>
-                  <button v-else-if="['animated', 'live', 'sphere', 'video'].includes(props.item.Type)"
+                  <button v-else-if="['animated', 'live', 'sphere', 'vector', 'video'].includes(photo.Type)"
                         class="input-open"
                         @click.stop.prevent="openPhoto(index, false, photo.Type === 'live')">
                     <i v-if="photo.Type === 'live'" class="action-live" :title="$gettext('Live')"><icon-live-photo/></i>
