@@ -259,12 +259,12 @@ export default {
     onWebShare() {
       this.onPause();
 
-      if (!this.item || !this.item.download_url) {
+      if (!this.item || !this.item.DownloadUrl) {
         console.warn("photo viewer: no download url");
         return;
       }
 
-      new Photo().find(this.item.uid).then(p => p.webShare()).catch(e => {
+      new Photo().find(this.item.UID).then(p => p.webShare()).catch(e => {
         this.$notify.error("couldn't share photo");
         console.warn(e);
       });
