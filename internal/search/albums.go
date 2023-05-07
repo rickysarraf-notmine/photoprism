@@ -54,6 +54,8 @@ func UserAlbums(f form.SearchAlbums, sess *entity.Session) (results AlbumResults
 			aclResource = acl.ResourceCalendar
 		case entity.AlbumState:
 			aclResource = acl.ResourcePlaces
+		case entity.AlbumCountry:
+			aclResource = acl.ResourcePlaces
 		}
 
 		// Check user permissions.
