@@ -207,12 +207,12 @@
                   </button>
                 </div>
 
-                <div v-if="album.Type === 'folder'" class="caption mb-2">
+                <div v-if="album.Type === 'folder'" class="caption mb-2" :title="$gettext('Path')">
                   <button @click.exact="edit(album)">
                     /{{ album.Path | truncate(100) }}
                   </button>
                 </div>
-                <div v-if="['album', 'country', 'folder', 'month', 'state'].includes(album.Type)" class="caption mb-2">
+                <div v-if="['album', 'country', 'folder', 'month', 'state'].includes(album.Type)" class="caption mb-2" :title="$gettext('Count')">
                   <button v-if="album.PhotoCount === 1" @click.exact="edit(album)">
                     <translate>Contains one picture.</translate>
                   </button>
@@ -223,13 +223,13 @@
                     <translate>Add pictures from search results by selecting them.</translate>
                   </button>
                 </div>
-                <div v-if="album.Category !== ''" class="caption mb-2 d-inline-block">
+                <div v-if="album.Category !== ''" class="caption mb-2 d-inline-block" :title="$gettext('Category')">
                   <button @click.exact="edit(album)">
                     <v-icon size="14">local_offer</v-icon>
                     {{ album.Category }}
                   </button>
                 </div>
-                <div v-if="album.getLocation() !== ''" class="caption mb-2 d-inline-block">
+                <div v-if="album.getLocation() !== ''" class="caption mb-2 d-inline-block" :title="$gettext('Location')">
                   <button @click.exact="edit(album)">
                     <v-icon size="14">location_on</v-icon>
                     {{ album.getLocation() }}

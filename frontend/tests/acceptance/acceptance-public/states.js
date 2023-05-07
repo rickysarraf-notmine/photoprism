@@ -48,13 +48,13 @@ test.meta("testID", "states-001").meta({ mode: "public" })(
       .click(albumdialog.dialogSave);
 
     await t
-      .expect(page.cardTitle.nth(0).innerText)
+      .expect(album.getNthAlbumTitle(0))
       .contains("Wonderland")
-      .expect(page.cardDescription.nth(0).innerText)
+      .expect(album.getNthAlbumDescription(0))
       .contains("We love earth")
-      .expect(Selector("div.caption").nth(1).innerText)
+      .expect(album.getNthAlbumCategory(0))
       .contains("Mountains")
-      .expect(Selector("div.caption").nth(2).innerText)
+      .expect(album.getNthAlbumLocation(0))
       .contains("Earth");
 
     await album.openNthAlbum(0);
@@ -96,11 +96,11 @@ test.meta("testID", "states-001").meta({ mode: "public" })(
     await toolbar.search("Canada");
 
     await t
-      .expect(page.cardTitle.nth(0).innerText)
+      .expect(album.getNthAlbumTitle(0))
       .contains("British Columbia")
-      .expect(page.cardDescription.innerText)
+      .expect(album.getNthAlbumDescription(0))
       .notContains("We love earth")
-      .expect(Selector("div.caption").nth(0).innerText)
+      .expect(album.getNthAlbumLocation(0))
       .notContains("Earth");
   }
 );
