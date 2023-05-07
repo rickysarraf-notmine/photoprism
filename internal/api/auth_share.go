@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -52,7 +53,7 @@ func Shares(router *gin.RouterGroup) {
 
 		uid := links[0].ShareUID
 		clientConfig := conf.ClientShare()
-		clientConfig.SiteUrl = fmt.Sprintf("%s/%s", clientConfig.SiteUrl, path.Join("s", token, uid))
+		clientConfig.SiteUrl = fmt.Sprintf("%s/%s", strings.TrimRight(clientConfig.SiteUrl, "/"), path.Join("s", token, uid))
 		clientConfig.SitePreview = fmt.Sprintf("%s/preview", clientConfig.SiteUrl)
 
 		if a, err := query.AlbumByUID(uid); err == nil {
