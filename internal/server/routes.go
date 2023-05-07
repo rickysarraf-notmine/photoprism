@@ -27,6 +27,9 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 	// Sharing routes start with "/s".
 	registerSharingRoutes(router, conf)
 
+	// Monitoring and debugging endpoints.
+	registerMonitoringRoutes(router, conf)
+
 	// JSON-REST API Version 1
 	// Authentication.
 	api.CreateSession(APIv1)
