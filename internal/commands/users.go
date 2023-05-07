@@ -57,7 +57,7 @@ var UserFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:  "auth, a",
 		Usage: UserAuthUsage,
-		Value: string(authn.ProviderDefault),
+		Value: string(authn.ProviderLocal),
 	},
 	cli.BoolFlag{
 		Name:  "superadmin, s",
