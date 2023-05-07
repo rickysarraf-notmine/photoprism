@@ -85,10 +85,21 @@ export default [
     beforeEnter: (to, from, next) => {
       if (session.loginRequired()) {
         next();
-      } else if (config.deny("photos", "search")) {
-        next({ name: "albums" });
       } else {
-        next({ name: "browse" });
+        // Luckily the route name can be retrieved from the homepage url by just stripping the
+        // leading slash, however in future not all routes might be so consistently named.
+        var homepage = c.settings.ui.homepage;
+        if (homepage.charAt(0) === "/") {
+          homepage = homepage.slice(1);
+        }
+
+        if (config.allowAny("photos", ["access_own", "search", "view"])) {
+          next({ name: homepage });
+        } else if (config.deny("photos", "search")) {
+          next({ name: "albums" });
+        } else {
+          next({ name: "browse" });
+        }
       }
     },
   },
