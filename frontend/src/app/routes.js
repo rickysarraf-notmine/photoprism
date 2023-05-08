@@ -149,7 +149,7 @@ export default [
     beforeEnter: (to, from, next) => {
       if (session.loginRequired()) {
         next({ name: "login" });
-      } else if (to.name !== homepage()) {
+      } else if (!from.name && homepage() !== "browse") {
         // Prevent recursive redirects
         next({ name: homepage() });
       } else {
