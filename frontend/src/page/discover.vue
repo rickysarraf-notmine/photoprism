@@ -12,8 +12,8 @@
         <translate>On this day</translate>
       </v-tab>
 
-      <v-tab id="tab-discover-colors" ripple @click="changePath('/discover/colors')">
-        <translate>Colors</translate>
+      <v-tab id="tab-discover-colors" ripple @click="changePath('/private')">
+        <translate>Private</translate>
       </v-tab>
 
       <v-tab id="tab-discover-similar" ripple @click="changePath('/discover/similar')">
@@ -78,6 +78,7 @@ export default {
     changePath: function (path) {
       if (this.$route.path !== path) {
         this.$router.replace(path);
+	  window.location.reload();
       }
     }
   },
