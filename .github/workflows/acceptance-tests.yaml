@@ -18,10 +18,14 @@ jobs:
       fail-fast: false
       matrix:
         targets:
+          # All acceptance tests: auth & public
+          # - acceptance-run-chromium
+          # All "short" acceptance tests (subset of all tests)
+          # - acceptance-run-chromium-short
+          # All "auth" acceptance tests
           - acceptance-auth-run-chromium
+          # All "public" acceptance tests
           - acceptance-public-run-chromium
-          - acceptance-run-chromium-short
-          - acceptance-run-chromium
 
     steps:
       - uses: actions/checkout@v3
