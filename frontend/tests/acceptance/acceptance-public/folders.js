@@ -125,7 +125,7 @@ test.meta("testID", "folders-002").meta({ mode: "public" })(
 );
 
 test.meta("testID", "folders-003").meta({ mode: "public" })(
-  "Common: Create, Edit, delete sharing link",
+  "Common: Create, Edit, delete sharing link for folders",
   async (t) => {
     await page.testCreateEditDeleteSharingLink("folders");
   }

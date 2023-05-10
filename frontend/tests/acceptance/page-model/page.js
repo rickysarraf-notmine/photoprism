@@ -48,9 +48,11 @@ export default class Page {
     await contextmenu.checkContextMenuCount("1");
     await contextmenu.triggerContextMenuAction("share", "", "");
     await t.click(sharedialog.expandLink.nth(0));
+    await t.wait(2000);
     const InitialUrl = await sharedialog.linkUrl.innerText;
     const InitialSecret = await sharedialog.linkSecretInput.value;
-    const InitialExpire = await Selector("div.v-select__selections").innerText;
+    const InitialExpire = await sharedialog.linkExpireInput.innerText;
+
     await t
       .expect(InitialUrl)
       .notContains("secretfortesting")
@@ -67,7 +69,7 @@ export default class Page {
     await t.click(sharedialog.expandLink.nth(0));
     await t.wait(5000);
     const UrlAfterChange = await sharedialog.linkUrl.innerText;
-    const ExpireAfterChange = await Selector("div.v-select__selections").innerText;
+    const ExpireAfterChange = await sharedialog.linkExpireInput.innerText;
     await t
       .expect(UrlAfterChange)
       .contains("secretfortesting")
