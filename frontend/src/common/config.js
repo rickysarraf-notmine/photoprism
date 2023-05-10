@@ -189,6 +189,7 @@ export default class Config {
       this.values.count.moments -= values.count.private_moments;
       this.values.count.months -= values.count.private_months;
       this.values.count.states -= values.count.private_states;
+      this.values.count.countries -= values.count.private_countries;
     }
 
     return this;
