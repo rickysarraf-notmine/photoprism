@@ -39,13 +39,13 @@ test.meta("testID", "folders-002").meta({ mode: "public" })(
     await menu.openPage("folders");
     await toolbar.search("Kanada");
     const AlbumUid = await album.getNthAlbumUid("all", 0);
-    await t.expect(page.cardTitle.nth(0).innerText).contains("Kanada");
+    await t.expect(page.cardTitle.nth(0).innerText).contains("Botanical");
 
     await t.click(page.cardTitle.nth(0));
 
     await t
       .expect(albumdialog.title.value)
-      .eql("Kanada")
+      .eql("BotanicalGarden")
       .expect(albumdialog.location.value)
       .eql("")
       .expect(albumdialog.description.value)
@@ -100,7 +100,7 @@ test.meta("testID", "folders-002").meta({ mode: "public" })(
       .eql("USA");
 
     await t
-      .typeText(albumdialog.title, "Kanada", { replace: true })
+      .typeText(albumdialog.title, "BotanicalGarden", { replace: true })
       .click(albumdialog.category)
       .pressKey("ctrl+a delete")
       .pressKey("enter")
@@ -116,7 +116,7 @@ test.meta("testID", "folders-002").meta({ mode: "public" })(
 
     await t
       .expect(page.cardTitle.nth(0).innerText)
-      .contains("Kanada")
+      .contains("BotanicalGarden")
       .expect(page.cardDescription.nth(0).innerText)
       .notContains("We went to ski")
       .expect(Selector("div.caption").nth(0).innerText)
