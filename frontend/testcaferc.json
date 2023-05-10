@@ -5,6 +5,11 @@
   "screenshots": {
     "path": "tests/acceptance/screenshots",
     "takeOnFails": true
+  },
+  "videoPath": "tests/acceptance/videos",
+  "videoOptions": {
+    "failedOnly": true,
+    "singleFile": false
   }
 }
 

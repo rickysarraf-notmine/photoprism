@@ -39,7 +39,7 @@ test.meta("testID", "sharing-001").meta({ mode: "auth" })(
       .click(Selector("div").withText("After 1 day").parent('div[role="listitem"]'))
       .click(sharedialog.dialogSave);
     const Url = await sharedialog.linkUrl.innerText;
-    const Expire = await Selector("div.v-select__selections").innerText;
+    const Expire = await sharedialog.linkExpireInput.innerText;
 
     await t.expect(Url).contains("secretfortesting").expect(Expire).contains("After 1 day");
     let url = "http://localhost:2343/s/secretfortesting/christmas";
