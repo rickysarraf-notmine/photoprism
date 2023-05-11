@@ -33,7 +33,7 @@ RUN wget -qO- https://dl.photoprism.app/qa/demo.tar.gz | tar xvz -C /photoprism/
 COPY /assets/examples/demo /photoprism/originals/demo/my
 
 # Add an additional user
-RUN photoprism user add family --password photoprism --auth local
+RUN photoprism user add family --password photoprism --role family --auth local
 
 # Import example photos
 RUN photoprism restore -a && \
