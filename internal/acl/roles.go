@@ -5,6 +5,7 @@ const (
 	RoleDefault Role = "default"
 	RoleAdmin   Role = "admin"
 	RoleVisitor Role = "visitor"
+	RoleFamily  Role = "family"
 	RoleUnknown Role = ""
 )
 
@@ -15,6 +16,7 @@ type RoleStrings = map[string]Role
 var ValidRoles = RoleStrings{
 	string(RoleAdmin):   RoleAdmin,
 	string(RoleVisitor): RoleVisitor,
+	string(RoleFamily):  RoleFamily,
 	string(RoleUnknown): RoleUnknown,
 }
 

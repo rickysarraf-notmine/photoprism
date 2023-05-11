@@ -148,7 +148,7 @@
             </button>
 
             <button
-                  v-if="!isSharedView"
+                  v-if="!isSharedView || $config.canLike()"
                   class="input-favorite"
                   @touchstart.stop.prevent="input.touchStart($event, index)"
                   @touchend.stop.prevent="toggleLike($event, index)"

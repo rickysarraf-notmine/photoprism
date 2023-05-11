@@ -6,6 +6,16 @@ var (
 	GrantSearchShared = Grant{AccessShared: true, ActionSearch: true, ActionView: true, ActionDownload: true}
 	GrantSubscribeAll = Grant{AccessAll: true, ActionSubscribe: true}
 	GrantSubscribeOwn = Grant{AccessOwn: true, ActionSubscribe: true}
+
+	// Custom, family role related permissions.
+	// In order to like and react to a photo, the following permissions are needed in addition to the read-only ones:
+	//   - manage: used determine whether the "like/favorite" button will be shown
+	//   - update: required to be able to "like" a photo
+	//   - react:  required to be able to use the experimental "react" feature
+	GrantLoginOnly      = Grant{AccessOwn: true}
+	GrantChangePassword = Grant{ActionUpdate: true}
+	GrantReadOnly       = GrantSearchShared.Plus(Grant{AccessLibrary: true})
+	GrantReadOnlyReact  = GrantReadOnly.Plus(Grant{ActionReact: true, ActionUpdate: true})
 )
 
 // Grant represents permissions granted or denied.
@@ -20,4 +30,16 @@ func (grant Grant) Allow(perm Permission) bool {
 	}
 
 	return false
+}
+
+// Plus creates a new grant by adding up all permissions.
+func (grant Grant) Plus(updated Grant) Grant {
+	merged := make(Grant)
+	for k, v := range grant {
+		merged[k] = v
+	}
+	for k, v := range updated {
+		merged[k] = v
+	}
+	return merged
 }
