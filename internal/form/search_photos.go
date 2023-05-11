@@ -13,7 +13,7 @@ type SearchPhotos struct {
 	Filter    string    `form:"filter" serialize:"-" notes:"-"`
 	ID        string    `form:"id" example:"id:123e4567-e89b-..." notes:"Finds pictures by Exif UID, XMP Document ID or Instance ID"`
 	UID       string    `form:"uid" example:"uid:pqbcf5j446s0futy" notes:"Limits results to the specified internal unique IDs"`
-	Type      string    `form:"type" example:"type:raw" notes:"Media Type (image, video, raw, live, animated); OR search with |"`
+	Type      string    `form:"type" example:"type:raw" notes:"Media Type (image, video, raw, live, sphere, animated); OR search with |"`
 	Path      string    `form:"path" example:"path:2020/Holiday" notes:"Path Name, OR search with |, supports * wildcards"`
 	Folder    string    `form:"folder" example:"folder:\"*/2020\"" notes:"Path Name, OR search with |, supports * wildcards"` // Alias for Path
 	Name      string    `form:"name" example:"name:\"IMG_9831-112*\"" notes:"File Name without path and extension, OR search with |"`
@@ -83,6 +83,8 @@ type SearchPhotos struct {
 	Offset    int       `form:"offset" serialize:"-"`                                                                                                                                                                 // Result FILE offset
 	Order     string    `form:"order" serialize:"-"`                                                                                                                                                                  // Sort order
 	Merged    bool      `form:"merged" serialize:"-"`                                                                                                                                                                 // Merge FILES in response
+
+	Sphere    bool      `form:"sphere" notes:"Finds Photosphere Photos"`
 }
 
 func (f *SearchPhotos) GetQuery() string {
