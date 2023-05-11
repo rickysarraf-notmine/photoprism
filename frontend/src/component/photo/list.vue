@@ -109,7 +109,7 @@
                   {{ photo.locationInfo() }}
                 </span>
               </td>
-              <template v-if="!isSharedView">
+              <template v-if="!isSharedView || $config.canLike()">
                 <td class="text-xs-center">
                   <template v-if="index < firstVisibleElementIndex || index > lastVisibileElementIndex">
                     <div v-if="hidePrivate" class="v-btn v-btn--icon v-btn--small" />

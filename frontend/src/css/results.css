@@ -361,11 +361,11 @@ body.chrome #photoprism .search-results .result {
     display: none;
 }
 
-#photoprism .disable-manage .search-results .result:not(.is-favorite) .input-favorite {
+#photoprism .disable-update .search-results .result:not(.is-favorite) .input-favorite {
     visibility: hidden;
 }
 
-#photoprism .disable-manage .search-results .result .input-favorite.v-btn:before {
+#photoprism .disable-update .search-results .result .input-favorite.v-btn:before {
     visibility: hidden;
 }
 

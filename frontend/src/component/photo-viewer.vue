@@ -101,8 +101,8 @@ export default {
   name: "PPhotoViewer",
   data() {
     return {
+      canLike: this.$config.canLike(),
       canEdit: this.$config.allow("photos", "update") && this.$config.feature("edit"),
-      canLike: this.$config.allow("photos", "manage") && this.$config.feature("favorites"),
       canDownload: this.$config.allow("photos", "download") && this.$config.feature("download"),
       selection: this.$clipboard.selection,
       config: this.$config.values,

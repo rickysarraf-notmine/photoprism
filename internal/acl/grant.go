@@ -11,11 +11,11 @@ var (
 	// In order to like and react to a photo, the following permissions are needed in addition to the read-only ones:
 	//   - manage: used determine whether the "like/favorite" button will be shown
 	//   - update: required to be able to "like" a photo
-	//   - update: required to be able to use the experimental "react" feature
+	//   - react:  required to be able to use the experimental "react" feature
 	GrantLoginOnly      = Grant{AccessOwn: true}
 	GrantChangePassword = Grant{ActionUpdate: true}
 	GrantReadOnly       = GrantSearchShared.Plus(Grant{AccessLibrary: true})
-	GrantReadOnlyReact  = GrantReadOnly.Plus(Grant{ActionReact: true, ActionManage: true, ActionUpdate: true})
+	GrantReadOnlyReact  = GrantReadOnly.Plus(Grant{ActionReact: true, ActionUpdate: true})
 )
 
 // Grant represents permissions granted or denied.

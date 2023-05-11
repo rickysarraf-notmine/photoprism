@@ -431,6 +431,17 @@ export default class Config {
     return !this.allowAny(resource, perm);
   }
 
+  canLike() {
+    // There are a lot of inconsistencies in the upstream project about who can like/favorite and react to photos.
+    // The backend requires photos/update for liking a photo and photos/react for reacting to media.
+    // The frontend mostly requires a different permission - photos/manage. All of the different photo views -
+    // cards, mosaic and list require photos/manage. However, the photoviewer additionally requires the "favorites"
+    // feature and the favorites/search permission.
+    // In order to simplify all that, let's stick with the permissions required by the backend - photos/update or
+    // photos/react.
+    return this.allowAny("photos", ["update", "react"]);
+  }
+
   settings() {
     return this.values.settings;
   }

@@ -115,7 +115,7 @@
               <i color="white" class="select-off">radio_button_off</i>
             </button>
 
-            <button v-if="!isSharedView"
+            <button v-if="!isSharedView || $config.canLike()"
                 class="input-favorite"
                 @touchstart.stop.prevent="input.touchStart($event, index)"
                 @touchend.stop.prevent="toggleLike($event, index)"
