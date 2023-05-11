@@ -1,0 +1,24 @@
+# Uffizzi extension (required)
+x-uffizzi:
+  ingress:
+    service: photoprism
+    port: 2342
+  continuous_previews:
+    delete_preview_after: 48h
+
+# PhotoPrism application
+services:
+  photoprism:
+    image: "${PHOTOPRISM_IMAGE}"
+    command: photoprism start
+    environment:
+      PHOTOPRISM_ADMIN_PASSWORD: "photoprism"
+      PHOTOPRISM_DEMO: "false"
+      PHOTOPRISM_PUBLIC: "false"
+      PHOTOPRISM_TEST: "true"
+    ports:
+      - "2342:2342"
+    deploy:
+      resources:
+        limits:
+          memory: 500M
