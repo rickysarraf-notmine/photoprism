@@ -29,6 +29,9 @@ COPY /docker/demo/index.gohtml /opt/photoprism/assets/templates
 # Download example photos
 RUN wget -qO- https://dl.photoprism.app/qa/demo.tar.gz | tar xvz -C /photoprism/originals
 
+# Add my example photos
+COPY /assets/examples/demo /photoprism/originals/demo/my
+
 # Import example photos
 RUN photoprism restore -a && \
     photoprism index -a && \
