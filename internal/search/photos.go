@@ -541,8 +541,10 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 		s = s.Where("photos.photo_type = ?", entity.MediaRaw)
 	} else if f.Live {
 		s = s.Where("photos.photo_type = ?", entity.MediaLive)
+	} else if f.Sphere {
+		s = s.Where("photos.photo_type = ?", entity.MediaSphere)
 	} else if f.Photo {
-		s = s.Where("photos.photo_type IN ('image','live','animated','vector','raw')")
+		s = s.Where("photos.photo_type IN ('image','live','sphere','animated','vector','raw')")
 	}
 
 	// Filter by storage path.
