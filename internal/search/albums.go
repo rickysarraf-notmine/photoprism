@@ -47,20 +47,23 @@ func UserAlbums(f form.SearchAlbums, sess *entity.Session) (results AlbumResults
 	// Set photo counts for non-manual albums.
 	switch f.Type {
 	case entity.AlbumFolder:
-		s = s.Joins("LEFT JOIN photos p on albums.album_path = p.photo_path").
-			Where("p.deleted_at IS NULL").
-			Group("albums.album_uid")
+		s = s.Joins("LEFT JOIN photos p on albums.album_path = p.photo_path")
 	case entity.AlbumMonth:
 		s = s.Joins("LEFT JOIN photos p on albums.album_year = p.photo_year AND albums.album_month = p.photo_month").
-			Where("p.deleted_at IS NULL").
-			Group("albums.album_uid")
+			Where("p.deleted_at IS NULL")
 	case entity.AlbumState:
-		s = s.Joins("LEFT JOIN (SELECT places.place_state, photos.* FROM `photos` LEFT JOIN places ON photos.place_id = places.id) AS p on albums.album_state = p.place_state").
-			Where("p.deleted_at IS NULL").
-			Group("albums.album_uid")
+		s = s.Joins("LEFT JOIN (SELECT places.place_state, photos.* FROM `photos` LEFT JOIN places ON photos.place_id = places.id) AS p on albums.album_state = p.place_state")
 	case entity.AlbumCountry:
-		s = s.Joins("LEFT JOIN photos p on albums.album_country = p.photo_country").
-			Where("p.deleted_at IS NULL").
+		s = s.Joins("LEFT JOIN photos p on albums.album_country = p.photo_country")
+	}
+
+	// Exclude deleted and private photos from the photo count.
+	// Per default, all moments have the `public: true` filter and private photos are excluded. This is
+	// done in the indexer in `internal/photoprism/moments.go`.
+	switch f.Type {
+	case entity.AlbumFolder, entity.AlbumMonth, entity.AlbumState, entity.AlbumCountry:
+		s = s.Where("p.deleted_at IS NULL").
+			Where("p.photo_private = 0").
 			Group("albums.album_uid")
 	}
 
