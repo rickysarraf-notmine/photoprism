@@ -363,7 +363,7 @@
         </v-card-actions>
       </v-card>
 
-      <v-card flat tile class="mt-0 px-1 application">
+      <v-card v-if="settings.features.folders" flat tile class="mt-0 px-1 application">
         <v-card-title primary-title class="pb-2">
           <h3 class="body-2 mb-0">
             <translate key="Folders">Folders</translate>
