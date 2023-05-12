@@ -29,12 +29,43 @@ func UserAlbums(f form.SearchAlbums, sess *entity.Session) (results AlbumResults
 		return AlbumResults{}, err
 	}
 
+	photoCountCol := "cp.photo_count"
+
+	// Use a computed photo count column for non-manual albums
+	switch f.Type {
+	case entity.AlbumFolder, entity.AlbumMonth, entity.AlbumState, entity.AlbumCountry:
+		photoCountCol = "COUNT(p.id) as photo_count"
+	}
+
 	// Base query.
 	s := UnscopedDb().Table("albums").
-		Select("albums.*, cp.photo_count, cl.link_count, CASE WHEN albums.album_year = 0 THEN 0 ELSE 1 END AS has_year, CASE WHEN albums.album_location = '' THEN 1 ELSE 0 END AS no_location").
+		Select("albums.*, ?, cl.link_count, CASE WHEN albums.album_year = 0 THEN 0 ELSE 1 END AS has_year, CASE WHEN albums.album_location = '' THEN 1 ELSE 0 END AS no_location", gorm.Expr(photoCountCol)).
 		Joins("LEFT JOIN (SELECT album_uid, count(photo_uid) AS photo_count FROM photos_albums WHERE hidden = 0 AND missing = 0 GROUP BY album_uid) AS cp ON cp.album_uid = albums.album_uid").
 		Joins("LEFT JOIN (SELECT share_uid, count(share_uid) AS link_count FROM links GROUP BY share_uid) AS cl ON cl.share_uid = albums.album_uid").
 		Where("albums.deleted_at IS NULL")
+
+	// Set photo counts for non-manual albums.
+	switch f.Type {
+	case entity.AlbumFolder:
+		s = s.Joins("LEFT JOIN photos p on albums.album_path = p.photo_path")
+	case entity.AlbumMonth:
+		s = s.Joins("LEFT JOIN photos p on albums.album_year = p.photo_year AND albums.album_month = p.photo_month").
+			Where("p.deleted_at IS NULL")
+	case entity.AlbumState:
+		s = s.Joins("LEFT JOIN (SELECT places.place_state, photos.* FROM `photos` LEFT JOIN places ON photos.place_id = places.id) AS p on albums.album_state = p.place_state")
+	case entity.AlbumCountry:
+		s = s.Joins("LEFT JOIN photos p on albums.album_country = p.photo_country")
+	}
+
+	// Exclude deleted and private photos from the photo count.
+	// Per default, all moments have the `public: true` filter and private photos are excluded. This is
+	// done in the indexer in `internal/photoprism/moments.go`.
+	switch f.Type {
+	case entity.AlbumFolder, entity.AlbumMonth, entity.AlbumState, entity.AlbumCountry:
+		s = s.Where("p.deleted_at IS NULL").
+			Where("p.photo_private = 0").
+			Group("albums.album_uid")
+	}
 
 	// Check session permissions and apply as needed.
 	if sess != nil {
