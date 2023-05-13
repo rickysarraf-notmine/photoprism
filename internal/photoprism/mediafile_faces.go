@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/photoprism/photoprism/internal/face"
+	"github.com/photoprism/photoprism/pkg/clean"
 )
 
 const (
@@ -70,37 +71,38 @@ func (m *MediaFile) facesMWG() (faces face.Faces) {
 }
 
 func (m *MediaFile) facesWLPG() (faces face.Faces) {
+	logName := clean.Log(m.BaseName())
 	fittingFn := math.Min // or math.Max
 
 	if len(m.MetaData().RegionsMP) > 0 {
 		for _, region := range m.MetaData().RegionsMP {
 			rect := strings.Split(strings.ReplaceAll(region.Rectangle, " ", ""), ",")
 			if len(rect) != 4 {
-				log.Warnf("faces: face region rectangle '%v' does not contain 4 values (%s)", rect, m.FileName())
+				log.Warnf("faces: WLPG face region rectangle '%v' does not contain 4 values (%s)", rect, logName)
 				continue
 			}
 
 			x, err := strconv.ParseFloat(rect[0], 64)
 			if err != nil {
-				log.Warnf("faces: face region x %s is not a float (%s)", rect[0], m.FileName())
+				log.Warnf("faces: WLPG face region x %s is not a float (%s)", rect[0], logName)
 				continue
 			}
 
 			y, err := strconv.ParseFloat(rect[1], 64)
 			if err != nil {
-				log.Warnf("faces: face region y %s is not a float (%s)", rect[1], m.FileName())
+				log.Warnf("faces: WLPG face region y %s is not a float (%s)", rect[1], logName)
 				continue
 			}
 
 			w, err := strconv.ParseFloat(rect[2], 64)
 			if err != nil {
-				log.Warnf("faces: face region w %s is not a float (%s)", rect[2], m.FileName())
+				log.Warnf("faces: WLPG face region w %s is not a float (%s)", rect[2], logName)
 				continue
 			}
 
 			h, err := strconv.ParseFloat(rect[3], 64)
 			if err != nil {
-				log.Warnf("faces: face region h %s is not a float (%s)", rect[3], m.FileName())
+				log.Warnf("faces: WLPG face region h %s is not a float (%s)", rect[3], logName)
 				continue
 			}
 
@@ -126,16 +128,22 @@ func (m *MediaFile) facesWLPG() (faces face.Faces) {
 }
 
 func (m *MediaFile) facesIPTC() (faces face.Faces) {
+	logName := clean.Log(m.BaseName())
 	fittingFn := math.Min // or math.Max
 
 	if len(m.MetaData().RegionsIPTC) > 0 {
 		for _, region := range m.MetaData().RegionsIPTC {
 			if len(region.Person) == 0 {
+				log.Warnf("faces: IPTC face region does not contain a person (%s)", logName)
 				continue
+			} else if len(region.Person) > 1 {
+				log.Warnf("faces: IPTC face region contains more than one person %s (%s)", region.Person, logName)
 			}
 
 			shape := strings.ToLower(region.Boundary.Shape)
 			unit := strings.ToLower(region.Boundary.Unit)
+
+			person := region.Person[0]
 
 			var x, y, w, h, wScale, hScale float64
 
@@ -155,7 +163,7 @@ func (m *MediaFile) facesIPTC() (faces face.Faces) {
 				h = region.Boundary.Rx * 2
 			default:
 				// Polygon is not supported
-				log.Warnf("faces: %s IPTC face regions are not supported (%s)", shape, m.FileName())
+				log.Warnf("faces: ignoring IPTC face region for %s, as %s shape is not supported (%s)", person, shape, logName)
 				continue
 			}
 
@@ -167,7 +175,7 @@ func (m *MediaFile) facesIPTC() (faces face.Faces) {
 				hScale = float64(m.Height())
 				wScale = float64(m.Width())
 			default:
-				log.Warnf("faces: %s IPTC face regions are not supported (%s)", unit, m.FileName())
+				log.Warnf("faces: ignoring IPTC face region for %s, as %s unit is not supported (%s)", person, unit, logName)
 				continue
 			}
 
@@ -175,7 +183,7 @@ func (m *MediaFile) facesIPTC() (faces face.Faces) {
 				Rows: m.Height(),
 				Cols: m.Width(),
 				Area: face.Area{
-					Name:  region.Person[0],
+					Name:  person,
 					Row:   int(y * hScale),
 					Col:   int(x * wScale),
 					Scale: int(fittingFn(h*hScale, w*wScale)),
