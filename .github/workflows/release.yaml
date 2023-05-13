@@ -9,7 +9,7 @@ on:
       - rrs-preview-latest
 
 env:
-  TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || 'rrs-preview-latest' }}
+  TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || 'rrs-preview-latest' || 'rrs-kvalev-preview' }}
   DOCKER_REPO: rickysarraf/photoprism
 
 jobs:
