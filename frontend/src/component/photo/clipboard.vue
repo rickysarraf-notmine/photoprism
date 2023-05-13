@@ -135,7 +135,7 @@
           <v-icon>eject</v-icon>
         </v-btn>
         <v-btn
-            v-if="canEdit && album && context !== 'archive'" fab dark
+            v-if="canEditAlbum && album && context !== 'archive'" fab dark
             small
             :title="$gettext('Set as cover')"
             color="cover"
@@ -433,7 +433,7 @@ export default {
       this.clearClipboard();
     },
     setCover() {
-      if (!this.canEdit) {
+      if (!this.canEditAlbum) {
         return;
       }
 
