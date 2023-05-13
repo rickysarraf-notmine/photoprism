@@ -395,7 +395,10 @@ test.meta("testID", "photos-archive-private-004").meta({ type: "short", mode: "p
       const AlbumPhoto = await photo.getNthPhotoUid("all", 0);
       await photo.triggerHoverAction("uid", AlbumPhoto, "select");
       await menu.openPage("calendar");
-      await toolbar.search("January 2017");
+      await toolbar.search("January");
+      await toolbar.search("2017");
+      await toolbar.search("January 2018");
+      const CalendarAlbum = await album.getNthAlbumUid("all", 0);
       await album.openNthAlbum(0);
       const CalendarPhoto = await photo.getNthPhotoUid("all", 0);
       await photo.triggerHoverAction("uid", CalendarPhoto, "select");
@@ -452,7 +455,8 @@ test.meta("testID", "photos-archive-private-004").meta({ type: "short", mode: "p
       await t.navigateTo("/library/albums?q=Holiday");
       await album.openNthAlbum(0);
       await photo.checkPhotoVisibility(AlbumPhoto, true);
-      await t.navigateTo("/library/calendar/aqmxlr71p6zo22dk/january-2017");
+      await t.navigateTo(`/library/calendar/${CalendarAlbum}/view`);
+
       await photo.checkPhotoVisibility(CalendarPhoto, false);
       await menu.openPage("moments");
       await album.openNthAlbum(0);
@@ -515,7 +519,7 @@ test.meta("testID", "photos-archive-private-004").meta({ type: "short", mode: "p
       await t.navigateTo("/library/albums?q=Holiday");
       await album.openNthAlbum(0);
       await photo.checkPhotoVisibility(AlbumPhoto, true);
-      await t.navigateTo("/library/calendar/aqmxlr71p6zo22dk/january-2017");
+      await t.navigateTo(`/library/calendar/${CalendarAlbum}/view`);
       await photo.checkPhotoVisibility(CalendarPhoto, true);
       await menu.openPage("moments");
       await album.openNthAlbum(0);
