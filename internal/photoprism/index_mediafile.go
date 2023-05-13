@@ -12,6 +12,7 @@ import (
 	"github.com/photoprism/photoprism/internal/classify"
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/event"
+	"github.com/photoprism/photoprism/internal/face"
 	"github.com/photoprism/photoprism/internal/meta"
 	"github.com/photoprism/photoprism/internal/query"
 	"github.com/photoprism/photoprism/pkg/clean"
@@ -330,7 +331,61 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 		return result
 	} else if ind.findFaces && file.FilePrimary {
 		if m.HasFaces() {
-			log.Debugf("faces: found face region metadata %v", m.Faces())
+			log.Debugf("index: found face region metadata in %s (%#v)", logName, m.Faces())
+
+			for _, f := range m.Faces() {
+				log.Debugf("index: processing face region %#v", f)
+
+				// Calculate the face score, which is usually done by facenet.
+				f.Score = int(face.QualityThreshold(f.Area.Scale))
+				log.Debugf("index: calculated face score %d", f.Score)
+
+				// Calculate the embeddings vector for the given face region.
+				embeddings, err := ind.faceNet.Embeddings(FileName(file.FileRoot, file.FileName), f)
+
+				if err != nil {
+					log.Errorf("index: error when calculating embeddings for %s (%s)", logName, err.Error())
+					continue
+				}
+
+				// Check that we have only one embedding. This duplicates the check in AddFace, but it's important
+				// to have it here as well, so that we can report the error.
+				if !embeddings.One() {
+					log.Errorf("index: unexpected embeddings count %d for face region crop area %s and file %s", embeddings.Count(), f.CropArea(), logName)
+					continue
+				}
+
+				// Assign the embeddings to the face and add the face to the file, which will create a new marker.
+				f.Embeddings = embeddings
+				file.AddFace(f, "")
+
+				// It is expected that adding the new face to the file will result in a new unsaved marker.
+				if !file.UnsavedMarkers() {
+					log.Errorf("index: face marker was not created for face %#v and file %s", f, logName)
+					continue
+				}
+
+				// Save the new marker.
+				if count, err := file.SaveMarkers(); err != nil {
+					log.Errorf("index: error when saving new marker or %s (%s)", logName, err.Error())
+					continue
+				} else if count == 0 {
+					log.Errorf("markers: did not save new marker for %s", logName)
+					continue
+				}
+
+				// Retrieve the newly saved marker, assign the face name and save it
+				marker := file.LatestMarker()
+				changed, err := marker.SetName(f.Area.Name, entity.SrcMeta)
+
+				if err != nil {
+					log.Errorf("index: error when setting marker name for %s (%s)", marker.MarkerUID, err)
+				} else if changed {
+					if err := marker.Save(); err != nil {
+						log.Errorf("index: error when saving marker %s (%s)", marker.MarkerUID, err)
+					}
+				}
+			}
 		}
 
 		if markers := file.Markers(); markers != nil {
