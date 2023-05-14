@@ -895,3 +895,23 @@ func (m *Album) RemovePhotos(UIDs []string) (removed PhotoAlbums) {
 func (m *Album) Links() Links {
 	return FindLinks("", m.AlbumUID)
 }
+
+// ResetCoverIfNeeded removes the album cover if it was part of the removed album photos.
+func (m *Album) ResetCoverIfNeeded(removed PhotoAlbums) error {
+	if !m.HasThumb() {
+		return nil
+	}
+
+	f, err := FirstFileByHash(m.Thumb)
+	if err != nil {
+		return err
+	}
+
+	for _, pa := range removed {
+		if pa.PhotoUID == f.PhotoUID {
+			return m.ResetThumb()
+		}
+	}
+
+	return nil
+}
