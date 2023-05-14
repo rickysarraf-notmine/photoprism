@@ -21,6 +21,7 @@ import (
 
 // PhotosColsAll contains all supported result column names.
 var PhotosColsAll = SelectString(Photo{}, []string{"*"})
+var PhotosColsIds = "photos.id, photos.photo_uid, files.file_uid"
 
 // PhotosColsView contains the result column names necessary for the photo viewer.
 var PhotosColsView = SelectString(Photo{}, SelectCols(GeoResult{}, []string{"*"}))
@@ -42,7 +43,12 @@ func UserPhotos(f form.SearchPhotos, sess *entity.Session) (results PhotoResults
 func PhotoIds(f form.SearchPhotos) (files PhotoResults, count int, err error) {
 	f.Merged = false
 	f.Primary = true
-	return searchPhotos(f, nil, "photos.id, photos.photo_uid, files.file_uid")
+	return searchPhotos(f, nil, PhotosColsIds)
+}
+
+// UserPhotoIds finds photo and file ids based on the search form and user session.
+func UserPhotoIds(f form.SearchPhotos, sess *entity.Session) (results PhotoResults, count int, err error) {
+	return searchPhotos(f, sess, PhotosColsIds)
 }
 
 // searchPhotos finds photos based on the search form and user session then returns them as PhotoResults.
