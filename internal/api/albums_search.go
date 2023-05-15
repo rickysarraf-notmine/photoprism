@@ -53,6 +53,12 @@ func SearchAlbums(router *gin.RouterGroup) {
 			return
 		}
 
+		if settings.Features.People && get.Config().Experimental() {
+			if err := result.LoadAlbumsSubjects(s); err != nil {
+				log.Errorf("albums: %s (loading album faces)", err)
+			}
+		}
+
 		AddCountHeader(c, len(result))
 		AddLimitHeader(c, f.Count)
 		AddOffsetHeader(c, f.Offset)
