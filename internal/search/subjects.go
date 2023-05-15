@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gosimple/slug"
 	"github.com/photoprism/photoprism/pkg/clean"
 
 	"github.com/photoprism/photoprism/pkg/txt"
@@ -54,6 +55,11 @@ func Subjects(f form.SearchSubjects) (results SubjectResults, err error) {
 		}
 
 		return results, nil
+	}
+
+	if f.Name != "" {
+		// Some views pass the slug as name, so we need to account for that.
+		s = s.Where("subj_name = ? OR subj_slug = ?", f.Name, slug.Make(f.Name))
 	}
 
 	if f.Query != "" {
