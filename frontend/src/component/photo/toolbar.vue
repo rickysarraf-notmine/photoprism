@@ -273,7 +273,7 @@ export default {
     createSmartAlbum() {
       const album = new Album({"Title": this.filter.q, "Filter": this.filter.q});
 
-      album.save();
+      album.save().then(() => this.$notify.success(this.$gettext("Album created")));
     },
   },
 };
