@@ -216,9 +216,9 @@ export default {
 
     // Supported contexts: label, person, subject
     const supportedTypes = {
-      "label": [Label, this.filter.label],
-      "person": [Subject, this.filter.person],
-      "subject": [Subject, this.filter.subject],
+      "label": [Label, this.filter.label, "q"],
+      "person": [Subject, this.filter.person, "name"],
+      "subject": [Subject, this.filter.subject, "name"],
     }
 
     // Find all used filters to determine the current context (and exclude the sort order).
@@ -227,9 +227,9 @@ export default {
     // If we have encountered only one of the supported contexts,
     // we can essentially treat the current view as an album (even thought it is not).
     if (activeFilters.length == 1) {
-      const [Type, filter] = supportedTypes[activeFilters[0]];
+      const [Type, filter, q] = supportedTypes[activeFilters[0]];
 
-      Type.search({q: filter, count: 1}).then(response => this.labelOrSubjectAlbum = response.models[0]);
+      Type.search({[q]: filter, count: 1}).then(response => this.labelOrSubjectAlbum = response.models[0]);
     }
 
     this.subscriptions.push(Event.subscribe("import.completed", (ev, data) => this.onImportCompleted(ev, data)));
