@@ -336,6 +336,11 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 			for _, f := range m.Faces() {
 				log.Debugf("index: processing face region %s", f)
 
+				if file.HasFace(f) {
+					log.Debugf("index: face region was already indexed %s", f)
+					continue
+				}
+
 				// Calculate the face score, which is usually done by facenet.
 				f.Score = int(face.QualityThreshold(f.Area.Scale))
 				log.Debugf("index: calculated face score %d", f.Score)
