@@ -476,3 +476,13 @@ func UpdateCovers() (err error) {
 
 	return nil
 }
+
+// RemovePhotosAsAlbumCovers resets the thumbnails for any albums that use one of the given file hashes as covers.
+func RemovePhotosAsAlbumCovers(photoFilesHashes []string) (updated int64, err error) {
+	res := Db().
+		Model(entity.Album{}).
+		Where("thumb IN (?)", photoFilesHashes).
+		UpdateColumns(entity.Values{"thumb": "", "thumb_src": entity.SrcAuto})
+
+	return res.RowsAffected, res.Error
+}
