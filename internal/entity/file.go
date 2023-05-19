@@ -757,6 +757,21 @@ func (m *File) AddFace(f face.Face, subjUid string) {
 	}
 }
 
+// HasFace checks whether the file already contains a marker for the given face.
+func (m *File) HasFace(f face.Face) bool {
+	// Create new marker from face.
+	marker := NewFaceMarker(f, *m, "")
+
+	// Failed creating new marker?
+	if marker == nil {
+		log.Errorf("markers: failed creating new marker")
+		return false
+	}
+
+	// Check if marker overlaps with existing markers.
+	return m.Markers().Contains(*marker)
+}
+
 // ValidFaceCount returns the number of valid face markers.
 func (m *File) ValidFaceCount() (c int) {
 	return ValidFaceCount(m.FileUID)

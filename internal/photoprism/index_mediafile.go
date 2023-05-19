@@ -331,10 +331,15 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 		return result
 	} else if ind.findFaces && file.FilePrimary {
 		if m.HasFaces() {
-			log.Debugf("index: found face region metadata in %s (%#v)", logName, m.Faces())
+			log.Debugf("index: found face region metadata in %s (%s)", logName, m.Faces())
 
 			for _, f := range m.Faces() {
-				log.Debugf("index: processing face region %#v", f)
+				log.Debugf("index: processing face region %s", f)
+
+				if file.HasFace(f) {
+					log.Debugf("index: face region was already indexed %s", f)
+					continue
+				}
 
 				// Calculate the face score, which is usually done by facenet.
 				f.Score = int(face.QualityThreshold(f.Area.Scale))
@@ -344,7 +349,7 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 				embeddings, err := ind.faceNet.Embeddings(FileName(file.FileRoot, file.FileName), f)
 
 				if err != nil {
-					log.Errorf("index: error when calculating embeddings for %s (%s)", logName, err.Error())
+					log.Errorf("index: %s (calculating embeddings for %s)", err, logName)
 					continue
 				}
 
@@ -361,13 +366,13 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 
 				// It is expected that adding the new face to the file will result in a new unsaved marker.
 				if !file.UnsavedMarkers() {
-					log.Errorf("index: face marker was not created for face %#v and file %s", f, logName)
+					log.Errorf("index: face marker was not created for face %s and file %s", f, logName)
 					continue
 				}
 
 				// Save the new marker.
 				if count, err := file.SaveMarkers(); err != nil {
-					log.Errorf("index: error when saving new marker or %s (%s)", logName, err.Error())
+					log.Errorf("index: %s (saving new marker for %s)", err, logName)
 					continue
 				} else if count == 0 {
 					log.Errorf("markers: did not save new marker for %s", logName)
@@ -379,10 +384,10 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 				changed, err := marker.SetName(f.Area.Name, entity.SrcMeta)
 
 				if err != nil {
-					log.Errorf("index: error when setting marker name for %s (%s)", marker.MarkerUID, err)
+					log.Errorf("index: %s (setting marker name for %s)", err, marker.MarkerUID)
 				} else if changed {
 					if err := marker.Save(); err != nil {
-						log.Errorf("index: error when saving marker %s (%s)", marker.MarkerUID, err)
+						log.Errorf("index: %s (saving marker %s)", err, marker.MarkerUID)
 					}
 				}
 			}
