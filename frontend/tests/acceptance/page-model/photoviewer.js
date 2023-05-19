@@ -55,7 +55,7 @@ export default class Page {
       }
 
       // The close button is quite moody, so sometimes we have to click it twice and sometimes it takes a bit for the photoviewer to be closed.
-      if (await Selector("button.pswp__button.action-" + action).visible) {
+      if (await Selector("button.pswp__button.action-" + action, { timeout: 5000 }).visible) {
         await t.click(Selector("button.pswp__button.action-" + action));
       }
     }

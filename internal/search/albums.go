@@ -265,7 +265,7 @@ func UserAlbums(f form.SearchAlbums, sess *entity.Session) (results AlbumResults
 				return results, err
 			}
 
-			_, count, err := PhotoIds(f)
+			_, count, err := UserPhotoIds(f, sess)
 			if err != nil {
 				return results, err
 			}

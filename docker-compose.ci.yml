@@ -17,6 +17,8 @@ services:
     volumes:
       - "~/.cache/npm:/root/.cache/npm"
       - "~/.cache/go-mod:/go/pkg/mod"
+      # The storage folder is added to .dockerignore, which prevents it from being auto-mounted.
+      - "./storage:/go/src/github.com/photoprism/photoprism/storage"
     environment:
       PHOTOPRISM_INIT: "https"
       PHOTOPRISM_ADMIN_USER: "admin"                       # admin login username
