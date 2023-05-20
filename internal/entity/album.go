@@ -287,7 +287,7 @@ func NewMonthAlbum(albumTitle, albumSlug string, year, month int) *Album {
 	return result
 }
 
-// FindLabelAlbums finds all label albums (including deletes ones) or returns nil.
+// FindLabelAlbums finds all label-based moment albums (including deletes ones) or returns nil.
 func FindLabelAlbums() (result Albums) {
 	// Both "label" and "country / year" album have the same album type,
 	// so to distinguish between the two we have few options:
@@ -299,6 +299,16 @@ func FindLabelAlbums() (result Albums) {
 		Where("album_year IS NULL").
 		Find(&result).Error; err != nil {
 
+		log.Errorf("album: %s (not found)", err)
+		return nil
+	}
+
+	return result
+}
+
+// FindAlbumByType finds all smart  albums (including deleted ones) or returns nil.
+func FindSmartAlbums() (result Albums) {
+	if err := UnscopedDb().Where("album_type = ? AND album_filter != ''", AlbumManual).Find(&result).Error; err != nil {
 		log.Errorf("album: %s (not found)", err)
 		return nil
 	}

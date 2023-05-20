@@ -9,8 +9,11 @@ import (
 	"github.com/jinzhu/gorm"
 
 	"github.com/photoprism/photoprism/internal/entity"
+	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/internal/mutex"
+	"github.com/photoprism/photoprism/internal/search"
 	"github.com/photoprism/photoprism/pkg/media"
+	"github.com/photoprism/photoprism/pkg/sortby"
 )
 
 // UpdateAlbumDefaultCovers updates default album cover thumbs.
@@ -303,6 +306,60 @@ func UpdateAlbumCountryCovers() (err error) {
 	return err
 }
 
+
+func UpdateSmartAlbumCovers() (err error) {
+	start := time.Now()
+
+	updated, err := updateDynamicAlbumCovers(entity.FindSmartAlbums())
+	log.Debugf("covers: updated %s [%s]", english.Plural(updated, "smart album", "smart albums"), time.Since(start))
+
+	return err
+}
+
+func UpdateMomentLabelAlbumCovers() (err error) {
+	start := time.Now()
+
+	updated, err := updateDynamicAlbumCovers(entity.FindLabelAlbums())
+	log.Debugf("covers: updated %s [%s]", english.Plural(updated, "label moment", "label moments"), time.Since(start))
+
+	return err
+}
+
+// updateDynamicAlbumCovers updates the thumbnail for dynamic albums without a manual cover to the last photo.
+func updateDynamicAlbumCovers(albums entity.Albums) (updated int, err error) {
+	for _, a := range albums {
+		if a.ThumbSrc != entity.SrcAuto {
+			continue
+		}
+
+		f := form.SearchPhotos{Album: a.AlbumUID, Filter: a.AlbumFilter, Public: true, Order: sortby.Newest, Count: 1, Offset: 0, Merged: false}
+
+		if err = f.ParseQueryString(); err != nil {
+			return updated, err
+		}
+
+		if photos, _, err := search.Photos(f); err != nil {
+			return updated, err
+		} else if len(photos) > 0 {
+			photo := photos[0]
+			file, err := FileByUID(photo.FileUID)
+			if err != nil {
+				return updated, err
+			}
+
+			a.Thumb = file.FileHash
+			a.ThumbSrc = entity.SrcAuto
+			if err := a.Save(); err != nil {
+				return updated, err
+			}
+
+			updated++
+		}
+	}
+
+	return updated, nil
+}
+
 // UpdateAlbumCovers updates album cover thumbs.
 func UpdateAlbumCovers() (err error) {
 	// Update Default Albums.
@@ -332,6 +389,18 @@ func UpdateAlbumCovers() (err error) {
 
 	// Update Country Albums.
 	if err = UpdateAlbumCountryCovers(); err != nil {
+		return err
+	}
+
+	// TODO: The albums with dynamic filters require N+1 queries to calculate the thumbnail. Optimize.
+
+	// Update label-based moment albums.
+	if err = UpdateMomentLabelAlbumCovers(); err != nil {
+		return err
+	}
+
+	// Update smart albums.
+	if err = UpdateSmartAlbumCovers(); err != nil {
 		return err
 	}
 
