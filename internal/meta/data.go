@@ -99,11 +99,12 @@ type Region struct {
 }
 
 // Area describes the face area in MWG format.
+// All coordinates are relative to the image's orientation.
 type Area struct {
-	H    float32
-	W    float32
-	X    float32 // face center
-	Y    float32 // face center
+	H    float64 // face height
+	W    float64 // face width
+	X    float64 // face center
+	Y    float64 // face center
 	Unit string
 }
 

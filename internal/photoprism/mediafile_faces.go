@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/photoprism/photoprism/internal/face"
+	"github.com/photoprism/photoprism/internal/meta"
 	"github.com/photoprism/photoprism/pkg/clean"
 )
 
@@ -22,6 +23,65 @@ const (
 
 	MWGUnitNormalized = "normalized"
 )
+
+type area struct {
+	x float64
+	y float64
+	w float64
+	h float64
+}
+
+func (a *area) Normalize(orientation int) {
+	if orientation > 4 {
+		a.w, a.h = a.h, a.w
+		a.x, a.y = a.y, a.x
+	}
+
+	swapX := 0.
+	swapY := 0.
+
+	switch orientation {
+	case 2, 6:
+		swapX = 1
+	case 3, 7:
+		swapX = 1
+		swapY = 1
+	case 4, 8:
+		swapY = 1
+	}
+
+	a.x = math.Abs(a.x - swapX)
+	a.y = math.Abs(a.y - swapY)
+}
+
+func (a area) Row(metadata meta.Data) int {
+	return int(a.y * float64(metadata.ActualHeight()))
+}
+
+func (a area) Col(metadata meta.Data) int {
+	return int(a.x * float64(metadata.ActualWidth()))
+}
+
+func (a area) Scale(metadata meta.Data) int {
+	// Determine how to clip the region rectangle - along the short ot long side
+	fittingFn := math.Min // or math.Max
+
+	return int(fittingFn(a.h*float64(metadata.ActualHeight()), a.w*float64(metadata.ActualWidth())))
+}
+
+func normalizedAreaFromCoords(x, y, w, h float64, orientation int) area {
+	area := area{x, y, w, h}
+	area.Normalize(orientation)
+
+	return area
+}
+
+func normalizedAreaFromArea(a meta.Area, orientation int) area {
+	area := area{a.X, a.Y, a.W, a.H}
+	area.Normalize(orientation)
+
+	return area
+}
 
 // HasFaces returns whether the media contains face region metadata.
 func (m *MediaFile) HasFaces() bool {
@@ -40,6 +100,7 @@ func (m *MediaFile) HasFaces() bool {
 }
 
 // Faces returns all unique metadata-based face regions for the given media.
+// All region coordinates will be converted to normal orientation.
 func (m *MediaFile) Faces() face.Faces {
 	faces := face.Faces{}
 
@@ -52,7 +113,6 @@ func (m *MediaFile) Faces() face.Faces {
 
 func (m *MediaFile) facesMWG() (faces face.Faces) {
 	logName := clean.Log(m.BaseName())
-	fittingFn := math.Min // or math.Max
 
 	if len(m.MetaData().Regions) > 0 {
 		for _, region := range m.MetaData().Regions {
@@ -68,14 +128,16 @@ func (m *MediaFile) facesMWG() (faces face.Faces) {
 				continue
 			}
 
+			area := normalizedAreaFromArea(region.Area, m.Orientation())
+
 			face := face.Face{
-				Rows: m.Height(),
-				Cols: m.Width(),
+				Rows: m.metaData.ActualHeight(),
+				Cols: m.metaData.ActualWidth(),
 				Area: face.Area{
 					Name:  person,
-					Row:   int(region.Area.Y * float32(m.Height())),
-					Col:   int(region.Area.X * float32(m.Width())),
-					Scale: int(fittingFn(float64(region.Area.H)*float64(m.Height()), float64(region.Area.W)*float64(m.Width()))),
+					Row:   area.Row(m.MetaData()),
+					Col:   area.Col(m.MetaData()),
+					Scale: area.Scale(m.MetaData()),
 				},
 			}
 
@@ -88,7 +150,6 @@ func (m *MediaFile) facesMWG() (faces face.Faces) {
 
 func (m *MediaFile) facesWLPG() (faces face.Faces) {
 	logName := clean.Log(m.BaseName())
-	fittingFn := math.Min // or math.Max
 
 	if len(m.MetaData().RegionsMP) > 0 {
 		for _, region := range m.MetaData().RegionsMP {
@@ -125,14 +186,16 @@ func (m *MediaFile) facesWLPG() (faces face.Faces) {
 			x += w / 2
 			y += h / 2
 
+			area := normalizedAreaFromCoords(x, y, w, h, m.Orientation())
+
 			face := face.Face{
-				Rows: m.Height(),
-				Cols: m.Width(),
+				Rows: m.metaData.ActualHeight(),
+				Cols: m.metaData.ActualWidth(),
 				Area: face.Area{
 					Name:  region.PersonDisplayName,
-					Row:   int(y * float64(m.Height())),
-					Col:   int(x * float64(m.Width())),
-					Scale: int(fittingFn(h*float64(m.Height()), w*float64(m.Width()))),
+					Row:   area.Row(m.MetaData()),
+					Col:   area.Col(m.MetaData()),
+					Scale: area.Scale(m.MetaData()),
 				},
 			}
 
@@ -145,7 +208,6 @@ func (m *MediaFile) facesWLPG() (faces face.Faces) {
 
 func (m *MediaFile) facesIPTC() (faces face.Faces) {
 	logName := clean.Log(m.BaseName())
-	fittingFn := math.Min // or math.Max
 
 	if len(m.MetaData().RegionsIPTC) > 0 {
 		for _, region := range m.MetaData().RegionsIPTC {
@@ -161,7 +223,7 @@ func (m *MediaFile) facesIPTC() (faces face.Faces) {
 
 			person := region.Person[0]
 
-			var x, y, w, h, wScale, hScale float64
+			var x, y, w, h float64
 
 			switch shape {
 			case IPTCShapeRectangle:
@@ -185,24 +247,30 @@ func (m *MediaFile) facesIPTC() (faces face.Faces) {
 
 			switch unit {
 			case IPTCUnitPixel:
-				hScale = 1
-				wScale = 1
+				width := float64(m.metaData.ActualWidth())
+				height := float64(m.metaData.ActualHeight())
+
+				x /= width
+				y /= height
+
+				w /= width
+				h /= height
 			case IPTCUnitRelative:
-				hScale = float64(m.Height())
-				wScale = float64(m.Width())
 			default:
 				log.Warnf("faces: ignoring IPTC face region for %s, as %s unit is not supported (%s)", person, unit, logName)
 				continue
 			}
+
+			area := normalizedAreaFromCoords(x, y, w, h, m.Orientation())
 
 			face := face.Face{
 				Rows: m.Height(),
 				Cols: m.Width(),
 				Area: face.Area{
 					Name:  person,
-					Row:   int(y * hScale),
-					Col:   int(x * wScale),
-					Scale: int(fittingFn(h*hScale, w*wScale)),
+					Row:   area.Row(m.MetaData()),
+					Col:   area.Col(m.MetaData()),
+					Scale: area.Scale(m.MetaData()),
 				},
 			}
 
