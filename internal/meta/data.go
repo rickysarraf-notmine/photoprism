@@ -108,11 +108,14 @@ type Area struct {
 	Unit string
 }
 
+// RegionIPTC represents a face region in IPTC format.
 type RegionIPTC struct {
 	Person   []string `json:"PersonInImage"`
 	Boundary Boundary `json:"RegionBoundary"`
 }
 
+// Boundary describes an IPTC face region shape.
+// All coordinates are relative to the image's orientation.
 type Boundary struct {
 	Shape string  `json:"RbShape"`
 	Unit  string  `json:"RbUnit"`
@@ -124,6 +127,7 @@ type Boundary struct {
 }
 
 // RegionMP represents a face region in WLPG format.
+// All coordinates are relative to the image's orientation.
 type RegionMP struct {
 	PersonDisplayName string
 	Rectangle         string

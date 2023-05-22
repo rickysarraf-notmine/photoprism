@@ -24,13 +24,15 @@ const (
 	MWGUnitNormalized = "normalized"
 )
 
+// area describes a face region bounding box
 type area struct {
-	x float64
-	y float64
-	w float64
-	h float64
+	x float64 // face center
+	y float64 // face center
+	w float64 // face width
+	h float64 // face height
 }
 
+// Normalize takes the image orientation into account and rotates the area accordingly if needed.
 func (a *area) Normalize(orientation int) {
 	if orientation > 4 {
 		a.w, a.h = a.h, a.w
@@ -54,14 +56,17 @@ func (a *area) Normalize(orientation int) {
 	a.y = math.Abs(a.y - swapY)
 }
 
+// Row calculates the face region's centerpoint along the Y axis.
 func (a area) Row(metadata meta.Data) int {
 	return int(a.y * float64(metadata.ActualHeight()))
 }
 
+// Col calculates the face region's centerpoint along the X axis.
 func (a area) Col(metadata meta.Data) int {
 	return int(a.x * float64(metadata.ActualWidth()))
 }
 
+// Scale calculates the size of the face region (which is square).
 func (a area) Scale(metadata meta.Data) int {
 	// Determine how to clip the region rectangle - along the short ot long side
 	fittingFn := math.Min // or math.Max
