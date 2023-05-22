@@ -14,6 +14,13 @@ const (
 	IPTCShapeCircle    = "circle"
 	IPTCUnitPixel      = "pixel"
 	IPTCUnitRelative   = "relative"
+
+	MWGTypeFace    = "face"
+	MWGTypePet     = "pet"
+	MWGTypeFocus   = "focus"
+	MWGTypeBarcode = "barcode"
+
+	MWGUnitNormalized = "normalized"
 )
 
 // HasFaces returns whether the media contains face region metadata.
@@ -44,11 +51,20 @@ func (m *MediaFile) Faces() face.Faces {
 }
 
 func (m *MediaFile) facesMWG() (faces face.Faces) {
+	logName := clean.Log(m.BaseName())
 	fittingFn := math.Min // or math.Max
 
 	if len(m.MetaData().Regions) > 0 {
 		for _, region := range m.MetaData().Regions {
-			if !strings.EqualFold(region.Type, "face") {
+			person := region.Name
+
+			if !strings.EqualFold(region.Type, MWGTypeFace) {
+				log.Warnf("faces: ignoring MWG region for %s, as %s type is not supported (%s)", person, region.Type, logName)
+				continue
+			}
+
+			if !strings.EqualFold(region.Area.Unit, MWGUnitNormalized) {
+				log.Warnf("faces: ignoring MWG region for %s, as %s unit is not supported (%s)", person, region.Area.Unit, logName)
 				continue
 			}
 
@@ -56,7 +72,7 @@ func (m *MediaFile) facesMWG() (faces face.Faces) {
 				Rows: m.Height(),
 				Cols: m.Width(),
 				Area: face.Area{
-					Name:  region.Name,
+					Name:  person,
 					Row:   int(region.Area.Y * float32(m.Height())),
 					Col:   int(region.Area.X * float32(m.Width())),
 					Scale: int(fittingFn(float64(region.Area.H)*float64(m.Height()), float64(region.Area.W)*float64(m.Width()))),
