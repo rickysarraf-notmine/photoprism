@@ -363,33 +363,27 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 
 				// Assign the embeddings to the face and add the face to the file, which will create a new marker.
 				f.Embeddings = embeddings
-				file.AddFace(f, "")
+				marker, err := file.AddFace(f, "")
 
-				// It is expected that adding the new face to the file will result in a new unsaved marker.
-				if !file.UnsavedMarkers() {
-					log.Errorf("index: face marker was not created for face %s and file %s", f, logName)
+				if err != nil {
+					log.Errorf("index: %s (adding face %s to file %s)", err, f, clean.Log(file.FileUID))
 					continue
 				}
 
-				// Save the new marker.
-				if count, err := file.SaveMarkers(); err != nil {
-					log.Errorf("index: %s (saving new marker for %s)", err, logName)
-					continue
-				} else if count == 0 {
-					log.Errorf("markers: did not save new marker for %s", logName)
+				if marker == nil {
+					log.Errorf("index: could not create marker for file %s and face %s - possible bug", clean.Log(file.FileUID), f)
 					continue
 				}
 
-				// Retrieve the newly saved marker, assign the face name and save it
-				marker := file.LatestMarker()
-				changed, err := marker.SetName(f.Area.Name, entity.SrcMeta)
+				name := f.Area.Name
+				changed, err := marker.SetName(name, entity.SrcMeta)
 
 				if err != nil {
 					log.Errorf("index: %s (setting marker name for %s)", err, marker.MarkerUID)
 				} else if changed {
-					if err := marker.Save(); err != nil {
-						log.Errorf("index: %s (saving marker %s)", err, marker.MarkerUID)
-					}
+					log.Debugf("index: successfully added face %s to file %s", f, clean.Log(file.FileUID))
+				} else {
+					log.Warnf("index: could not change name for marker %s (%s) to %s", clean.Log(marker.MarkerUID), clean.Log(marker.MarkerName), clean.Log(name))
 				}
 			}
 		}
