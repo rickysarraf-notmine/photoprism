@@ -99,19 +99,23 @@ type Region struct {
 }
 
 // Area describes the face area in MWG format.
+// All coordinates are relative to the image's orientation.
 type Area struct {
-	H    float32
-	W    float32
-	X    float32 // face center
-	Y    float32 // face center
+	H    float64 // face height
+	W    float64 // face width
+	X    float64 // face center
+	Y    float64 // face center
 	Unit string
 }
 
+// RegionIPTC represents a face region in IPTC format.
 type RegionIPTC struct {
 	Person   []string `json:"PersonInImage"`
 	Boundary Boundary `json:"RegionBoundary"`
 }
 
+// Boundary describes an IPTC face region shape.
+// All coordinates are relative to the image's orientation.
 type Boundary struct {
 	Shape string  `json:"RbShape"`
 	Unit  string  `json:"RbUnit"`
@@ -123,6 +127,7 @@ type Boundary struct {
 }
 
 // RegionMP represents a face region in WLPG format.
+// All coordinates are relative to the image's orientation.
 type RegionMP struct {
 	PersonDisplayName string
 	Rectangle         string

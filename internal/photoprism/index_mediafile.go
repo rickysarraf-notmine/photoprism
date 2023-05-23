@@ -331,9 +331,10 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 		return result
 	} else if ind.findFaces && file.FilePrimary {
 		if m.HasFaces() {
-			log.Debugf("index: found face region metadata in %s (%s)", logName, m.Faces())
+			faces := m.Faces()
+			log.Debugf("index: found face region metadata in %s (%s)", logName, faces)
 
-			for _, f := range m.Faces() {
+			for _, f := range faces {
 				log.Debugf("index: processing face region %s", f)
 
 				if file.HasFace(f) {
@@ -356,7 +357,7 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 				// Check that we have only one embedding. This duplicates the check in AddFace, but it's important
 				// to have it here as well, so that we can report the error.
 				if !embeddings.One() {
-					log.Errorf("index: unexpected embeddings count %d for face region crop area %s and file %s", embeddings.Count(), f.CropArea(), logName)
+					log.Errorf("index: unexpected embeddings count %d for face region %s and file %s", embeddings.Count(), f, logName)
 					continue
 				}
 
