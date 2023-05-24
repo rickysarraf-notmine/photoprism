@@ -90,6 +90,8 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 				Where("photos_albums.hidden = 0 AND photos_albums.album_uid = ?", a.AlbumUID)
 		} else if err = form.Unserialize(&f, a.AlbumFilter); err != nil {
 			return PhotoResults{}, 0, ErrBadFilter
+		} else if err = f.ParseQueryString(); err != nil {
+			return PhotoResults{}, 0, ErrBadFilter
 		} else {
 			f.Filter = a.AlbumFilter
 			s = s.Where("files.photo_uid NOT IN (SELECT photo_uid FROM photos_albums pa WHERE pa.hidden = 1 AND pa.album_uid = ?)", a.AlbumUID)
