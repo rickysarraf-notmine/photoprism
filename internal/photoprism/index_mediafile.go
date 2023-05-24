@@ -336,42 +336,53 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 			for _, f := range faces {
 				log.Debugf("index: processing face region %s", f)
 
-				if file.HasFace(f) {
-					log.Debugf("index: face region was already indexed %s", f)
-					continue
-				}
-
-				// Hardcode the face score, which is usually computed by facenet.
-				// Setting a higher score (>15), will mean that the face region will be used for clustering.
-				f.Score = 1
-
-				// Calculate the embeddings vector for the given face region.
-				embeddings, err := ind.faceNet.Embeddings(FileName(file.FileRoot, file.FileName), f)
+				marker, err := file.FindFaceMarker(f)
 
 				if err != nil {
-					log.Errorf("index: %s (calculating embeddings for %s)", err, logName)
+					log.Errorf("index: %s (searching for face marker)", err)
 					continue
 				}
 
-				// Check that we have only one embedding. This duplicates the check in AddFace, but it's important
-				// to have it here as well, so that we can report the error.
-				if !embeddings.One() {
-					log.Errorf("index: unexpected embeddings count %d for face region %s and file %s", embeddings.Count(), f, logName)
-					continue
-				}
+				if marker != nil {
+					if marker.SubjectName() != "" {
+						log.Debugf("index: face region was already indexed %s", f)
+						continue
+					} else {
+						log.Debugf("index: face region was indexed, but was not named %s", f)
+					}
+				} else {
+					// Hardcode the face score, which is usually computed by facenet.
+					// Setting a higher score (>15), will mean that the face region will be used for clustering.
+					f.Score = 1
 
-				// Assign the embeddings to the face and add the face to the file, which will create a new marker.
-				f.Embeddings = embeddings
-				marker, err := file.AddFace(f, "")
+					// Calculate the embeddings vector for the given face region.
+					embeddings, err := ind.faceNet.Embeddings(FileName(file.FileRoot, file.FileName), f)
 
-				if err != nil {
-					log.Errorf("index: %s (adding face %s to file %s)", err, f, clean.Log(file.FileUID))
-					continue
-				}
+					if err != nil {
+						log.Errorf("index: %s (calculating embeddings for %s)", err, logName)
+						continue
+					}
 
-				if marker == nil {
-					log.Errorf("index: could not create marker for file %s and face %s - possible bug", clean.Log(file.FileUID), f)
-					continue
+					// Check that we have only one embedding. This duplicates the check in AddFace, but it's important
+					// to have it here as well, so that we can report the error.
+					if !embeddings.One() {
+						log.Errorf("index: unexpected embeddings count %d for face region %s and file %s", embeddings.Count(), f, logName)
+						continue
+					}
+
+					// Assign the embeddings to the face and add the face to the file, which will create a new marker.
+					f.Embeddings = embeddings
+					marker, err = file.AddFace(f, "")
+
+					if err != nil {
+						log.Errorf("index: %s (adding face %s to file %s)", err, f, clean.Log(file.FileUID))
+						continue
+					}
+
+					if marker == nil {
+						log.Errorf("index: could not create marker for file %s and face %s - possible bug", clean.Log(file.FileUID), f)
+						continue
+					}
 				}
 
 				name := f.Area.Name
