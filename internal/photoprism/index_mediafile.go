@@ -12,7 +12,6 @@ import (
 	"github.com/photoprism/photoprism/internal/classify"
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/event"
-	"github.com/photoprism/photoprism/internal/face"
 	"github.com/photoprism/photoprism/internal/meta"
 	"github.com/photoprism/photoprism/internal/query"
 	"github.com/photoprism/photoprism/pkg/clean"
@@ -342,9 +341,9 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 					continue
 				}
 
-				// Calculate the face score, which is usually done by facenet.
-				f.Score = int(face.QualityThreshold(f.Area.Scale))
-				log.Debugf("index: calculated face score %d", f.Score)
+				// Hardcode the face score, which is usually computed by facenet.
+				// Setting a higher score (>15), will mean that the face region will be used for clustering.
+				f.Score = 1
 
 				// Calculate the embeddings vector for the given face region.
 				embeddings, err := ind.faceNet.Embeddings(FileName(file.FileRoot, file.FileName), f)
