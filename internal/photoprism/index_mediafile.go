@@ -383,6 +383,10 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 						log.Errorf("index: could not create marker for file %s and face %s - possible bug", clean.Log(file.FileUID), f)
 						continue
 					}
+
+					// Set the source for face region markers to 'meta' to be able to distinguish from
+					// detected markers, which have the 'image' source.
+					marker.MarkerSrc = entity.SrcMeta
 				}
 
 				name := f.Area.Name
