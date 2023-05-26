@@ -363,13 +363,6 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 						continue
 					}
 
-					// Check that we have only one embedding. This duplicates the check in AddFace, but it's important
-					// to have it here as well, so that we can report the error.
-					if !embeddings.One() {
-						log.Errorf("index: unexpected embeddings count %d for face region %s and file %s", embeddings.Count(), f, logName)
-						continue
-					}
-
 					// Assign the embeddings to the face and add the face to the file, which will create a new marker.
 					f.Embeddings = embeddings
 					marker, err = file.AddFace(f, "")

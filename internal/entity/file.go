@@ -740,7 +740,7 @@ func (m *File) AddFaces(faces face.Faces) {
 func (m *File) AddFace(f face.Face, subjUid string) (*Marker, error) {
 	// Only add faces with exactly one embedding so that they can be compared and clustered.
 	if !f.Embeddings.One() {
-		return nil, fmt.Errorf("file does not have exactly one embedding, has %d", f.Embeddings.Count())
+		return nil, fmt.Errorf("face does not have exactly one embedding, has %d", f.Embeddings.Count())
 	}
 
 	// Create new marker from face.
