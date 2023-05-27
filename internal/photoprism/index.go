@@ -19,6 +19,7 @@ import (
 	"github.com/photoprism/photoprism/internal/i18n"
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/internal/nsfw"
+	"github.com/photoprism/photoprism/internal/plugin"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/media"
@@ -104,6 +105,9 @@ func (ind *Index) Start(o IndexOptions) (found fs.Done, updated int) {
 		event.InfoMsg(i18n.ErrOriginalsEmpty)
 		return found, updated
 	}
+
+	// Load plugins.
+	plugin.LoadPlugins(ind.conf.PluginsPath())
 
 	if err := mutex.MainWorker.Start(); err != nil {
 		event.Error(fmt.Sprintf("index: %s", err.Error()))
