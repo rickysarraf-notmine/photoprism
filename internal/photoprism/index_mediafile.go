@@ -13,6 +13,7 @@ import (
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/internal/meta"
+	"github.com/photoprism/photoprism/internal/plugin"
 	"github.com/photoprism/photoprism/internal/query"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
@@ -929,6 +930,20 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 
 	if err := query.SetDownloadFileID(downloadedAs, file.ID); err != nil {
 		log.Errorf("index: %s in %s (set download id)", err, logName)
+	}
+
+	// Plugins hook
+	changed := plugin.OnIndex(&file, &photo)
+
+	// Update file and photo post-plugin update
+	if changed {
+		if err := file.Save(); err != nil {
+			log.Errorf("index: %s in %s (saving file post plugin hook)", err, logName)
+		}
+
+		if err := photo.Save(); err != nil {
+			log.Errorf("index: %s in %s (saving photo post plugin hook)", err, logName)
+		}
 	}
 
 	if !o.Stack || photo.PhotoStack == entity.IsUnstacked {
