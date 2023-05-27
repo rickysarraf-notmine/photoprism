@@ -786,6 +786,6 @@ var Flags = CliFlags{
 		Flag: cli.BoolFlag{
 			Name:   "enable-expvar",
 			Usage:  "provide a publicly accessible expvar endpoint",
-			EnvVar: "PHOTOPRISM_ENABLE_EXPVAR",
+			EnvVar: EnvVar("ENABLE_EXPVAR"),
 		}},
 }
