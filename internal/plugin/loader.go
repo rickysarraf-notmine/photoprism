@@ -67,8 +67,8 @@ func LoadPlugins(path string) {
 		pluginName := strings.ToLower(plugin.Name())
 
 		config := loadConfig(plugin)
-		if !config.Active() {
-			log.Warnf("plugin %s: plugin was loaded, but is not active", pluginName)
+		if !config.Enabled() {
+			log.Warnf("plugin %s: plugin was loaded, but is not enabled", pluginName)
 			continue
 		}
 

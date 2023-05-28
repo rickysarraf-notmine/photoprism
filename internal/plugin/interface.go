@@ -18,7 +18,7 @@ type Plugin interface {
 	OnIndex(*entity.File, *entity.Photo) error
 }
 
-// OnIndex calls the [OnIndex] hook method for all active plugins.
+// OnIndex calls the [OnIndex] hook method for all enabled plugins.
 func OnIndex(file *entity.File, photo *entity.Photo) (changed bool) {
 	for _, p := range getPlugins() {
 		if err := p.OnIndex(file, photo); err != nil {

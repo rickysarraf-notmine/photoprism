@@ -9,15 +9,15 @@ import (
 )
 
 const (
-	KeyActive = "active"
+	KeyEnable = "enabled"
 )
 
 // PluginConfig is a type alias for a key-value based plugin configuration.
 type PluginConfig map[string]string
 
-// Active checks whether the plugin has been explicitly activated by the used.
-func (c PluginConfig) Active() bool {
-	if value, ok := c[KeyActive]; ok {
+// Enabled checks whether the plugin has been explicitly enabled by the used.
+func (c PluginConfig) Enabled() bool {
+	if value, ok := c[KeyEnable]; ok {
 		return list.Bool[strings.ToLower(value)] == list.True
 	}
 

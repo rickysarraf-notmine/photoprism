@@ -36,4 +36,4 @@ PhotoPrism will look in the `plugins` folder within the `PHOTOPRISM_STORAGE_PATH
 
 - There should be `Plugin` variable that exposes the plugin implementation.
 - Your plugin must implement all of the required interface method, even if you dont use them.
-- Your plugin must be explicitly activated using the `active` configuration parameter: `PHOTOPRISM_PLUGIN_[UPPERCASE_PLUGIN_NAME]_ACTIVE=yes/true/on/enable`.
+- Your plugin must be explicitly activated using the `enabled` configuration parameter: `PHOTOPRISM_PLUGIN_[UPPERCASE_PLUGIN_NAME]_ENABLED=yes/true/on/enable`.
