@@ -1,2 +1,2 @@
-Flask
-ultralytics
+ultralytics==8.0.110
+flask==2.3.2
