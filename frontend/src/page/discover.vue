@@ -78,7 +78,7 @@ export default {
     changePath: function (path) {
       if (this.$route.path !== path) {
         this.$router.replace(path);
-	  window.location.reload();
+	  //window.location.reload();
       }
     }
   },
