@@ -149,6 +149,17 @@ services:
       MARIADB_PASSWORD: "photoprism"
       MARIADB_ROOT_PASSWORD: "photoprism"
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5.0
+    restart: always
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 4001
+    ports:
+      - 6060:80
+    depends_on:
+      - mariadb
+
   ## HTTPS Reverse Proxy (recommended) ##
   ## includes "*.localssl.dev" SSL certificate for test environments
   ## Docs: https://doc.traefik.io/traefik/
