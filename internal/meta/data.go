@@ -76,6 +76,11 @@ type Data struct {
 	MicroVideo        bool             `meta:"MicroVideo"`
 	MicroVideoVersion int              `meta:"MicroVideoVersion"`
 	MicroVideoOffset  int              `meta:"MicroVideoOffset"`
+
+	// New, face region related properties
+	Regions     []Region     `meta:"RegionInfo"`
+	RegionsIPTC []RegionIPTC `meta:"ImageRegion"`
+	RegionsMP   []RegionMP   `meta:"RegionInfoMP"`
 }
 
 // DirectoryEntry represents the "Directory" exif metadata type.
@@ -84,6 +89,48 @@ type DirectoryEntry struct {
 	Semantic string
 	Length   int
 	Padding  int
+}
+
+// Region represents a face region in MWG format.
+type Region struct {
+	Area Area
+	Name string
+	Type string
+}
+
+// Area describes the face area in MWG format.
+// All coordinates are relative to the image's orientation.
+type Area struct {
+	H    float64 // face height
+	W    float64 // face width
+	X    float64 // face center
+	Y    float64 // face center
+	Unit string
+}
+
+// RegionIPTC represents a face region in IPTC format.
+type RegionIPTC struct {
+	Person   []string `json:"PersonInImage"`
+	Boundary Boundary `json:"RegionBoundary"`
+}
+
+// Boundary describes an IPTC face region shape.
+// All coordinates are relative to the image's orientation.
+type Boundary struct {
+	Shape string  `json:"RbShape"`
+	Unit  string  `json:"RbUnit"`
+	H     float64 `json:"RbH"`
+	W     float64 `json:"RbW"`
+	X     float64 `json:"RbX"`
+	Y     float64 `json:"RbY"`
+	Rx    float64 `json:"RbRx"`
+}
+
+// RegionMP represents a face region in WLPG format.
+// All coordinates are relative to the image's orientation.
+type RegionMP struct {
+	PersonDisplayName string
+	Rectangle         string
 }
 
 // New returns a new metadata struct.

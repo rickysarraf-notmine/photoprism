@@ -737,10 +737,10 @@ func (m *File) AddFaces(faces face.Faces) {
 }
 
 // AddFace adds a face marker to the file.
-func (m *File) AddFace(f face.Face, subjUid string) {
+func (m *File) AddFace(f face.Face, subjUid string) (*Marker, error) {
 	// Only add faces with exactly one embedding so that they can be compared and clustered.
 	if !f.Embeddings.One() {
-		return
+		return nil, fmt.Errorf("face does not have exactly one embedding, has %d", f.Embeddings.Count())
 	}
 
 	// Create new marker from face.
@@ -748,13 +748,31 @@ func (m *File) AddFace(f face.Face, subjUid string) {
 
 	// Failed creating new marker?
 	if marker == nil {
-		return
+		return nil, fmt.Errorf("could not create marker, probably due to missing file hash")
 	}
 
 	// Append marker if it doesn't conflict with existing marker.
 	if markers := m.Markers(); !markers.Contains(*marker) {
 		markers.AppendWithEmbedding(*marker)
+
+		return m.LastMarker(), nil
 	}
+
+	return nil, nil
+}
+
+// FindFaceMarker checks whether the file already contains a marker for the given face and returns it if it does.
+func (m *File) FindFaceMarker(f face.Face) (*Marker, error) {
+	// Create new marker from face.
+	marker := NewFaceMarker(f, *m, "")
+
+	// Failed creating new marker?
+	if marker == nil {
+		return nil, fmt.Errorf("failed creating marker when searching for face marker")
+	}
+
+	// Check if marker overlaps with existing markers and return it.
+	return m.Markers().Find(*marker), nil
 }
 
 // ValidFaceCount returns the number of valid face markers.
@@ -817,6 +835,12 @@ func (m *File) LatestMarker() Marker {
 	}
 
 	return latest
+}
+
+// LastMarker returns the last marker added to the file.
+func (m *File) LastMarker() *Marker {
+	markers := m.Markers()
+	return &(*markers)[len(*markers)-1]
 }
 
 // UnsavedMarkers tests if any marker hasn't been saved yet.

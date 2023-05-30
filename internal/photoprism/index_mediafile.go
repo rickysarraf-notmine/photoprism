@@ -330,6 +330,72 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 		result.Status = IndexSkipped
 		return result
 	} else if ind.findFaces && file.FilePrimary {
+		if m.HasFaces() {
+			faces := m.Faces()
+			log.Debugf("index: found face region metadata in %s (%s)", logName, faces)
+
+			for _, f := range faces {
+				log.Debugf("index: processing face region %s", f)
+
+				marker, err := file.FindFaceMarker(f)
+
+				if err != nil {
+					log.Errorf("index: %s (searching for face marker)", err)
+					continue
+				}
+
+				if marker != nil {
+					if marker.SubjectName() != "" {
+						log.Debugf("index: face region was already indexed %s", f)
+						continue
+					} else {
+						log.Debugf("index: face region was indexed, but was not named %s", f)
+					}
+				} else {
+					// Hardcode the face score, which is usually computed by facenet.
+					// Setting a higher score (>15), will mean that the face region will be used for clustering.
+					f.Score = 1
+
+					// Calculate the embeddings vector for the given face region.
+					embeddings, err := ind.faceNet.Embeddings(FileName(file.FileRoot, file.FileName), f)
+
+					if err != nil {
+						log.Errorf("index: %s (calculating embeddings for %s)", err, logName)
+						continue
+					}
+
+					// Assign the embeddings to the face and add the face to the file, which will create a new marker.
+					f.Embeddings = embeddings
+					marker, err = file.AddFace(f, "")
+
+					if err != nil {
+						log.Errorf("index: %s (adding face %s to file %s)", err, f, clean.Log(file.FileUID))
+						continue
+					}
+
+					if marker == nil {
+						log.Errorf("index: could not create marker for file %s and face %s - possible bug", clean.Log(file.FileUID), f)
+						continue
+					}
+
+					// Set the source for face region markers to 'meta' to be able to distinguish from
+					// detected markers, which have the 'image' source.
+					marker.MarkerSrc = entity.SrcMeta
+				}
+
+				name := f.Area.Name
+				changed, err := marker.SetName(name, entity.SrcMeta)
+
+				if err != nil {
+					log.Errorf("index: %s (setting marker name for %s)", err, marker.MarkerUID)
+				} else if changed {
+					log.Debugf("index: successfully added face %s to file %s", f, clean.Log(file.FileUID))
+				} else {
+					log.Warnf("index: could not change name for marker %s (%s) to %s", clean.Log(marker.MarkerUID), clean.Log(marker.MarkerName), clean.Log(name))
+				}
+			}
+		}
+
 		if markers := file.Markers(); markers != nil {
 			// Detect faces.
 			faces := ind.Faces(m, markers.DetectedFaceCount())
