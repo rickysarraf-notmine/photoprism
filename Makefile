@@ -219,6 +219,9 @@ build-race:
 build-static:
 	rm -f $(BINARY_NAME)
 	scripts/build.sh static $(BINARY_NAME)
+build-plugin-demo:
+	mkdir -p storage/plugins
+	go build -buildmode=plugin -o storage/plugins/demo.so internal/plugin/demo/demo.go
 build-tensorflow:
 	docker build -t photoprism/tensorflow:build docker/tensorflow
 	docker run -ti photoprism/tensorflow:build bash

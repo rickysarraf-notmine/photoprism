@@ -342,7 +342,7 @@ func (c *Config) UsersOriginalsPath() string {
 
 // UsersStoragePath returns the users storage base path.
 func (c *Config) UsersStoragePath() string {
-	return filepath.Join(c.StoragePath(), "users")
+	return filepath.Join(c.StoragePath(), c.UsersPath())
 }
 
 // UserStoragePath returns the storage path for user assets.
@@ -614,4 +614,9 @@ func (c *Config) AlbumsPath() string {
 // OriginalsAlbumsPath returns the optional album YAML file path inside originals.
 func (c *Config) OriginalsAlbumsPath() string {
 	return filepath.Join(c.OriginalsPath(), "albums")
+}
+
+// PluginsPath returns the absolute path where plugin solibs should be located.
+func (c *Config) PluginsPath() string {
+	return filepath.Join(c.StoragePath(), "plugins")
 }
