@@ -2,8 +2,9 @@ package plugin
 
 import (
 	"fmt"
-	"strings"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/photoprism/photoprism/pkg/list"
 )
@@ -23,6 +24,28 @@ func (c PluginConfig) Enabled() bool {
 
 	// All plugins are disabled per default and only activated if explicitly enabled.
 	return false
+}
+
+// MandatoryStringParameter reads a mandatory string plugin parameter.
+func (c PluginConfig) MandatoryStringParameter(name string) (string, error) {
+	if value, ok := c[name]; !ok {
+		return "", fmt.Errorf("%s parameter is mandatory", name)
+	} else {
+		return value, nil
+	}
+}
+
+// OptionalFloatParameter reads an optional float64 plugin parameter.
+func (c PluginConfig) OptionalFloatParameter(name string, defaultValue float64) (float64, error) {
+	if value, ok := c[name]; ok {
+		if fValue, err := strconv.ParseFloat(value, 64); err != nil {
+			return 0, err
+		} else {
+			return fValue, nil
+		}
+	} else {
+		return defaultValue, nil
+	}
 }
 
 func loadConfig(p Plugin) PluginConfig {
