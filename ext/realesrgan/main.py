@@ -63,9 +63,6 @@ model = RealESRGANer(
     model_path=model_path,
     model=model_info["model"](),
     half=True if "cuda" in device else False,
-    tile=512,
-    tile_pad=10,
-    pre_pad=10,
     device=device,
 )
 

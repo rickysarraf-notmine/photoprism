@@ -224,10 +224,13 @@ build-race:
 build-static:
 	rm -f $(BINARY_NAME)
 	scripts/build.sh static $(BINARY_NAME)
-build-plugins: build-plugin-demo build-plugin-yolo8
+build-plugins: build-plugin-demo build-plugin-realesrgan build-plugin-yolo8
 build-plugin-demo:
 	mkdir -p $(PLUGINS_PATH)
 	go build -tags=debug -buildmode=plugin -o $(PLUGINS_PATH)/demo.so internal/plugin/demo/demo.go
+build-plugin-realesrgan:
+	mkdir -p $(PLUGINS_PATH)
+	go build -tags=debug -buildmode=plugin -o $(PLUGINS_PATH)/realesrgan.so internal/plugin/realesrgan/realesrgan.go
 build-plugin-yolo8:
 	mkdir -p $(PLUGINS_PATH)
 	go build -tags=debug -buildmode=plugin -o $(PLUGINS_PATH)/yolo8.so internal/plugin/yolo8/yolo8.go
