@@ -3,9 +3,10 @@ package plugin
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
+	"github.com/creasty/defaults"
+	"github.com/mitchellh/mapstructure"
 	"github.com/photoprism/photoprism/pkg/list"
 )
 
@@ -26,26 +27,19 @@ func (c PluginConfig) Enabled() bool {
 	return false
 }
 
-// MandatoryStringParameter reads a mandatory string plugin parameter.
-func (c PluginConfig) MandatoryStringParameter(name string) (string, error) {
-	if value, ok := c[name]; !ok {
-		return "", fmt.Errorf("%s parameter is mandatory", name)
-	} else {
-		return value, nil
+// // Decode populates a struct with the configuration data.
+func (c PluginConfig) Decode(init any) error {
+	if err := defaults.Set(init); err != nil {
+		return err
 	}
-}
 
-// OptionalFloatParameter reads an optional float64 plugin parameter.
-func (c PluginConfig) OptionalFloatParameter(name string, defaultValue float64) (float64, error) {
-	if value, ok := c[name]; ok {
-		if fValue, err := strconv.ParseFloat(value, 64); err != nil {
-			return 0, err
-		} else {
-			return fValue, nil
-		}
-	} else {
-		return defaultValue, nil
+	if err := mapstructure.WeakDecode(c, &init); err != nil {
+		return err
 	}
+
+	fmt.Printf("CFG OK %#v", init)
+
+	return nil
 }
 
 func loadConfig(p Plugin) PluginConfig {

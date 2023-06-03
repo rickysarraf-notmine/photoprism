@@ -18,10 +18,14 @@ type DetectResult struct {
 	Confidence float64 `json:"confidence"`
 }
 
+type Config struct {
+	Hostname            string
+	Port                string
+	ThresholdConfidence float64 `default:"0.4"`
+}
+
 type Yolo8Plugin struct {
-	hostname      string
-	port          string
-	confThreshold float64
+	Config *Config
 }
 
 func (p Yolo8Plugin) Name() string {
@@ -29,32 +33,19 @@ func (p Yolo8Plugin) Name() string {
 }
 
 func (p Yolo8Plugin) Hostname() string {
-	return p.hostname
+	return p.Config.Hostname
 }
 
 func (p Yolo8Plugin) Port() string {
-	return p.port
+	return p.Config.Port
 }
 
 func (p *Yolo8Plugin) Configure(config plugin.PluginConfig) error {
-	hostname, err := config.MandatoryStringParameter("hostname")
-	if err != nil {
+	p.Config = &Config{}
+
+	if err := config.Decode(p.Config); err != nil {
 		return err
 	}
-
-	port, err := config.MandatoryStringParameter("port")
-	if err != nil {
-		return err
-	}
-
-	threshold, err := config.OptionalFloatParameter("confidence_threshold", 0.5)
-	if err != nil {
-		return err
-	}
-
-	p.hostname = hostname
-	p.port = port
-	p.confThreshold = threshold
 
 	return nil
 }
@@ -70,8 +61,11 @@ func (p *Yolo8Plugin) OnIndex(file *entity.File, photo *entity.Photo) error {
 		return err
 	}
 
+	if len(labels) > 0 {
+		fmt.Printf("adding labels %#v", labels)
+	}
+
 	photo.AddLabels(labels)
-	fmt.Printf("adding labels %#v", labels)
 
 	return nil
 }
@@ -88,7 +82,7 @@ func (p *Yolo8Plugin) detect(image string) (classify.Labels, error) {
 	if output, err := plugin.PostJson[DetectResults](p, "detect", payload); err != nil {
 		return nil, err
 	} else {
-		return output.toLabels(p.confThreshold), nil
+		return output.toLabels(p.Config.ThresholdConfidence), nil
 	}
 }
 
@@ -98,7 +92,7 @@ func (p *Yolo8Plugin) classify(image string) (classify.Labels, error) {
 	if output, err := plugin.PostJson[ClassifyResults](p, "classify", payload); err != nil {
 		return nil, err
 	} else {
-		return output.toLabels(p.confThreshold), nil
+		return output.toLabels(p.Config.ThresholdConfidence), nil
 	}
 }
 

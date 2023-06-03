@@ -15,13 +15,17 @@ type UpscaleResult struct {
 	Image string `json:"image"`
 }
 
-type RealESRGANPlugin struct {
-	hostname string
-	port     string
-	scale    float64
+type Config struct {
+	Hostname string
+	Port     string
+	Scale    float64 `default:"2"`
 
-	thresholdResolution float64
-	thresholdQuality    float64
+	ThresholdResolution float64 `default:"3"`
+	ThresholdQuality    float64 `default:"3"`
+}
+
+type RealESRGANPlugin struct {
+	Config *Config
 }
 
 func (p RealESRGANPlugin) Name() string {
@@ -29,44 +33,19 @@ func (p RealESRGANPlugin) Name() string {
 }
 
 func (p RealESRGANPlugin) Hostname() string {
-	return p.hostname
+	return p.Config.Hostname
 }
 
 func (p RealESRGANPlugin) Port() string {
-	return p.port
+	return p.Config.Port
 }
 
 func (p *RealESRGANPlugin) Configure(config plugin.PluginConfig) error {
-	hostname, err := config.MandatoryStringParameter("hostname")
-	if err != nil {
+	p.Config = &Config{}
+
+	if err := config.Decode(p.Config); err != nil {
 		return err
 	}
-
-	port, err := config.MandatoryStringParameter("port")
-	if err != nil {
-		return err
-	}
-
-	scale, err := config.OptionalFloatParameter("scale", 2)
-	if err != nil {
-		return err
-	}
-
-	resolution, err := config.OptionalFloatParameter("threshold_resolution", 3)
-	if err != nil {
-		return err
-	}
-
-	quality, err := config.OptionalFloatParameter("threshold_quality", 3)
-	if err != nil {
-		return err
-	}
-
-	p.hostname = hostname
-	p.port = port
-	p.scale = scale
-	p.thresholdResolution = resolution
-	p.thresholdQuality = quality
 
 	return nil
 }
@@ -94,7 +73,7 @@ func (p *RealESRGANPlugin) OnIndex(file *entity.File, photo *entity.Photo) error
 }
 
 func (p *RealESRGANPlugin) needsUpscaling(photo *entity.Photo) bool {
-	return p.thresholdResolution > float64(photo.PhotoResolution) || p.thresholdQuality > float64(photo.PhotoQuality)
+	return p.Config.ThresholdResolution > float64(photo.PhotoResolution) || p.Config.ThresholdQuality > float64(photo.PhotoQuality)
 }
 
 func (p *RealESRGANPlugin) image(f *entity.File) (string, error) {
@@ -104,7 +83,7 @@ func (p *RealESRGANPlugin) image(f *entity.File) (string, error) {
 }
 
 func (p *RealESRGANPlugin) superscale(image string) ([]byte, error) {
-	payload := map[string]interface{}{"image": image, "scale": p.scale}
+	payload := map[string]interface{}{"image": image, "scale": p.Config.Scale}
 
 	if output, err := plugin.PostJson[UpscaleResult](p, "superscale", payload); err != nil {
 		return nil, err
