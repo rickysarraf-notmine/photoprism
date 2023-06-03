@@ -47,6 +47,8 @@ func (p *RealESRGANPlugin) Configure(config plugin.PluginConfig) error {
 		return err
 	}
 
+	plugin.LogDebugf(p, "configuration loaded %#v", p.Config)
+
 	return nil
 }
 

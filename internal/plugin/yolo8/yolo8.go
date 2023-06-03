@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/photoprism/photoprism/internal/classify"
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/photoprism"
@@ -47,6 +45,8 @@ func (p *Yolo8Plugin) Configure(config plugin.PluginConfig) error {
 		return err
 	}
 
+	plugin.LogDebugf(p, "configuration loaded %#v", p.Config)
+
 	return nil
 }
 
@@ -62,7 +62,7 @@ func (p *Yolo8Plugin) OnIndex(file *entity.File, photo *entity.Photo) error {
 	}
 
 	if len(labels) > 0 {
-		fmt.Printf("adding labels %#v", labels)
+		plugin.LogDebugf(p, "adding labels %#v", labels)
 	}
 
 	photo.AddLabels(labels)

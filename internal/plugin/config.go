@@ -37,8 +37,6 @@ func (c PluginConfig) Decode(init any) error {
 		return err
 	}
 
-	fmt.Printf("CFG OK %#v", init)
-
 	return nil
 }
 
