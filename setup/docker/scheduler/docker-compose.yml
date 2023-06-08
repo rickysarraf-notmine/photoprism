@@ -1,10 +1,9 @@
 version: '3.5'
 
 # Example Docker Compose config file for PhotoPrism (Linux / AMD64)
-# Includes Ophelia, a docker job scheduler: https://github.com/mcuadros/ofelia
+# Includes Ofelia, a docker job scheduler: https://github.com/mcuadros/ofelia
 #
 # Note:
-# - Hardware transcoding is only available to members due to the high maintenance and support effort.
 # - Running PhotoPrism on a server with less than 4 GB of swap space or setting a memory/swap limit can cause unexpected
 #   restarts ("crashes"), for example, when the indexer temporarily needs more memory to process large files.
 # - If you install PhotoPrism on a public server outside your home network, please always run it behind a secure
@@ -97,7 +96,7 @@ services:
     security_opt:
       - seccomp:unconfined
       - apparmor:unconfined
-    command: mysqld --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
+    command: mariadbd --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
     ## Never store database files on an unreliable device such as a USB flash drive, an SD card, or a shared network folder:
     volumes:
       - "./database:/var/lib/mysql" # DO NOT REMOVE
