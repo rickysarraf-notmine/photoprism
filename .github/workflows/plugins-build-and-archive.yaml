@@ -1,0 +1,42 @@
+name: Build and archive plugin solibs
+
+on:
+  push:
+    branches: [ develop, preview ]
+  pull_request:
+    branches: [ develop, preview ]
+
+  workflow_dispatch:
+
+jobs:
+  build-and-archive-plugins:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create compose stack
+        run: docker-compose -f docker-compose.ci.yml up -d --build --force-recreate
+
+      - name: Compile plugins
+        id: compile_plugins
+        run: docker-compose -f docker-compose.ci.yml exec -T photoprism make build-plugins
+
+      - name: Look for plugin solibs
+        run: docker-compose -f docker-compose.ci.yml exec -T photoprism find storage/plugins/
+        if: always() && steps.compile_plugins.outcome == 'success'
+
+      - name: Copy plugins from container to host
+        run: docker compose -f docker-compose.ci.yml cp photoprism:/go/src/github.com/photoprism/photoprism/storage/plugins/ plugins/
+        if: always() && steps.compile_plugins.outcome == 'success'
+
+      - name: Tear down stack
+        run: docker-compose -f docker-compose.ci.yml down
+
+      - name: Archive plugins
+        uses: actions/upload-artifact@v3
+        if: always() && steps.compile_plugins.outcome == 'success'
+        continue-on-error: true
+        with:
+          name: plugins
+          path: plugins/
