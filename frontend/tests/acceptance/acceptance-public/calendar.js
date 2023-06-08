@@ -55,13 +55,13 @@ test.meta("testID", "calendar-002").meta({ mode: "public" })(
       .click(albumdialog.dialogSave);
 
     await t
-      .expect(page.cardTitle.nth(0).innerText)
+      .expect(album.getNthAlbumTitle(0))
       .contains("March 2014")
-      .expect(page.cardDescription.nth(0).innerText)
+      .expect(album.getNthAlbumDescription(0))
       .contains("We went to ski")
-      .expect(Selector("div.caption").nth(1).innerText)
+      .expect(album.getNthAlbumCategory(0))
       .contains("Mountains")
-      .expect(Selector("div.caption").nth(2).innerText)
+      .expect(album.getNthAlbumLocation(0))
       .contains("Snow");
 
     await album.openNthAlbum(0);
@@ -123,13 +123,13 @@ test.meta("testID", "calendar-004").meta({ type: "short", mode: "public" })(
     await menu.openPage("albums");
     const AlbumCount = await album.getAlbumCount("all");
     await menu.openPage("calendar");
-    const SecondCalendarUid = await album.getNthAlbumUid("all", 1);
-    await album.openAlbumWithUid(SecondCalendarUid);
+    const FirstCalendarUid = await album.getNthAlbumUid("all", 0);
+    await album.openAlbumWithUid(FirstCalendarUid);
     const PhotoCountInCalendar = await photo.getPhotoCount("all");
     const FirstPhotoUid = await photo.getNthPhotoUid("image", 0);
     const SecondPhotoUid = await photo.getNthPhotoUid("image", 1);
     await menu.openPage("calendar");
-    await album.selectAlbumFromUID(SecondCalendarUid);
+    await album.selectAlbumFromUID(FirstCalendarUid);
     await contextmenu.triggerContextMenuAction("clone", "NotYetExistingAlbumForCalendar");
     await menu.openPage("albums");
     const AlbumCountAfterCreation = await album.getAlbumCount("all");
@@ -156,7 +156,7 @@ test.meta("testID", "calendar-004").meta({ type: "short", mode: "public" })(
     const AlbumCountAfterDelete = await album.getAlbumCount("all");
     await t.expect(AlbumCountAfterDelete).eql(AlbumCount);
     await menu.openPage("calendar");
-    await album.openAlbumWithUid(SecondCalendarUid);
+    await album.openAlbumWithUid(FirstCalendarUid);
     await photo.checkPhotoVisibility(FirstPhotoUid, true);
     await photo.checkPhotoVisibility(SecondPhotoUid, true);
   }

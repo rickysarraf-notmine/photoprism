@@ -47,11 +47,28 @@ import { config, session } from "./session";
 const c = window.__CONFIG__;
 const siteTitle = c.siteTitle ? c.siteTitle : c.name;
 
+function homepage() {
+  // Luckily the route name can be retrieved from the homepage url by just stripping the
+  // leading slash, however in future not all routes might be so consistently named.
+  var homepage = c.settings.ui.homepage;
+  if (homepage.charAt(0) === "/") {
+    homepage = homepage.slice(1);
+  }
+
+  if (config.allowAny(homepage, ["access_own", "search", "view"])) {
+    return homepage;
+  } else if (config.deny("photos", "search")) {
+    return "albums";
+  } else {
+    return "browse";
+  }
+}
+
 export default [
   {
     name: "home",
     path: "/",
-    redirect: "/browse",
+    redirect: c.settings.ui.homepage,
   },
   {
     name: "about",
@@ -85,10 +102,8 @@ export default [
     beforeEnter: (to, from, next) => {
       if (session.loginRequired()) {
         next();
-      } else if (config.deny("photos", "search")) {
-        next({ name: "albums" });
       } else {
-        next({ name: "browse" });
+        next({ name: homepage() });
       }
     },
   },
@@ -134,8 +149,9 @@ export default [
     beforeEnter: (to, from, next) => {
       if (session.loginRequired()) {
         next({ name: "login" });
-      } else if (config.deny("photos", "search")) {
-        next({ name: "albums" });
+      } else if (!from.name && homepage() !== "browse") {
+        // Prevent recursive redirects
+        next({ name: homepage() });
       } else {
         next();
       }
@@ -199,7 +215,7 @@ export default [
     path: "/folders",
     component: Albums,
     meta: { title: $gettext("Folders"), auth: true },
-    props: { view: "folder", defaultOrder: "name", staticFilter: { type: "folder" } },
+    props: { view: "folder", defaultOrder: "newest", staticFilter: { type: "folder" } },
   },
   {
     name: "folder",
@@ -286,6 +302,19 @@ export default [
     path: "/states/:uid/:slug",
     component: AlbumPhotos,
     meta: { collName: "Places", collRoute: "states", auth: true },
+  },
+  {
+    name: "countries",
+    path: "/countries",
+    component: Albums,
+    meta: { title: $gettext("Places"), auth: true },
+    props: { view: "country", staticFilter: { type: "country" } },
+  },
+  {
+    name: "country",
+    path: "/countries/:uid/:slug",
+    component: AlbumPhotos,
+    meta: { title: $gettext("Places"), auth: true },
   },
   {
     name: "files",
@@ -433,28 +462,35 @@ export default [
     props: { tab: 0 },
   },
   {
+    name: "discover_colors",
+    path: "/discover/colors",
+    component: Discover,
+    meta: { title: $gettext("Discover"), auth: true, background: "application-light" },
+    props: { tab: 1 },
+  },
+  {
     name: "discover_similar",
     path: "/discover/similar",
     component: Discover,
     meta: { title: $gettext("Discover"), auth: true, background: "application-light" },
-    props: { tab: 1 },
+    props: { tab: 2 },
   },
   {
     name: "discover_season",
     path: "/discover/season",
     component: Discover,
     meta: { title: $gettext("Discover"), auth: true, background: "application-light" },
-    props: { tab: 2 },
+    props: { tab: 3 },
   },
   {
     name: "discover_random",
     path: "/discover/random",
     component: Discover,
     meta: { title: $gettext("Discover"), auth: true, background: "application-light" },
-    props: { tab: 3 },
+    props: { tab: 4 },
   },
   {
     path: "*",
-    redirect: "/albums",
+    redirect: c.settings.ui.homepage,
   },
 ];

@@ -29,7 +29,12 @@ func (c *Convert) ToAvc(f *MediaFile, encoder ffmpeg.AvcEncoder, noMutex, force 
 		return nil, fmt.Errorf("convert: %s is empty", clean.Log(f.RootRelName()))
 	}
 
-	avcName := fs.VideoAVC.FindFirst(f.FileName(), []string{c.conf.SidecarPath(), fs.HiddenPath}, c.conf.OriginalsPath(), false)
+	baseDir := c.conf.OriginalsPath()
+	if f.InSidecar() {
+		baseDir = c.conf.SidecarPath()
+	}
+
+	avcName := fs.VideoAVC.FindFirst(f.FileName(), []string{c.conf.SidecarPath(), fs.HiddenPath}, baseDir, false)
 
 	mediaFile, err := NewMediaFile(avcName)
 
@@ -41,12 +46,12 @@ func (c *Convert) ToAvc(f *MediaFile, encoder ffmpeg.AvcEncoder, noMutex, force 
 		return nil, fmt.Errorf("convert: transcoding disabled in read-only mode (%s)", f.RootRelName())
 	}
 
-	fileName := f.RelName(c.conf.OriginalsPath())
+	fileName := f.RelName(baseDir)
 
 	if f.IsAnimatedImage() {
-		avcName = fs.FileName(f.FileName(), c.conf.SidecarPath(), c.conf.OriginalsPath(), fs.ExtMP4)
+		avcName = fs.FileName(f.FileName(), c.conf.SidecarPath(), baseDir, fs.ExtMP4)
 	} else {
-		avcName = fs.FileName(f.FileName(), c.conf.SidecarPath(), c.conf.OriginalsPath(), fs.ExtAVC)
+		avcName = fs.FileName(f.FileName(), c.conf.SidecarPath(), baseDir, fs.ExtAVC)
 	}
 
 	cmd, useMutex, err := c.AvcConvertCommand(f, avcName, encoder)

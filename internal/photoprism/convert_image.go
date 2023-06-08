@@ -36,10 +36,15 @@ func (c *Convert) ToImage(f *MediaFile, force bool) (*MediaFile, error) {
 
 	var err error
 
-	imageName := fs.ImagePNG.FindFirst(f.FileName(), []string{c.conf.SidecarPath(), fs.HiddenPath}, c.conf.OriginalsPath(), false)
+	baseDir := c.conf.OriginalsPath()
+	if f.InSidecar() {
+		baseDir = c.conf.SidecarPath()
+	}
+
+	imageName := fs.ImagePNG.FindFirst(f.FileName(), []string{c.conf.SidecarPath(), fs.HiddenPath}, baseDir, false)
 
 	if imageName == "" {
-		imageName = fs.ImageJPEG.FindFirst(f.FileName(), []string{c.conf.SidecarPath(), fs.HiddenPath}, c.conf.OriginalsPath(), false)
+		imageName = fs.ImageJPEG.FindFirst(f.FileName(), []string{c.conf.SidecarPath(), fs.HiddenPath}, baseDir, false)
 	}
 
 	mediaFile, err := NewMediaFile(imageName)
@@ -59,9 +64,9 @@ func (c *Convert) ToImage(f *MediaFile, force bool) (*MediaFile, error) {
 		if !c.conf.VectorEnabled() {
 			return nil, fmt.Errorf("convert: vector graphics support disabled (%s)", clean.Log(f.RootRelName()))
 		}
-		imageName = fs.FileName(f.FileName(), c.conf.SidecarPath(), c.conf.OriginalsPath(), fs.ExtPNG)
+		imageName = fs.FileName(f.FileName(), c.conf.SidecarPath(), baseDir, fs.ExtPNG)
 	} else {
-		imageName = fs.FileName(f.FileName(), c.conf.SidecarPath(), c.conf.OriginalsPath(), fs.ExtJPEG)
+		imageName = fs.FileName(f.FileName(), c.conf.SidecarPath(), baseDir, fs.ExtJPEG)
 	}
 
 	if !c.conf.SidecarWritable() {

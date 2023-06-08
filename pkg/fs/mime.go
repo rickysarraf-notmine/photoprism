@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/h2non/filetype"
 )
 
 const (
@@ -31,6 +32,15 @@ const (
 	MimeTypeXML     = "text/xml"
 	MimeTypeJSON    = "application/json"
 )
+
+const (
+	mimeTypeBufferSize = 261
+)
+
+type MimeTypeSearchResult struct {
+	MimeType string
+	Position int
+}
 
 // MimeType returns the mime type of a file, or an empty string if it could not be detected.
 func MimeType(filename string) (mimeType string) {
@@ -71,4 +81,25 @@ func MimeType(filename string) (mimeType string) {
 	}
 
 	return mimeType
+}
+
+// MimeTypeSearch searches the given buffer for any valid mime types.
+func MimeTypeSearch(buffer []byte) <-chan MimeTypeSearchResult {
+	chnl := make(chan MimeTypeSearchResult)
+
+	go func() {
+		for i := 0; i < len(buffer)-mimeTypeBufferSize; i++ {
+			data := buffer[i : i+mimeTypeBufferSize]
+
+			if t, err := filetype.Get(data); err == nil && t != filetype.Unknown {
+				chnl <- MimeTypeSearchResult{
+					MimeType: t.MIME.Value,
+					Position: i,
+				}
+			}
+		}
+		close(chnl)
+	}()
+
+	return chnl
 }

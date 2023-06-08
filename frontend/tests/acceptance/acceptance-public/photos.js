@@ -9,7 +9,6 @@ import PhotoViewer from "../page-model/photoviewer";
 import Page from "../page-model/page";
 import PhotoEdit from "../page-model/photo-edit";
 
-const scroll = ClientFunction((x, y) => window.scrollTo(x, y));
 const getcurrentPosition = ClientFunction(() => window.pageYOffset);
 
 fixture`Test photos`.page`${testcafeconfig.url}`;
@@ -33,8 +32,8 @@ test.meta("testID", "photos-001").meta({ mode: "public" })("Common: Scroll to to
     .expect(Selector("div.image.clickable").nth(0).visible)
     .ok();
 
-  await scroll(0, 1400);
-  await scroll(0, 900);
+  await t.scroll("bottom");
+  await t.scroll("center");
 
   await t.click(Selector("button.p-scroll-top")).expect(getcurrentPosition()).eql(0);
 });

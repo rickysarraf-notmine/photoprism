@@ -58,6 +58,7 @@ export const MediaImage = "image";
 export const MediaRaw = "raw";
 export const MediaAnimated = "animated";
 export const MediaLive = "live";
+export const MediaSphere = "sphere";
 export const MediaVideo = "video";
 export const MediaVector = "vector";
 export const MediaSidecar = "sidecar";
@@ -274,6 +275,10 @@ export class Photo extends RestModel {
     return iso;
   }
 
+  hasTimeZone() {
+    return this.getTimeZone() !== "";
+  }
+
   getTimeZone() {
     if (this.TimeZone) {
       return this.TimeZone;
@@ -394,6 +399,14 @@ export class Photo extends RestModel {
     }
 
     return files.some((f) => f.Video);
+  });
+
+  isSphere() {
+    return this.generateIsSphere(this.Type);
+  }
+
+  generateIsSphere = memoizeOne((type) => {
+    return type === MediaSphere;
   });
 
   videoParams() {
@@ -732,8 +745,12 @@ export class Photo extends RestModel {
     return this.Lat !== 0 || this.Lng !== 0;
   }
 
+  hasCountry() {
+    return this.Country !== "zz";
+  }
+
   countryName() {
-    if (this.Country !== "zz") {
+    if (this.hasCountry()) {
       const country = countries.find((c) => c.Code === this.Country);
 
       if (country) {
@@ -1015,6 +1032,21 @@ export class Photo extends RestModel {
     return result;
   }
 
+  loadFaces() {
+    return Api.get(this.getEntityResource() + "/faces").then((response) =>
+      Promise.resolve(response.data)
+    );
+  }
+
+  addFace(face) {
+    return Api.post(this.getEntityResource() + "/faces", face)
+      .then((response) => {
+        this.Faces = (this.Faces || 0) + 1;
+        return response;
+      })
+      .then((response) => Promise.resolve(response.data));
+  }
+
   update() {
     const values = this.getValues(true);
 
@@ -1090,6 +1122,20 @@ export class Photo extends RestModel {
 
       return Promise.resolve(this.setValues(resp.data));
     });
+  }
+
+  webShare() {
+    // Fetches the photo in the browser and opens the native share dialog
+    return fetch(this.getDownloadUrl())
+      .then((res) => res.blob())
+      .then((blob) => {
+        const filesArray = [Util.JSFileFromPhoto(blob, this.mainFile())];
+        const shareData = {
+          files: filesArray,
+          title: this.getTitle(),
+        };
+        return navigator.share(shareData);
+      });
   }
 
   static batchSize() {

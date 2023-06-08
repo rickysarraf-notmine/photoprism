@@ -221,6 +221,9 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"face-cluster-dist", fmt.Sprintf("%f", c.FaceClusterDist())},
 		{"face-match-dist", fmt.Sprintf("%f", c.FaceMatchDist())},
 
+		// Monitoring and debugging.
+		{"enable-expvar", fmt.Sprintf("%t", c.EnableExpvar())},
+
 		// Daemon Mode.
 		{"pid-filename", c.PIDFilename()},
 		{"log-filename", c.LogFilename()},

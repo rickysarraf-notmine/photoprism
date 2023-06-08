@@ -7,4 +7,5 @@ type UISettings struct {
 	Theme     string `json:"theme" yaml:"Theme"`
 	Language  string `json:"language" yaml:"Language"`
 	TimeZone  string `json:"timeZone" yaml:"TimeZone"`
+	Homepage  string `json:"homepage" yaml:"Homepage"`
 }

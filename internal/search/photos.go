@@ -21,6 +21,7 @@ import (
 
 // PhotosColsAll contains all supported result column names.
 var PhotosColsAll = SelectString(Photo{}, []string{"*"})
+var PhotosColsIds = "photos.id, photos.photo_uid, files.file_uid"
 
 // PhotosColsView contains the result column names necessary for the photo viewer.
 var PhotosColsView = SelectString(Photo{}, SelectCols(GeoResult{}, []string{"*"}))
@@ -42,7 +43,12 @@ func UserPhotos(f form.SearchPhotos, sess *entity.Session) (results PhotoResults
 func PhotoIds(f form.SearchPhotos) (files PhotoResults, count int, err error) {
 	f.Merged = false
 	f.Primary = true
-	return searchPhotos(f, nil, "photos.id, photos.photo_uid, files.file_uid")
+	return searchPhotos(f, nil, PhotosColsIds)
+}
+
+// UserPhotoIds finds photo and file ids based on the search form and user session.
+func UserPhotoIds(f form.SearchPhotos, sess *entity.Session) (results PhotoResults, count int, err error) {
+	return searchPhotos(f, sess, PhotosColsIds)
 }
 
 // searchPhotos finds photos based on the search form and user session then returns them as PhotoResults.
@@ -83,6 +89,8 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 			s = s.Joins("JOIN photos_albums ON photos_albums.photo_uid = files.photo_uid").
 				Where("photos_albums.hidden = 0 AND photos_albums.album_uid = ?", a.AlbumUID)
 		} else if err = form.Unserialize(&f, a.AlbumFilter); err != nil {
+			return PhotoResults{}, 0, ErrBadFilter
+		} else if err = f.ParseQueryString(); err != nil {
 			return PhotoResults{}, 0, ErrBadFilter
 		} else {
 			f.Filter = a.AlbumFilter
@@ -322,11 +330,11 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 	// Filter by location.
 	if f.Geo == true {
 		s = s.Where("photos.cell_id <> 'zz'")
+	} else if f.NoGeo {
+		s = s.Where("photos.cell_id = 'zz'")
+	}
 
-		for _, where := range LikeAnyKeyword("k.keyword", f.Query) {
-			s = s.Where("files.photo_id IN (SELECT pk.photo_id FROM keywords k JOIN photos_keywords pk ON k.id = pk.keyword_id WHERE (?))", gorm.Expr(where))
-		}
-	} else if f.Query != "" {
+	if f.Query != "" {
 		if err := Db().Where(AnySlug("custom_slug", f.Query, " ")).Find(&labels).Error; len(labels) == 0 || err != nil {
 			log.Debugf("search: label %s not found, using fuzzy search", txt.LogParamLower(f.Query))
 
@@ -541,8 +549,10 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 		s = s.Where("photos.photo_type = ?", entity.MediaRaw)
 	} else if f.Live {
 		s = s.Where("photos.photo_type = ?", entity.MediaLive)
+	} else if f.Sphere {
+		s = s.Where("photos.photo_type = ?", entity.MediaSphere)
 	} else if f.Photo {
-		s = s.Where("photos.photo_type IN ('image','live','animated','vector','raw')")
+		s = s.Where("photos.photo_type IN ('image','live','sphere','animated','vector','raw')")
 	}
 
 	// Filter by storage path.
@@ -637,10 +647,14 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 
 	if !f.Before.IsZero() {
 		s = s.Where("photos.taken_at <= ?", f.Before.Format("2006-01-02"))
+	} else if !f.BeforeT.IsZero() {
+		s = s.Where("photos.taken_at <= ?", f.BeforeT.Format("2006-01-02 15:04:05"))
 	}
 
 	if !f.After.IsZero() {
 		s = s.Where("photos.taken_at >= ?", f.After.Format("2006-01-02"))
+	} else if !f.AfterT.IsZero() {
+		s = s.Where("photos.taken_at >= ?", f.AfterT.Format("2006-01-02 15:04:05"))
 	}
 
 	// Find stacks only.

@@ -181,6 +181,10 @@
                 ></v-text-field>
               </v-flex>
 
+              <v-flex xs12 sm12 md12>
+                <div id="map" style="height: 500px;" />
+              </v-flex>
+
               <v-flex xs12 md6 pa-2 class="p-camera-select">
                 <v-select
                     v-model="model.CameraID"
@@ -411,9 +415,18 @@
 </template>
 
 <script>
-import countries from "options/countries.json";
+import maplibregl from "maplibre-gl";
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import MaplibreGeocoder from '@maplibre/maplibre-gl-geocoder';
+
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
+
+import { LocateNearbyControl } from "common/map-controls";
+import nominatim from "common/nominatim";
 import Thumb from "model/thumb";
 import Photo from "model/photo";
+import countries from "options/countries.json";
 import * as options from "options/options";
 
 export default {
@@ -444,6 +457,7 @@ export default {
       time: "",
       textRule: v => v.length <= this.$config.get('clip') || this.$gettext("Text too long"),
       rtl: this.$rtl,
+      map: null,
     };
   },
   computed: {
@@ -464,6 +478,9 @@ export default {
   },
   created() {
     this.updateTime();
+  },
+  mounted() {
+    this.renderMap();
   },
   methods: {
     updateTime() {
@@ -538,6 +555,166 @@ export default {
     },
     close() {
       this.$emit('close');
+    },
+    renderMap() {
+      const s = this.config.settings.maps;
+
+      let mapKey = "";
+
+      if (this.$config.has("mapKey")) {
+        mapKey = this.$config.get("mapKey");
+      }
+
+      let mapOptions = {
+        container: "map",
+        cooperativeGestures: true,
+        style: "https://api.maptiler.com/maps/" + s.style + "/style.json?key=" + mapKey,
+        attributionControl: true,
+        customAttribution: "<a href='https://nominatim.org/' target='_blank'>Geocoding provided by OpenStreetMap Nominatim</a>",
+        zoom: 0,
+      };
+
+      const localStorageGeocoder = (query) => {
+        const indicator = '<span class="material-icons md-12">cached</span>';
+
+        const matches = [];
+        const geolocations = JSON.parse(window.localStorage.getItem("geolocations")) || [];
+
+        for (const location of geolocations) {
+          if (location.place_name.toLowerCase().includes(query.toLowerCase())) {
+            location.place_name = `${indicator} ${location.place_name}`;
+            matches.push(location);
+          }
+        }
+
+        return matches;
+      };
+      const geocoder = new MaplibreGeocoder(nominatim, {
+        maplibregl: maplibregl,
+        placeholder: this.$gettext("Search"),
+        marker: true,
+        localGeocoder: localStorageGeocoder,
+        // the explicit search is broken in several ways:
+        // - the enter key event is retargeted to the clear button, so no search is performed and instead the text is cleared
+        // - even if the above is fixed, the keyup.enter event is bubbled-up to the form and a save action is performed
+        showResultsWhileTyping: true,
+        debounceSearch: 1500,
+        limit: 10,
+        // strip the cached indicator when showing the place in the search bar
+        getItemValue: (item) => item.place_name.split("</span>").pop().trim(),
+        flyTo: {
+          duration: this.config.settings.maps.animate,
+          essential: false,
+          animate: this.config.settings.maps.animate > 0,
+        }
+      });
+
+      geocoder.on('result', (e) => {
+        // if the user selects a cached entry (meaning a previously selected location), instead of only jumping
+        // to that location, we should also set it as the photo's geolocation
+        if (e.result.properties.cached) {
+          draw.add(e.result.geometry);
+          this.map.fire('draw.create', { features: [e.result]});
+        }
+      });
+
+      const draw = new MapboxDraw({
+        displayControlsDefault: false,
+        controls: {
+            point: true,
+            trash: true
+        },
+      });
+
+      this.map = new maplibregl.Map(mapOptions);
+      this.map.setLanguage(this.config.settings.ui.language.split("-")[0]);
+
+      const controlPos = this.$rtl ? 'top-left' : 'top-right';
+
+      this.map.addControl(geocoder, controlPos);
+      this.map.addControl(new LocateNearbyControl({
+        model: this.model,
+        settings: this.config.settings.maps,
+        range: { hours: 1 },
+      }), controlPos);
+      this.map.addControl(new maplibregl.NavigationControl({showCompass: true}), controlPos);
+      this.map.addControl(new maplibregl.FullscreenControl({container: document.querySelector('body')}), controlPos);
+      this.map.addControl(new maplibregl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true
+      }), controlPos);
+
+      this.map.addControl(draw, controlPos);
+
+      this.map.on('draw.create', async (e) => {
+        // remove all previously selected points
+        const featureCollection = draw.getAll();
+        const previous = featureCollection.features.slice(0, -1);
+        previous.forEach(feature => draw.delete(feature.id));
+
+        // update the model with the selected location
+        const point = e.features[0].geometry.coordinates;
+        this.model.Lat = point[1];
+        this.model.Lng = point[0];
+
+        // in case of a cached location we can skip the reverse lookup and the storing
+        // in local storage, as this has already been done
+        if (e.properties && e.properties.cached) {
+          return;
+        }
+
+        // reverse geocode the selected location and store it in localStorage
+        const lookupConfig = {query: [this.model.Lat, this.model.Lng]};
+        const lookupResult = await nominatim.reverseGeocode(lookupConfig);
+
+        if (lookupResult && lookupResult.features && lookupResult.features.length) {
+          // set a marker that the location has been cached
+          const geolocation = lookupResult.features[0];
+          geolocation.properties.cached = true;
+
+          const geolocations = JSON.parse(window.localStorage.getItem("geolocations")) || [];
+
+          if (geolocations.some((g) => g.id === geolocation.id)) {
+            return;
+          }
+
+          geolocations.push(geolocation);
+          window.localStorage.setItem("geolocations", JSON.stringify(geolocations));
+        }
+      });
+      this.map.on('draw.delete', e => {
+        // for some reason the backend does not reset the country code whenever the location is unset,
+        // so let's do it in the frontend
+        // this will force the country estimation (based on the path) to kick in
+        this.model.Country = "zz";
+        this.model.Lat = 0;
+        this.model.Lng = 0;
+      });
+      this.map.on('draw.update', e => {
+        if (e.action === "move") {
+          // update the model with the updated location
+          const point = e.features[0].geometry.coordinates;
+          this.model.Lat = point[1];
+          this.model.Lng = point[0];
+        }
+      });
+      this.map.on("radar.selected", e => {
+        this.model.Lat = e.location.lat;
+        this.model.Lng = e.location.lng;
+      });
+
+      this.map.on('load', () => {
+        if (this.model.hasLocation()) {
+          draw.add({ type: 'Point', coordinates: [this.model.Lng, this.model.Lat] });
+          this.map.flyTo({
+            center: [this.model.Lng, this.model.Lat],
+            zoom: 16,
+            maxDuration: 0.1,
+          });
+        }
+      });
     },
   },
 };

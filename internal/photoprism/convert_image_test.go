@@ -47,6 +47,42 @@ func TestConvert_ToImage(t *testing.T) {
 		_ = os.Remove(outputName)
 	})
 
+	t.Run("Video in Sidecar Folder", func(t *testing.T) {
+		sourceFile := filepath.Join(conf.ExamplesPath(), "gopher-video.mp4")
+		inputFile := filepath.Join(conf.SidecarPath(), conf.ExamplesPath(), "gopher-video.mp4")
+		outputName := filepath.Join(conf.SidecarPath(), conf.ExamplesPath(), "gopher-video.mp4.jpg")
+
+		_ = os.Remove(outputName)
+
+		err := fs.Copy(sourceFile, inputFile)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Truef(t, fs.FileExists(inputFile), "input file does not exist: %s", inputFile)
+
+		mf, err := NewMediaFile(inputFile)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		jpegFile, err := convert.ToImage(mf, false)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, jpegFile.FileName(), outputName)
+		assert.Truef(t, fs.FileExists(jpegFile.FileName()), "output file does not exist: %s", jpegFile.FileName())
+
+		t.Logf("video metadata: %+v", jpegFile.MetaData())
+
+		_ = os.Remove(inputFile)
+		_ = os.Remove(outputName)
+	})
+
 	t.Run("Raw", func(t *testing.T) {
 		jpegFilename := filepath.Join(cnf.ImportPath(), "fern_green.jpg")
 

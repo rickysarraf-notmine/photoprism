@@ -1,0 +1,26 @@
+version: '3.5'
+
+## FOR TEST AND DEVELOPMENT ONLY, DO NOT USE IN PRODUCTION   ##
+## Setup: https://docs.photoprism.app/developer-guide/setup/ ##
+
+services:
+  ## PhotoPrism Development Environment
+  photoprism:
+    environment:
+      PHOTOPRISM_PLUGIN_YOLO8_ENABLED: "true"
+      PHOTOPRISM_PLUGIN_YOLO8_HOSTNAME: "yolo8"
+      PHOTOPRISM_PLUGIN_YOLO8_PORT: "5000"
+      PHOTOPRISM_PLUGIN_REALESRGAN_ENABLED: "true"
+      PHOTOPRISM_PLUGIN_REALESRGAN_HOSTNAME: "realesrgan"
+      PHOTOPRISM_PLUGIN_REALESRGAN_PORT: "5001"
+
+  ## Image classification API
+  yolo8:
+    image: kvalev/yolo8:8.0.110
+    pull_policy: always
+
+  ## Image upscaling API
+  realesrgan:
+    image: kvalev/realesrgan:0.3.0
+    pull_policy: always
+    restart: always

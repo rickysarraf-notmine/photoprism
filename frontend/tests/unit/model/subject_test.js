@@ -18,7 +18,8 @@ describe("model/subject", () => {
     const subject = new Subject(values);
     const result = subject.route("test");
     assert.equal(result.name, "test");
-    assert.equal(result.query.q, "subject:s123ghytrfggd");
+    assert.isUndefined(result.query.q);
+    assert.equal(result.query.subject, "s123ghytrfggd");
     const values2 = {
       UID: "s123ghytrfggd",
       Type: "person",
@@ -29,7 +30,8 @@ describe("model/subject", () => {
     const subject2 = new Subject(values2);
     const result2 = subject2.route("test");
     assert.equal(result2.name, "test");
-    assert.equal(result2.query.q, "person:jane-doe");
+    assert.isUndefined(result2.query.q);
+    assert.equal(result2.query.person, "jane-doe");
   });
 
   it("should return classes", () => {
@@ -246,5 +248,9 @@ describe("model/subject", () => {
   it("should get model name", () => {
     const result = Subject.getModelName();
     assert.equal(result, "Subject");
+  });
+
+  it("should have a consistent collection resource", () => {
+    assert.equal(Subject.getCollectionResource(), new Subject({}).collectionResource());
   });
 });

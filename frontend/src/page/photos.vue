@@ -12,7 +12,7 @@
     <v-container v-else fluid class="pa-0">
       <p-scroll-top></p-scroll-top>
 
-      <p-photo-clipboard :refresh="refresh" :selection="selection" :context="context"></p-photo-clipboard>
+      <p-photo-clipboard :refresh="refresh" :selection="selection" :context="context" :album="labelOrSubjectAlbum"></p-photo-clipboard>
 
       <p-photo-mosaic v-if="settings.view === 'mosaic'"
                       :context="context"
@@ -45,7 +45,9 @@
 </template>
 
 <script>
-import {MediaAnimated, MediaLive, MediaRaw, MediaVideo, Photo} from "model/photo";
+import Label from "model/label";
+import {MediaAnimated, MediaLive, MediaRaw, MediaSphere, MediaVideo, Photo} from "model/photo";
+import Subject from "model/subject";
 import Thumb from "model/thumb";
 import Viewer from "common/viewer";
 import Event from "pubsub-js";
@@ -71,6 +73,8 @@ export default {
     const month = query['month'] ? parseInt(query['month']) : 0;
     const color = query['color'] ? query['color'] : '';
     const label = query['label'] ? query['label'] : '';
+    const person = query['person'] ? query['person'] : '';
+    const subject = query['subject'] ? query['subject'] : '';
     const view = this.viewType();
     const filter = {
       country: country,
@@ -80,6 +84,8 @@ export default {
       year: year,
       month: month,
       color: color,
+      person: person,
+      subject: subject,
       order: order,
       q: q,
     };
@@ -120,6 +126,7 @@ export default {
       },
       filter: filter,
       lastFilter: {},
+      labelOrSubjectAlbum: null,
       routeName: routeName,
       loading: true,
       viewer: {
@@ -176,6 +183,8 @@ export default {
       this.filter.month = query['month'] ? parseInt(query['month']) : 0;
       this.filter.color = query['color'] ? query['color'] : '';
       this.filter.label = query['label'] ? query['label'] : '';
+      this.filter.person = query['person'] ? query['person'] : '';
+      this.filter.subject = query['subject'] ? query['subject'] : '';
       this.filter.order = this.sortOrder();
 
       this.settings.view = this.viewType();
@@ -204,6 +213,24 @@ export default {
   },
   created() {
     this.search();
+
+    // Supported contexts: label, person, subject
+    const supportedTypes = {
+      "label": [Label, this.filter.label, "q"],
+      "person": [Subject, this.filter.person, "name"],
+      "subject": [Subject, this.filter.subject, "name"],
+    }
+
+    // Find all used filters to determine the current context (and exclude the sort order).
+    const activeFilters = Object.keys(this.filter).filter(p => this.filter[p] && p in supportedTypes);
+
+    // If we have encountered only one of the supported contexts,
+    // we can essentially treat the current view as an album (even thought it is not).
+    if (activeFilters.length == 1) {
+      const [Type, filter, q] = supportedTypes[activeFilters[0]];
+
+      Type.search({[q]: filter, count: 1}).then(response => this.labelOrSubjectAlbum = response.models[0]);
+    }
 
     this.subscriptions.push(Event.subscribe("import.completed", (ev, data) => this.onImportCompleted(ev, data)));
     this.subscriptions.push(Event.subscribe("photos", (ev, data) => this.onUpdate(ev, data)));
@@ -327,6 +354,8 @@ export default {
         } else {
           this.$viewer.show(Thumb.fromPhotos(this.results), index);
         }
+      } else if (showMerged && selected.Type == MediaSphere) {
+        this.$viewer.showSphere(Thumb.fromPhoto(selected));
       } else if (showMerged) {
         this.$viewer.show(Thumb.fromFiles([selected]), 0);
       } else {

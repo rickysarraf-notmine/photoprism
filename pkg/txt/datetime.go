@@ -11,6 +11,7 @@ import (
 
 var DateRegexp = regexp.MustCompile("\\D\\d{4}[\\-_]\\d{2}[\\-_]\\d{2,}")
 var DatePathRegexp = regexp.MustCompile("\\D\\d{4}/\\d{1,2}/?\\d*")
+var DateFilenameRegexp = regexp.MustCompile("\\d{4}\\d{2}\\d{2}")
 var DateTimeRegexp = regexp.MustCompile("\\D\\d{2,4}[\\-_]\\d{2}[\\-_]\\d{2}.{1,4}\\d{2}\\D\\d{2}\\D\\d{2,}")
 var DateIntRegexp = regexp.MustCompile("\\d{1,4}")
 var YearRegexp = regexp.MustCompile("\\d{4,5}")
@@ -36,6 +37,10 @@ var (
 	YearMinShort = 90
 	YearMax      = time.Now().Add(OneYear * 3).Year()
 	YearShort    = Int(time.Now().Format("06"))
+)
+
+var (
+	DefaultTime = time.Time{}
 )
 
 const (
@@ -158,5 +163,5 @@ func IsTime(s string) bool {
 		return true
 	}
 
-	return false
+	return DateFromFilePath(s) != DefaultTime
 }

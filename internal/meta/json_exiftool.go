@@ -1,6 +1,7 @@
 package meta
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"reflect"
@@ -155,6 +156,40 @@ func (data *Data) Exiftool(jsonData []byte, originalName string) (err error) {
 				}
 
 				fieldValue.SetBool(jsonValue.Bool())
+			case []DirectoryEntry:
+				entries := []DirectoryEntry{}
+
+				for _, x := range jsonValue.Array() {
+					var entry DirectoryEntry
+					jsonItem, ok := x.Map()["Item"]
+					if !ok {
+						continue
+					}
+
+					err := json.Unmarshal([]byte(jsonItem.Raw), &entry)
+					if err != nil {
+						return fmt.Errorf("metadata: error when unmarshaling directory entry (%s) - %s", jsonItem.Raw, err)
+					}
+
+					entries = append(entries, entry)
+				}
+
+				fieldValue.Set(reflect.ValueOf(entries))
+			case []Region:
+				regions := []Region{}
+				json.Unmarshal([]byte(jsonValue.Get("RegionList").Raw), &regions)
+
+				fieldValue.Set(reflect.ValueOf(regions))
+			case []RegionIPTC:
+				regions := []RegionIPTC{}
+				json.Unmarshal([]byte(jsonValue.Raw), &regions)
+
+				fieldValue.Set(reflect.ValueOf(regions))
+			case []RegionMP:
+				regions := []RegionMP{}
+				json.Unmarshal([]byte(jsonValue.Get("Regions").Raw), &regions)
+
+				fieldValue.Set(reflect.ValueOf(regions))
 			default:
 				log.Warnf("metadata: cannot assign value of type %s to %s (exiftool)", t, tagValue)
 			}

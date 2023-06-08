@@ -84,6 +84,7 @@ func CreateAlbum(router *gin.RouterGroup) {
 
 		a := entity.NewUserAlbum(f.AlbumTitle, entity.AlbumManual, s.UserUID)
 		a.AlbumFavorite = f.AlbumFavorite
+		a.AlbumFilter = f.AlbumFilter
 
 		// Existing album?
 		if found := a.Find(); found == nil {

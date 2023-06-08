@@ -15,6 +15,34 @@ export default class Page {
     }
   }
 
+  getNthAlbumTitle(nth) {
+    return Selector("button.action-title-edit", { timeout: 7000 }).nth(nth).innerText;
+  }
+
+  getNthAlbumDescription(nth) {
+    return this.getNthAlbumProperty(nth, "Description");
+  }
+
+  getNthAlbumPhotoCount(nth) {
+    return this.getNthAlbumProperty(nth, "Count");
+  }
+
+  getNthAlbumCategory(nth) {
+    return this.getNthAlbumProperty(nth, "Category");
+  }
+
+  getNthAlbumLocation(nth) {
+    return this.getNthAlbumProperty(nth, "Location");
+  }
+
+  getNthFolderAlbumPath(nth) {
+    return this.getNthAlbumProperty(nth, "Path");
+  }
+
+  getNthAlbumProperty(nth, property) {
+    return Selector(`div[title="${property}"]`, { timeout: 7000 }).nth(nth).innerText;
+  }
+
   async getAlbumCount(type) {
     if (type === "all") {
       if (t.browser.platform === "mobile") {
