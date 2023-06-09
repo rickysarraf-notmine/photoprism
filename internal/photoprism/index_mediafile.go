@@ -353,12 +353,14 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 						log.Debugf("index: face region was indexed, but was not named %s", f)
 					}
 				} else {
+					filePath := FileName(file.FileRoot, file.FileName)
+
 					// Hardcode the face score, which is usually computed by facenet.
 					// Setting a higher score (>15), will mean that the face region will be used for clustering.
 					f.Score = 1
 
 					// Calculate the embeddings vector for the given face region.
-					embeddings, err := ind.faceNet.Embeddings(FileName(file.FileRoot, file.FileName), f)
+					embeddings, err := ind.faceNet.Embeddings(filePath, f)
 
 					if err != nil {
 						log.Errorf("index: %s (calculating embeddings for %s)", err, logName)
@@ -368,27 +370,28 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 					if embeddings.Empty() {
 						log.Warnf("index: no embeddings for face region %s and file %s, will try to recover", f, logName)
 
-						thumb, err := m.Thumbnail(conf.ThumbCachePath(), conf.BestThumbSize())
-						if err != nil {
-							log.Errorf("index: %s (retrieving thumbnail)", err)
-							continue
-						}
-
 						// Run face detection for the image and check whether there is an overlapping region
-						faces, err := face.DetectAll(thumb, Config().FaceSize())
+						faces, err := face.DetectAll(filePath, Config().FaceSize())
 						if err != nil {
 							log.Errorf("index: %s (detecting all faces for face region %s)", err, f)
 							continue
 						}
 
 						if matched := faces.Match(f); matched == nil {
-							// TODO should be Warnf
-							log.Errorf("index: could not match face region %s to any detected faces %s", f, faces)
+							log.Warnf("index: could not match face region %s to any detected faces %s", f, faces)
 							continue
 						} else {
+							log.Debugf("index: matched %s to a detected face %s", f, matched)
+
+							matchedEmbeddings, err := ind.faceNet.Embeddings(filePath, *matched)
+							if err != nil {
+								log.Errorf("index: %s (calculating embeddings for matched face %s)", err, matched)
+								continue
+							}
+
 							// TODO Is this enough, or should we also modify the crop area for `f` to the `matched` crop area
-							log.Warnf("debug: matched %s to a detected face %s", f, matched)
-							embeddings = matched.Embeddings
+							embeddings = matchedEmbeddings
+							log.Debugf("index: matched face %s has %d embeddings", matched, matchedEmbeddings.Count())
 						}
 
 						// IDEA: enhance region by 10% and do a sliding window?
