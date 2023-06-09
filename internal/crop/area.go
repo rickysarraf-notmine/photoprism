@@ -36,6 +36,11 @@ func (a Area) String() string {
 	return fmt.Sprintf("%03x%03x%03x%03x", int(a.X*1000), int(a.Y*1000), int(a.W*1000), int(a.H*1000))
 }
 
+// Scale creates a new area by scaling the current one by the given factor.
+func (a Area) Scale(factor float32) Area {
+	return NewArea(a.Name, a.X * factor, a.Y * factor, a.W * factor, a.H * factor)
+}
+
 // Thumb returns a string identifying the file and crop area to create a thumb.
 func (a Area) Thumb(fileHash string) string {
 	if len(fileHash) < 40 {
