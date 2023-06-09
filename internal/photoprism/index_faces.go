@@ -6,7 +6,6 @@ import (
 	"github.com/dustin/go-humanize/english"
 
 	"github.com/photoprism/photoprism/internal/face"
-	"github.com/photoprism/photoprism/internal/thumb"
 	"github.com/photoprism/photoprism/pkg/clean"
 )
 
@@ -16,14 +15,8 @@ func (ind *Index) Faces(jpeg *MediaFile, expected int) face.Faces {
 		return face.Faces{}
 	}
 
-	var thumbSize thumb.Name
-
 	// Select best thumbnail depending on configured size.
-	if Config().ThumbSizePrecached() < 1280 {
-		thumbSize = thumb.Fit720
-	} else {
-		thumbSize = thumb.Fit1280
-	}
+	thumbSize := Config().BestThumbSize()
 
 	thumbName, err := jpeg.Thumbnail(Config().ThumbCachePath(), thumbSize)
 

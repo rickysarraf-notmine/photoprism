@@ -38,8 +38,20 @@ func GetPhotoFaces(router *gin.RouterGroup) {
 		}
 
 		conf := get.Config()
-		faces, err := face.DetectAll(photoprism.FileName(f.FileRoot, f.FileName), conf.FaceSize())
 
+		m, err := photoprism.NewMediaFile(photoprism.FileName(f.FileRoot, f.FileName))
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
+			return
+		}
+
+		file, err := m.Thumbnail(conf.ThumbCachePath(), conf.BestThumbSize())
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
+			return
+		}
+
+		faces, err := face.DetectAll(file, conf.FaceSize())
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": txt.UpperFirst(err.Error())})
 			return
