@@ -10,7 +10,7 @@ x-uffizzi:
 services:
   photoprism:
     image: "${PHOTOPRISM_IMAGE}"
-    command: photoprism start
+    command: bash -c "photoprism --site-url $${UFFIZZI_URL} start"
     environment:
       PHOTOPRISM_ADMIN_PASSWORD: "photoprism"
       PHOTOPRISM_DEMO: "false"

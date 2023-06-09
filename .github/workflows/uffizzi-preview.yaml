@@ -52,7 +52,7 @@ jobs:
           PHOTOPRISM_IMAGE=$(echo ${{ needs.build-image.outputs.tags }})
           export PHOTOPRISM_IMAGE
           # Render simple template from environment variables.
-          envsubst < docker-compose.uffizzi.yml > docker-compose.rendered.yml
+          envsubst '$PHOTOPRISM_IMAGE' < docker-compose.uffizzi.yml > docker-compose.rendered.yml
           cat docker-compose.rendered.yml
       - name: Hash Rendered Compose File
         id: hash
