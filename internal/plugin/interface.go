@@ -18,6 +18,13 @@ type Plugin interface {
 	OnIndex(*entity.File, *entity.Photo) error
 }
 
+// HttpPlugin provides an interface for plugins calling external http services.
+type HttpPlugin interface {
+	Plugin
+	Hostname() string
+	Port() string
+}
+
 // OnIndex calls the [OnIndex] hook method for all enabled plugins.
 func OnIndex(file *entity.File, photo *entity.Photo) (changed bool) {
 	for _, p := range getPlugins() {

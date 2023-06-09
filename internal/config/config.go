@@ -85,7 +85,9 @@ func initLogger() {
 			FullTimestamp: true,
 		})
 
-		if Env(EnvTrace) {
+		if Env(EnvProd) {
+			log.SetLevel(logrus.WarnLevel)
+		} else if Env(EnvTrace) {
 			log.SetLevel(logrus.TraceLevel)
 		} else if Env(EnvDebug) {
 			log.SetLevel(logrus.DebugLevel)
@@ -424,16 +426,23 @@ func (c *Config) ApiUri() string {
 
 // CdnUrl returns the optional content delivery network URI without trailing slash.
 func (c *Config) CdnUrl(res string) string {
-	if c.NoSponsor() {
-		return res
-	}
-
 	return strings.TrimRight(c.options.CdnUrl, "/") + res
+}
+
+// CdnDomain returns the content delivery network domain name if specified.
+func (c *Config) CdnDomain() string {
+	if c.options.CdnUrl == "" {
+		return ""
+	} else if u, err := url.Parse(c.options.CdnUrl); err != nil {
+		return ""
+	} else {
+		return u.Hostname()
+	}
 }
 
 // CdnVideo checks if videos should be streamed using the configured CDN.
 func (c *Config) CdnVideo() bool {
-	if c.NoSponsor() || c.options.CdnUrl == "" {
+	if c.options.CdnUrl == "" {
 		return false
 	}
 
@@ -498,7 +507,7 @@ func (c *Config) SiteAuthor() string {
 
 // SiteTitle returns the main site title (default is application name).
 func (c *Config) SiteTitle() string {
-	if c.options.SiteTitle == "" || c.NoSponsor() {
+	if c.options.SiteTitle == "" {
 		return c.Name()
 	}
 
@@ -517,7 +526,7 @@ func (c *Config) SiteDescription() string {
 
 // SitePreview returns the site preview image URL for sharing.
 func (c *Config) SitePreview() string {
-	if c.options.SitePreview == "" || c.NoSponsor() {
+	if c.options.SitePreview == "" {
 		return fmt.Sprintf("https://i.photoprism.app/prism?cover=64&style=centered%%20dark&caption=none&title=%s", url.QueryEscape(c.AppName()))
 	}
 
@@ -530,10 +539,6 @@ func (c *Config) SitePreview() string {
 
 // LegalInfo returns the legal info text for the page footer.
 func (c *Config) LegalInfo() string {
-	if c.NoSponsor() {
-		return SignUpInfo
-	}
-
 	if s := c.CliGlobalString("imprint"); s != "" {
 		log.Warnf("config: option 'imprint' is deprecated, please use 'legal-info'")
 		return s
@@ -544,10 +549,6 @@ func (c *Config) LegalInfo() string {
 
 // LegalUrl returns the legal info url.
 func (c *Config) LegalUrl() string {
-	if c.NoSponsor() {
-		return SignUpURL
-	}
-
 	if s := c.CliGlobalString("imprint-url"); s != "" {
 		log.Warnf("config: option 'imprint-url' is deprecated, please use 'legal-url'")
 		return s
@@ -600,11 +601,6 @@ func (c *Config) Sponsor() bool {
 	}
 
 	return Sponsor
-}
-
-// NoSponsor reports if you prefer not to support our mission.
-func (c *Config) NoSponsor() bool {
-	return !c.Sponsor() && !c.Demo()
 }
 
 // Experimental checks if experimental features should be enabled.

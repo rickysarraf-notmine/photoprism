@@ -2,9 +2,11 @@ package plugin
 
 import (
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 
+	"github.com/creasty/defaults"
+	"github.com/mitchellh/mapstructure"
 	"github.com/photoprism/photoprism/pkg/list"
 )
 
@@ -23,6 +25,19 @@ func (c PluginConfig) Enabled() bool {
 
 	// All plugins are disabled per default and only activated if explicitly enabled.
 	return false
+}
+
+// // Decode populates a struct with the configuration data.
+func (c PluginConfig) Decode(init any) error {
+	if err := defaults.Set(init); err != nil {
+		return err
+	}
+
+	if err := mapstructure.WeakDecode(c, &init); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func loadConfig(p Plugin) PluginConfig {

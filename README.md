@@ -60,13 +60,14 @@ available at [dl.photoprism.app/docker](https://dl.photoprism.app/docker/).
 
 Our members [enjoy additional features](https://www.photoprism.app/kb/personal), including access to [interactive world maps](https://try.photoprism.app/library/places), and can join our private chat room to [connect with our team](https://www.photoprism.app/about/team). We currently have the following membership options:
 
-- [GitHub Sponsors](https://link.photoprism.app/sponsor) is priced in USD and also offers [one-time donations](https://link.photoprism.app/donate)
-- [Patreon](https://link.photoprism.app/patreon) is priced in Euro and also offers yearly payments
-- Stripe will be available this year, so you can sign up directly in the app
+- You can [sign up directly on our website](https://link.photoprism.app/membership) and pay with credit card or SEPA through Stripe, so you don't need to [link an external account](https://www.photoprism.app/kb/activation) and can easily upgrade or downgrade at any time
+- Alternatively, [Patreon](https://link.photoprism.app/patreon) also supports PayPal, additional currencies, and lets you choose between monthly and annual billing for all tiers
+
+If you currently support us through [GitHub Sponsors](https://link.photoprism.app/sponsor), you can also [register on our website](https://my.photoprism.app/register) and use the *Activate GitHub Sponsors Membership* button to link your account. For details on this and how to [link your Patreon account](https://www.patreon.com/pledges), see our [Activation Guide](https://www.photoprism.app/kb/activation).
 
 You are [welcome to contact us](https://www.photoprism.app/contact) for change requests, membership questions, and business partnerships.
 
-[Support Our Mission ›](https://link.photoprism.app/membership) [Contact Us ›](https://www.photoprism.app/contact)
+[View Membership FAQ ›](https://www.photoprism.app/kb/membership) [Sign Up ›](https://link.photoprism.app/membership)
 
 ### Why Your Support Matters ###
 
