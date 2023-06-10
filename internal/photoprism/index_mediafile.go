@@ -12,6 +12,7 @@ import (
 	"github.com/photoprism/photoprism/internal/classify"
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/event"
+	"github.com/photoprism/photoprism/internal/face"
 	"github.com/photoprism/photoprism/internal/meta"
 	"github.com/photoprism/photoprism/internal/plugin"
 	"github.com/photoprism/photoprism/internal/query"
@@ -362,6 +363,35 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 					if err != nil {
 						log.Errorf("index: %s (calculating embeddings for %s)", err, logName)
 						continue
+					}
+
+					if embeddings.Empty() {
+						log.Warnf("index: no embeddings for face region %s and file %s, will try to recover", f, logName)
+
+						thumb, err := m.Thumbnail(conf.ThumbCachePath(), conf.BestThumbSize())
+						if err != nil {
+							log.Errorf("index: %s (retrieving thumbnail)", err)
+							continue
+						}
+
+						// Run face detection for the image and check whether there is an overlapping region
+						faces, err := face.DetectAll(thumb, Config().FaceSize())
+						if err != nil {
+							log.Errorf("index: %s (detecting all faces for face region %s)", err, f)
+							continue
+						}
+
+						if matched := faces.Match(f); matched == nil {
+							// TODO should be Warnf
+							log.Errorf("index: could not match face region %s to any detected faces %s", f, faces)
+							continue
+						} else {
+							// TODO Is this enough, or should we also modify the crop area for `f` to the `matched` crop area
+							log.Warnf("debug: matched %s to a detected face %s", f, matched)
+							embeddings = matched.Embeddings
+						}
+
+						// IDEA: enhance region by 10% and do a sliding window?
 					}
 
 					// Assign the embeddings to the face and add the face to the file, which will create a new marker.

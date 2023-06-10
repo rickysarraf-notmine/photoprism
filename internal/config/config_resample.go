@@ -93,3 +93,12 @@ func (c *Config) ThumbSizeUncached() int {
 
 	return limit
 }
+
+// BestThumbSize selects best thumbnail size depending on configured thumbnail size.
+func (c *Config) BestThumbSize() thumb.Name {
+	if c.ThumbSizePrecached() < 1280 {
+		return thumb.Fit720
+	} else {
+		return thumb.Fit1280
+	}
+}
