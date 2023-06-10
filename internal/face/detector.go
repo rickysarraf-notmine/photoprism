@@ -1,15 +1,16 @@
 package face
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
 	_ "image/jpeg"
 	"io"
-	"os"
 	"path/filepath"
 	"runtime/debug"
 	"sort"
 
+	"github.com/disintegration/imaging"
 	pigo "github.com/esimov/pigo/core"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
@@ -139,17 +140,18 @@ func detect(fileName string, findLandmarks bool, minSize int, ignoreLowQuality b
 func (d *Detector) Detect(fileName string) (faces []pigo.Detection, params pigo.CascadeParams, err error) {
 	var srcFile io.Reader
 
-	file, err := os.Open(fileName)
-
+	img, err := imaging.Open(fileName, imaging.AutoOrientation(true))
 	if err != nil {
 		return faces, params, err
 	}
 
-	defer func(file *os.File) {
-		err = file.Close()
-	}(file)
+	buffer := &bytes.Buffer{}
+	err = imaging.Encode(buffer, img, imaging.PNG)
+	if err != nil {
+		return faces, params, err
+	}
 
-	srcFile = file
+	srcFile = buffer
 
 	src, err := pigo.DecodeImage(srcFile)
 
