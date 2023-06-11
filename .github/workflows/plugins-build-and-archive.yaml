@@ -2,11 +2,12 @@ name: Build and archive plugin solibs
 
 on:
   push:
-    branches: [ develop, preview ]
+    branches: [ develop, preview, rrs-kvalev-preview ]
   pull_request:
-    branches: [ develop, preview ]
+    branches: [ develop, preview, rrs-kvalev-preview ]
 
   workflow_dispatch:
+    branches: [ develop, preview, rrs-kvalev-preview ]
 
 jobs:
   build-and-archive-plugins:
