@@ -119,7 +119,7 @@ install:
 	rm -rf --preserve-root $(DESTDIR)/include
 	(cd $(DESTDIR) && mkdir -p bin lib assets config config/examples $(PLUGINS_PATH))
 	./scripts/build.sh prod "$(DESTDIR)/bin/$(BINARY_NAME)"
-	@$(MAKE) build-plugins PLUGINS_PATH=$(DESTDIR)/$(PLUGINS_PATH)
+	@$(MAKE) build-plugins-prod PLUGINS_PATH=$(DESTDIR)/$(PLUGINS_PATH)
 	rsync -r -l --safe-links --exclude-from=assets/.buildignore --chmod=a+r,u+rw ./assets/ $(DESTDIR)/assets
 	wget -O $(DESTDIR)/assets/static/img/wallpaper/welcome.jpg https://cdn.photoprism.app/wallpaper/welcome.jpg
 	wget -O $(DESTDIR)/assets/static/img/preview.jpg https://cdn.photoprism.app/img/preview.jpg
@@ -228,12 +228,17 @@ build-static:
 	rm -f $(BINARY_NAME)
 	scripts/build.sh static $(BINARY_NAME)
 build-plugins: build-plugin-demo build-plugin-realesrgan build-plugin-yolo8
+build-plugins-prod: build-plugin-demo build-plugin-realesrgan-prod build-plugin-yolo8-prod
 build-plugin-demo:
 	go build -tags=debug -buildmode=plugin -o $(PLUGINS_PATH)/demo.so internal/plugin/demo/demo.go
 build-plugin-realesrgan:
 	go build -tags=debug -buildmode=plugin -o $(PLUGINS_PATH)/realesrgan.so internal/plugin/realesrgan/realesrgan.go
+build-plugin-realesrgan-prod:
+	go build -buildmode=plugin -o $(PLUGINS_PATH)/realesrgan.so internal/plugin/realesrgan/realesrgan.go
 build-plugin-yolo8:
 	go build -tags=debug -buildmode=plugin -o $(PLUGINS_PATH)/yolo8.so internal/plugin/yolo8/yolo8.go
+build-plugin-yolo8-prod:
+	go build -buildmode=plugin -o $(PLUGINS_PATH)/yolo8.so internal/plugin/yolo8/yolo8.go
 build-tensorflow:
 	docker build -t photoprism/tensorflow:build docker/tensorflow
 	docker run -ti photoprism/tensorflow:build bash
