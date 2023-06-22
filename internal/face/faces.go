@@ -8,7 +8,7 @@ func (faces Faces) Contains(other Face) bool {
 	cropArea := other.CropArea()
 
 	for _, f := range faces {
-		if f.CropArea().OverlapPercent(cropArea) > OverlapThresholdFloor {
+		if f.OverlapsAboveThreshold(cropArea) {
 			return true
 		}
 	}
@@ -35,13 +35,7 @@ func (faces Faces) Match(other Face) *Face {
 	cropArea := other.CropArea()
 
 	for _, f := range faces {
-		scalingFactor := float32(other.Rows) / float32(f.Rows)
-		overlap := f.CropArea().Scale(scalingFactor).OverlapPercent(cropArea)
-
-		log.Warnf("debug: scaling factor is %f between %s and %s", scalingFactor, f, other)
-		log.Warnf("debug: overlap percent %d between %s and %s", overlap, f, other)
-
-		if overlap > OverlapThresholdFloor{
+		if f.OverlapsAboveThreshold(cropArea) {
 			return &f
 		}
 	}
