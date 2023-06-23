@@ -153,7 +153,7 @@ func (f *Face) NoEmbedding() bool {
 	return f.Embeddings.Empty()
 }
 
-// OverlapAboveThreshold checks whether a face overlaps significantly with a given area.
+// OverlapsAboveThreshold checks whether a face overlaps significantly with a given area.
 func (f *Face) OverlapsAboveThreshold(other crop.Area) bool {
 	return f.CropArea().OverlapPercent(other) > OverlapThresholdFloor
 }

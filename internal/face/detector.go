@@ -69,18 +69,38 @@ type Detector struct {
 	perturb      int
 }
 
-// DetectAll runs the detection algorithm over the provided source image
-// and returns both high and low quality detections.
-func DetectAll(fileName string, minSize int) (faces Faces, err error) {
-	candidateFaces, err := detect(fileName, true, minSize, false)
+// DetectAllRotated runs the detection algorithm over a couple rotated versions of the provided source image.
+func DetectAllRotated(fileName string, minSize int, angle float64) (faces RotatedFaces, err error) {
+	candidateFaces, err := DetectWithConfig(fileName, minSize, DetectorConfig{FindLandmarks: true, IgnoreLowQuality: false, Angle: angle})
 
 	if err != nil {
 		return faces, err
 	}
 
-	// Ignore candidates without eyes landmarks as an additional quality filter.
 	for _, face := range candidateFaces {
-		if face.Eyes != nil {
+		faces = append(faces, RotatedFace{Face: face, Angle: angle})
+	}
+
+	return faces, nil
+}
+
+// DetectAll runs the detection algorithm over the provided source image
+// and returns both high and low quality detections.
+func DetectAll(fileName string, minSize int) (faces Faces, err error) {
+	return DetectWithConfig(fileName, minSize, DetectorConfig{FindLandmarks: true, IgnoreLowQuality: false})
+}
+
+// Detect runs the detection algorithm over the provided source image using the given config.
+func DetectWithConfig(fileName string, minSize int, config DetectorConfig) (faces Faces, err error) {
+	candidateFaces, err := detect(fileName, config.FindLandmarks, minSize, config.IgnoreLowQuality, config.Angle)
+
+	if err != nil {
+		return faces, err
+	}
+
+	for _, face := range candidateFaces {
+		// Ignore candidates without eyes landmarks as an additional quality filter.
+		if config.IgnoreLowQuality || !config.FindLandmarks || face.Eyes != nil {
 			faces = append(faces, face)
 		}
 	}
@@ -90,10 +110,14 @@ func DetectAll(fileName string, minSize int) (faces Faces, err error) {
 
 // Detect runs the detection algorithm over the provided source image.
 func Detect(fileName string, findLandmarks bool, minSize int) (faces Faces, err error) {
-	return detect(fileName, findLandmarks, minSize, true)
+	return detectDefault(fileName, findLandmarks, minSize)
 }
 
-func detect(fileName string, findLandmarks bool, minSize int, ignoreLowQuality bool) (faces Faces, err error) {
+func detectDefault(fileName string, findLandmarks bool, minSize int) (faces Faces, err error) {
+	return detect(fileName, findLandmarks, minSize, true, 0.0)
+}
+
+func detect(fileName string, findLandmarks bool, minSize int, ignoreLowQuality bool, angle float64) (faces Faces, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("faces: %s (panic)\nstack: %s", r, debug.Stack())
@@ -106,7 +130,7 @@ func detect(fileName string, findLandmarks bool, minSize int, ignoreLowQuality b
 
 	d := &Detector{
 		minSize:      minSize,
-		angle:        0.0,
+		angle:        angle,
 		shiftFactor:  0.1,
 		scaleFactor:  1.1,
 		iouThreshold: float64(OverlapThresholdFloor) / 100,
