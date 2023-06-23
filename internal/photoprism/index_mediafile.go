@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dustin/go-humanize/english"
 	"github.com/jinzhu/gorm"
 
 	"github.com/photoprism/photoprism/internal/classify"
@@ -377,10 +378,7 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 							continue
 						}
 
-						if matched := faces.Match(f); matched == nil {
-							log.Warnf("index: could not match face region %s to any detected faces %s", f, faces)
-							continue
-						} else {
+						if matched := faces.Match(f); matched != nil {
 							log.Debugf("index: matched %s to a detected face %s", f, matched)
 
 							matchedEmbeddings, err := ind.faceNet.Embeddings(filePath, *matched)
@@ -391,7 +389,28 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 
 							// TODO Is this enough, or should we also modify the crop area for `f` to the `matched` crop area
 							embeddings = matchedEmbeddings
-							log.Debugf("index: matched face %s has %d embeddings", matched, matchedEmbeddings.Count())
+							log.Debugf("index: matched face %s has %s", matched, english.Plural(matchedEmbeddings.Count(), "embedding", "embeddings"))
+						} else {
+							log.Warnf("index: could not match face region %s to any detected faces %s, attempting to find rotated faces", f, faces)
+
+							// If there isn't an overlapping region with the default face detection settings, try detecting faces at various angles
+							if faces, err := face.DetectAllRotated(filePath, Config().FaceSize()); err != nil {
+								log.Errorf("index: %s (detecting all rotated faces for face region %s)", err, f)
+								continue
+							} else if matched := faces.Match(f); matched != nil {
+								matchedEmbeddings, err := ind.faceNet.EmbeddingsRotated(filePath, *matched)
+								if err != nil {
+									log.Errorf("index: %s (calculating embeddings for matched rotated face %s)", err, matched)
+									continue
+								}
+
+								// TODO Is this enough, or should we also modify the crop area for `f` to the `matched` crop area
+								embeddings = matchedEmbeddings
+								log.Debugf("index: matched rotated face %s has %s", matched, english.Plural(matchedEmbeddings.Count(), "embedding", "embeddings"))
+							} else {
+								log.Warnf("index: could not match face region %s to any detected rotated faces %s", f, faces)
+								continue
+							}
 						}
 
 						// IDEA: enhance region by 10% and do a sliding window?
