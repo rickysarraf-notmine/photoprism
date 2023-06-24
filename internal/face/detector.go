@@ -70,23 +70,15 @@ type Detector struct {
 }
 
 // DetectAllRotated runs the detection algorithm over a couple rotated versions of the provided source image.
-// Currently the image is rotated at 72°, 252° and 288°.
-func DetectAllRotated(fileName string, minSize int) (faces RotatedFaces, err error) {
-	angles := []float64{0.2, 0.7, 0.8}
+func DetectAllRotated(fileName string, minSize int, angle float64) (faces RotatedFaces, err error) {
+	candidateFaces, err := DetectWithConfig(fileName, minSize, DetectorConfig{FindLandmarks: true, IgnoreLowQuality: false, Angle: angle})
 
-	for _, angle := range angles {
-		candidateFaces, err := detect(fileName, true, minSize, false, angle)
+	if err != nil {
+		return faces, err
+	}
 
-		if err != nil {
-			return faces, err
-		}
-
-		// Ignore candidates without eyes landmarks as an additional quality filter.
-		for _, face := range candidateFaces {
-			if face.Eyes != nil {
-				faces = append(faces, RotatedFace{Face: face, Angle: angle})
-			}
-		}
+	for _, face := range candidateFaces {
+		faces = append(faces, RotatedFace{Face: face, Angle: angle})
 	}
 
 	return faces, nil
@@ -95,15 +87,20 @@ func DetectAllRotated(fileName string, minSize int) (faces RotatedFaces, err err
 // DetectAll runs the detection algorithm over the provided source image
 // and returns both high and low quality detections.
 func DetectAll(fileName string, minSize int) (faces Faces, err error) {
-	candidateFaces, err := detect(fileName, true, minSize, false, 0.0)
+	return DetectWithConfig(fileName, minSize, DetectorConfig{FindLandmarks: true, IgnoreLowQuality: false})
+}
+
+// Detect runs the detection algorithm over the provided source image using the given config.
+func DetectWithConfig(fileName string, minSize int, config DetectorConfig) (faces Faces, err error) {
+	candidateFaces, err := detect(fileName, config.FindLandmarks, minSize, config.IgnoreLowQuality, config.Angle)
 
 	if err != nil {
 		return faces, err
 	}
 
-	// Ignore candidates without eyes landmarks as an additional quality filter.
 	for _, face := range candidateFaces {
-		if face.Eyes != nil {
+		// Ignore candidates without eyes landmarks as an additional quality filter.
+		if config.IgnoreLowQuality || !config.FindLandmarks || face.Eyes != nil {
 			faces = append(faces, face)
 		}
 	}

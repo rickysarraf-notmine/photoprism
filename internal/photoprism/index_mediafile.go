@@ -371,49 +371,47 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 					if embeddings.Empty() {
 						log.Warnf("index: no embeddings for face region %s and file %s, will try to recover", f, logName)
 
-						// Run face detection for the image and check whether there is an overlapping region
-						faces, err := face.DetectAll(filePath, Config().FaceSize())
-						if err != nil {
-							log.Errorf("index: %s (detecting all faces for face region %s)", err, f)
-							continue
-						}
+						// Run face detection for the image at various rotation angles and check whether there is an overlapping region
+						// Currently the image is rotated at 72°, 252° and 288° (in addition to the non-rotated version).
+						angles := []float64{0.0, 0.2, 0.7, 0.8}
 
-						if matched := faces.Match(f); matched != nil {
-							log.Debugf("index: matched %s to a detected face %s", f, matched)
+						for _, angle := range angles {
+							log.Debugf("index: running face detection at angle %.2f", angle)
 
-							matchedEmbeddings, err := ind.faceNet.Embeddings(filePath, *matched)
-							if err != nil {
-								log.Errorf("index: %s (calculating embeddings for matched face %s)", err, matched)
-								continue
-							}
-
-							// TODO Is this enough, or should we also modify the crop area for `f` to the `matched` crop area
-							embeddings = matchedEmbeddings
-							log.Debugf("index: matched face %s has %s", matched, english.Plural(matchedEmbeddings.Count(), "embedding", "embeddings"))
-						} else {
-							log.Warnf("index: could not match face region %s to any detected faces %s, attempting to find rotated faces", f, faces)
-
-							// If there isn't an overlapping region with the default face detection settings, try detecting faces at various angles
-							if faces, err := face.DetectAllRotated(filePath, Config().FaceSize()); err != nil {
-								log.Errorf("index: %s (detecting all rotated faces for face region %s)", err, f)
+							if faces, err := face.DetectAllRotated(filePath, Config().FaceSize(), angle); err != nil {
+								log.Errorf("index: %s (detecting all faces for face region %s)", err, f)
 								continue
 							} else if matched := faces.Match(f); matched != nil {
 								matchedEmbeddings, err := ind.faceNet.EmbeddingsRotated(filePath, *matched)
 								if err != nil {
-									log.Errorf("index: %s (calculating embeddings for matched rotated face %s)", err, matched)
+									log.Errorf("index: %s (calculating embeddings for matched face %s)", err, matched)
 									continue
 								}
 
-								// TODO Is this enough, or should we also modify the crop area for `f` to the `matched` crop area
-								embeddings = matchedEmbeddings
-								log.Debugf("index: matched rotated face %s has %s", matched, english.Plural(matchedEmbeddings.Count(), "embedding", "embeddings"))
+								log.Debugf("index: matched face %s has %s", matched, english.Plural(matchedEmbeddings.Count(), "embedding", "embeddings"))
+
+								// If the matched face does not have any embeddings, but we are working with a rotated image,
+								// we might as well try to calculate the embeddings for the original face region using the same rotation angle.
+								if matchedEmbeddings.Empty() && angle > 0.0 {
+									matchedEmbeddings, err = ind.faceNet.EmbeddingsRotated(filePath, face.RotatedFace{Face: f, Angle: angle})
+									if err != nil {
+										log.Errorf("index: %s (calculating embeddings for rotated face %s)", err, matched)
+										continue
+									}
+
+									log.Debugf("index: rotated face %s has %s", f, english.Plural(matchedEmbeddings.Count(), "embedding", "embeddings"))
+								}
+
+								if matchedEmbeddings.One() {
+									// TODO Is this enough, or should we also modify the crop area for `f` to the `matched` crop area
+									embeddings = matchedEmbeddings
+									break
+								}
 							} else {
-								log.Warnf("index: could not match face region %s to any detected rotated faces %s", f, faces)
+								log.Warnf("index: could not match face region %s to any detected faces %s", f, faces)
 								continue
 							}
 						}
-
-						// IDEA: enhance region by 10% and do a sliding window?
 					}
 
 					// Assign the embeddings to the face and add the face to the file, which will create a new marker.
