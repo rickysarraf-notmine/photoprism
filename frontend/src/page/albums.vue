@@ -235,11 +235,6 @@
                     {{ album.getLocation() }}
                   </button>
                 </div>
-                <div v-if="album.hasSubjects()" class="caption mb-2" :title="$gettext('Subjects')">
-                  <v-avatar v-for="subject in album.getSubjects()" :key="subject.UID" :size="25" class="subject-avatar">
-                    <img :src="subject.thumbnailUrl('tile_50')" :alt="subject.Name">
-                  </v-avatar>
-                </div>
               </v-card-text>
             </v-card>
           </v-flex>

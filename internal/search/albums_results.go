@@ -35,8 +35,6 @@ type Album struct {
 	CreatedAt        time.Time `json:"CreatedAt"`
 	UpdatedAt        time.Time `json:"UpdatedAt"`
 	DeletedAt        time.Time `json:"DeletedAt,omitempty"`
-
-	Subjects SubjectResults `json:"Subjects"`
 }
 
 type AlbumResults []Album
