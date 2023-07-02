@@ -487,10 +487,6 @@ body.chrome #photoprism .search-results .result {
     border-bottom-right-radius: 6px;
 }
 
-#photoprism .cards-view .card .card-details .subject-avatar {
-    margin-right: 3px;
-}
-
 #photoprism .cards-view .v-card .card-details {
     z-index: 1;
     position: relative;

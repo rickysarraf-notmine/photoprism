@@ -24,7 +24,6 @@ Additional information can be found in our Developer Guide:
 */
 
 import RestModel from "model/rest";
-import Subject from "model/subject";
 import Api from "common/api";
 import countries from "options/countries.json";
 import { DateTime } from "luxon";
@@ -63,7 +62,6 @@ export class Album extends RestModel {
       LinkCount: 0,
       CreatedAt: "",
       UpdatedAt: "",
-      Subjects: [],
     };
   }
 
@@ -210,14 +208,6 @@ export class Album extends RestModel {
   unlike() {
     this.Favorite = false;
     return Api.delete(this.getEntityResource() + "/like");
-  }
-
-  hasSubjects() {
-    return this.Subjects !== undefined && this.Subjects !== null && this.Subjects.length > 0;
-  }
-
-  getSubjects() {
-    return this.hasSubjects() ? this.Subjects.map((s) => new Subject(s)) : [];
   }
 
   static batchSize() {
