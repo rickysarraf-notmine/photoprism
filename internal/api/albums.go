@@ -459,10 +459,6 @@ func RemovePhotosFromAlbum(router *gin.RouterGroup) {
 				event.SuccessMsg(i18n.MsgEntriesRemovedFrom, len(removed), clean.Log(a.Title()))
 			}
 
-			if err := a.ResetCoverIfNeeded(removed); err != nil {
-				log.Errorf("album: %s (reset thumbnail)", err)
-			}
-
 			RemoveFromAlbumCoverCache(a.AlbumUID)
 
 			PublishAlbumEvent(EntityUpdated, a.AlbumUID, c)
