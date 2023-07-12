@@ -58,6 +58,14 @@ func ApplyCliContext(c interface{}, ctx *cli.Context) error {
 					f := ctx.GlobalInt64(tagValue)
 					fieldValue.SetInt(f)
 				}
+			case []int, []int64:
+				if ctx.IsSet(tagValue) {
+					f := reflect.ValueOf(ctx.Int64Slice(tagValue))
+					fieldValue.Set(f)
+				} else if ctx.GlobalIsSet(tagValue) || fieldValue.Len() == 0 {
+					f := reflect.ValueOf(ctx.GlobalInt64Slice(tagValue))
+					fieldValue.Set(f)
+				}
 			case uint, uint64:
 				// Only if explicitly set or current value is empty (use default).
 				if ctx.IsSet(tagValue) {
