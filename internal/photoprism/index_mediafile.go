@@ -7,11 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dustin/go-humanize/english"
 	"github.com/jinzhu/gorm"
 
 	"github.com/photoprism/photoprism/internal/classify"
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/event"
+	"github.com/photoprism/photoprism/internal/face"
 	"github.com/photoprism/photoprism/internal/meta"
 	"github.com/photoprism/photoprism/internal/plugin"
 	"github.com/photoprism/photoprism/internal/query"
@@ -352,16 +354,61 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 						log.Debugf("index: face region was indexed, but was not named %s", f)
 					}
 				} else {
+					filePath := FileName(file.FileRoot, file.FileName)
+
 					// Hardcode the face score, which is usually computed by facenet.
 					// Setting a higher score (>15), will mean that the face region will be used for clustering.
 					f.Score = 1
 
 					// Calculate the embeddings vector for the given face region.
-					embeddings, err := ind.faceNet.Embeddings(FileName(file.FileRoot, file.FileName), f)
+					embeddings, err := ind.faceNet.Embeddings(filePath, f)
 
 					if err != nil {
 						log.Errorf("index: %s (calculating embeddings for %s)", err, logName)
 						continue
+					}
+
+					if embeddings.Empty() {
+						log.Warnf("index: no embeddings for face region %s and file %s, will try to recover", f, logName)
+
+						// Run face detection for the image at various rotation angles and check whether there is an overlapping region
+						for _, angle := range ind.conf.FaceRegionAnglesPigo() {
+							log.Debugf("index: running face detection at angle %.2f", angle)
+
+							if faces, err := face.DetectAllRotated(filePath, Config().FaceSize(), angle); err != nil {
+								log.Errorf("index: %s (detecting all faces for face region %s)", err, f)
+								continue
+							} else if matched := faces.Match(f); matched != nil {
+								matchedEmbeddings, err := ind.faceNet.EmbeddingsRotated(filePath, *matched)
+								if err != nil {
+									log.Errorf("index: %s (calculating embeddings for matched face %s)", err, matched)
+									continue
+								}
+
+								log.Debugf("index: matched face %s has %s", matched, english.Plural(matchedEmbeddings.Count(), "embedding", "embeddings"))
+
+								// If the matched face does not have any embeddings, but we are working with a rotated image,
+								// we might as well try to calculate the embeddings for the original face region using the same rotation angle.
+								if matchedEmbeddings.Empty() && angle > 0.0 {
+									matchedEmbeddings, err = ind.faceNet.EmbeddingsRotated(filePath, face.RotatedFace{Face: f, Angle: angle})
+									if err != nil {
+										log.Errorf("index: %s (calculating embeddings for rotated face %s)", err, matched)
+										continue
+									}
+
+									log.Debugf("index: rotated face %s has %s", f, english.Plural(matchedEmbeddings.Count(), "embedding", "embeddings"))
+								}
+
+								if matchedEmbeddings.One() {
+									// TODO Is this enough, or should we also modify the crop area for `f` to the `matched` crop area
+									embeddings = matchedEmbeddings
+									break
+								}
+							} else {
+								log.Warnf("index: could not match face region %s to any detected faces %s", f, faces)
+								continue
+							}
+						}
 					}
 
 					// Assign the embeddings to the face and add the face to the file, which will create a new marker.

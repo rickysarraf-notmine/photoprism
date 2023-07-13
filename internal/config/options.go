@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -160,6 +159,7 @@ type Options struct {
 	FaceClusterCore       int           `yaml:"-" json:"-" flag:"face-cluster-core"`
 	FaceClusterDist       float64       `yaml:"-" json:"-" flag:"face-cluster-dist"`
 	FaceMatchDist         float64       `yaml:"-" json:"-" flag:"face-match-dist"`
+	FaceRegionAngles      []int64       `yaml:"-" json:"-" flag:"face-region-angles"`
 	PIDFilename           string        `yaml:"PIDFilename" json:"-" flag:"pid-filename"`
 	LogFilename           string        `yaml:"LogFilename" json:"-" flag:"log-filename"`
 	DetachServer          bool          `yaml:"DetachServer" json:"-" flag:"detach-server"`
@@ -239,7 +239,7 @@ func (c *Options) Load(fileName string) error {
 	}
 
 	if !fs.FileExists(fileName) {
-		return errors.New(fmt.Sprintf("%s not found", fileName))
+		return fmt.Errorf("%s not found", fileName)
 	}
 
 	yamlConfig, err := os.ReadFile(fileName)
