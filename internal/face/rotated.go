@@ -27,7 +27,7 @@ func (faces RotatedFaces) Match(other Face) *RotatedFace {
 	return nil
 }
 
-// Embeddings computes the embeddings vector for a given angled face region.
+// EmbeddingsRotated computes the embeddings vector for a given angled face region.
 func (t *Net) EmbeddingsRotated(fileName string, face RotatedFace) (Embeddings, error) {
 	err := t.loadModel()
 
@@ -41,12 +41,21 @@ func (t *Net) EmbeddingsRotated(fileName string, face RotatedFace) (Embeddings, 
 		return nil, err
 	}
 
-	// THERE ARE A LOT OF GAPS IN THE RANGE, COVER THEM ALL OR USE THE GENERIC ROTATE METHOD WITH A SUITABLE BACKGROUND COLOR
-	if (face.Angle >= 0.2 && face.Angle <= 0.3) {
+	// After we have cropped the face region from the image, we need to rotate it accordingly.
+	// Weirdly, rotating the cropped image by the same angle, as the face returns worse results, compared to when using binning.
+	// img = imaging.Rotate(img, face.Angle * 360, color.Transparent)
+	// The binning approach rounds the face angle to the neareast 90° angle, so that the resulting image is always rotated
+	// by one of the "standart" orientations. The bins are as follows:
+	// [0°, 45°] -> do not rotate
+	// (45°, 135°] -> rotate by 90°
+	// (135°, 225°] -> rotate by 180°
+	// (225°, 315°] -> rotate by 270°
+	// (315°, 360°] -> do not rotate
+	if face.Angle > 0.125 && face.Angle <= 0.375 {
 		img = imaging.Rotate90(img)
-	} else if (face.Angle >= 0.4 && face.Angle <= 0.6) {
+	} else if face.Angle > 0.375 && face.Angle <= 0.625 {
 		img = imaging.Rotate180(img)
-	} else if (face.Angle >= 0.7 && face.Angle <= 0.8) {
+	} else if face.Angle > 0.625 && face.Angle <= 0.875 {
 		img = imaging.Rotate270(img)
 	}
 

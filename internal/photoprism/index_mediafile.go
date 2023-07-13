@@ -372,10 +372,7 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 						log.Warnf("index: no embeddings for face region %s and file %s, will try to recover", f, logName)
 
 						// Run face detection for the image at various rotation angles and check whether there is an overlapping region
-						// Currently the image is rotated at 72°, 252° and 288° (in addition to the non-rotated version).
-						angles := []float64{0.0, 0.2, 0.7, 0.8}
-
-						for _, angle := range angles {
+						for _, angle := range ind.conf.FaceRegionAnglesPigo() {
 							log.Debugf("index: running face detection at angle %.2f", angle)
 
 							if faces, err := face.DetectAllRotated(filePath, Config().FaceSize(), angle); err != nil {

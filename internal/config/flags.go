@@ -757,6 +757,12 @@ var Flags = CliFlags{
 			Value:  face.MatchDist,
 			EnvVar: EnvVar("FACE_MATCH_DIST"),
 		}}, {
+		Flag: cli.Int64SliceFlag{
+			Name:   "face-region-angles",
+			Usage:  "rotation angles at which face detection is ran as fallback in case no embeddings can be calculated for manual face regions (0-360°)",
+			Value: (*cli.Int64Slice)(&face.RegionAngles),
+			EnvVar: EnvVar("FACE_REGION_ANGLES"),
+		}}, {
 		Flag: cli.StringFlag{
 			Name:   "pid-filename",
 			Usage:  "process id `FILE` *daemon-mode only*",

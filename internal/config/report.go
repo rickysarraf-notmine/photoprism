@@ -21,7 +21,7 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 
 	rows = [][]string{
 		// Authentication.
-		{"auth-mode", fmt.Sprintf("%s", c.AuthMode())},
+		{"auth-mode", c.AuthMode()},
 		{"admin-user", c.AdminUser()},
 		{"admin-password", strings.Repeat("*", utf8.RuneCountInString(c.AdminPassword()))},
 		{"public", fmt.Sprintf("%t", c.Public())},
@@ -220,6 +220,8 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"face-cluster-core", fmt.Sprintf("%d", c.FaceClusterCore())},
 		{"face-cluster-dist", fmt.Sprintf("%f", c.FaceClusterDist())},
 		{"face-match-dist", fmt.Sprintf("%f", c.FaceMatchDist())},
+		{"face-region-angles", fmt.Sprint(c.FaceRegionAngles())},
+		{"face-region-angles-pigo", fmt.Sprint(c.FaceRegionAnglesPigo())},
 
 		// Monitoring and debugging.
 		{"enable-expvar", fmt.Sprintf("%t", c.EnableExpvar())},
