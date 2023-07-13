@@ -2,7 +2,9 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ develop, release, master ]
+    branches: [ develop, release, master, preview ]
+  pull_request:
+    branches: [ develop, preview ]
 
 jobs:
   analyze:
@@ -20,7 +22,7 @@ jobs:
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2

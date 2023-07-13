@@ -26,9 +26,11 @@ package face
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/photoprism/photoprism/internal/crop"
 	"github.com/photoprism/photoprism/internal/event"
+	"github.com/photoprism/photoprism/pkg/txt"
 )
 
 var log = event.Log
@@ -42,6 +44,11 @@ type Face struct {
 	Eyes       Areas      `json:"eyes,omitempty"`
 	Landmarks  Areas      `json:"landmarks,omitempty"`
 	Embeddings Embeddings `json:"embeddings,omitempty"`
+}
+
+// String returns the face name and landmark position as string.
+func (f Face) String() string {
+	return fmt.Sprintf("%s-%s", txt.Slug(f.Area.Name), f.Area)
 }
 
 // Size returns the absolute face size in pixels.
@@ -144,4 +151,9 @@ func (f *Face) NoEmbedding() bool {
 	}
 
 	return f.Embeddings.Empty()
+}
+
+// OverlapsAboveThreshold checks whether a face overlaps significantly with a given area.
+func (f *Face) OverlapsAboveThreshold(other crop.Area) bool {
+	return f.CropArea().OverlapPercent(other) > OverlapThresholdFloor
 }

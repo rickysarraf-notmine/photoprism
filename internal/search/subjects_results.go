@@ -21,3 +21,14 @@ type Subject struct {
 
 // SubjectResults represents subject search results.
 type SubjectResults []Subject
+
+// Names returns a slice of subject names.
+func (subjects SubjectResults) Names() []string {
+	result := make([]string, len(subjects))
+
+	for i, el := range subjects {
+		result[i] = el.SubjName
+	}
+
+	return result
+}

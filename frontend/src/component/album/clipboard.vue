@@ -137,7 +137,7 @@ export default {
       canDownload: this.$config.allow("albums", "download") && features.download,
       canShare: this.$config.allow("albums", "share") && features.share,
       canManage: this.$config.allow("albums", "manage"),
-      deletable: ["album", "moment", "state"],
+      deletable: ["album"],
       expanded: false,
       dialog: {
         delete: false,

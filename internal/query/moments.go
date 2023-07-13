@@ -216,7 +216,7 @@ func MomentsTime(threshold int, public bool) (results Moments, err error) {
 }
 
 // MomentsCountries returns the most popular countries by year.
-func MomentsCountries(threshold int, public bool) (results Moments, err error) {
+func MomentsCountriesByYear(threshold int, public bool) (results Moments, err error) {
 	stmt := UnscopedDb().Table("photos").
 		Select("photo_year AS year, photo_country AS country, COUNT(*) AS photo_count").
 		Where("photos.photo_quality >= 3 AND deleted_at IS NULL AND photo_country <> 'zz' AND photo_year > 0")
@@ -230,6 +230,21 @@ func MomentsCountries(threshold int, public bool) (results Moments, err error) {
 		Having("photo_count >= ?", threshold)
 
 	if err = stmt.Scan(&results).Error; err != nil {
+		return results, err
+	}
+
+	return results, nil
+}
+
+// MomentsCountries returns the most popular countries.
+func MomentsCountries(threshold int) (results Moments, err error) {
+	db := UnscopedDb().Table("photos").
+		Select("photo_country AS country, COUNT(*) AS photo_count ").
+		Where("photos.photo_quality >= 3 AND deleted_at IS NULL AND photo_private = 0 AND photo_country <> 'zz'").
+		Group("photo_country").
+		Having("photo_count >= ?", threshold)
+
+	if err := db.Scan(&results).Error; err != nil {
 		return results, err
 	}
 
@@ -306,7 +321,7 @@ func MomentsLabels(threshold int, public bool) (results Moments, err error) {
 
 // RemoveDuplicateMoments deletes generated albums with duplicate slug or filter.
 func RemoveDuplicateMoments() (removed int, err error) {
-	if res := UnscopedDb().Exec(`DELETE FROM links WHERE share_uid 
+	if res := UnscopedDb().Exec(`DELETE FROM links WHERE share_uid
 		IN (SELECT a.album_uid FROM albums a JOIN albums b ON a.album_type <> ?
 		AND a.album_type = b.album_type AND a.id > b.id
 		WHERE (a.album_slug = b.album_slug OR a.album_filter = b.album_filter)
@@ -314,7 +329,7 @@ func RemoveDuplicateMoments() (removed int, err error) {
 		return removed, res.Error
 	}
 
-	if res := UnscopedDb().Exec(`DELETE FROM albums WHERE id 
+	if res := UnscopedDb().Exec(`DELETE FROM albums WHERE id
 		IN (SELECT a.id FROM albums a JOIN albums b ON a.album_type <> ?
 			AND a.album_type = b.album_type  AND a.id > b.id
 			WHERE (a.album_slug = b.album_slug OR a.album_filter = b.album_filter)

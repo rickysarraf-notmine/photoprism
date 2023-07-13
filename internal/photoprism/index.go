@@ -19,6 +19,7 @@ import (
 	"github.com/photoprism/photoprism/internal/i18n"
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/internal/nsfw"
+	"github.com/photoprism/photoprism/internal/plugin"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/media"
@@ -69,6 +70,11 @@ func (ind *Index) thumbPath() string {
 	return ind.conf.ThumbCachePath()
 }
 
+// foldersSortOrder returns the configured default sort order for folders
+func (ind *Index) foldersSortOrder() string {
+	return ind.conf.Settings().Folders.SortOrder
+}
+
 // Cancel stops the current indexing operation.
 func (ind *Index) Cancel() {
 	mutex.MainWorker.Cancel()
@@ -99,6 +105,9 @@ func (ind *Index) Start(o IndexOptions) (found fs.Done, updated int) {
 		event.InfoMsg(i18n.ErrOriginalsEmpty)
 		return found, updated
 	}
+
+	// Load plugins.
+	plugin.LoadPlugins(ind.conf.PluginsPath())
 
 	if err := mutex.MainWorker.Start(); err != nil {
 		event.Error(fmt.Sprintf("index: %s", err.Error()))
@@ -169,7 +178,7 @@ func (ind *Index) Start(o IndexOptions) (found fs.Done, updated int) {
 				}
 
 				if result != filepath.SkipDir {
-					folder := entity.NewFolder(entity.RootOriginals, relName, fs.BirthTime(fileName))
+					folder := entity.NewFolder(entity.RootOriginals, relName, fs.BirthTime(fileName), ind.foldersSortOrder())
 
 					if err := folder.Create(); err == nil {
 						log.Infof("index: added folder /%s", folder.Path)

@@ -361,11 +361,11 @@ body.chrome #photoprism .search-results .result {
     display: none;
 }
 
-#photoprism .disable-manage .search-results .result:not(.is-favorite) .input-favorite {
+#photoprism .disable-update .search-results .result:not(.is-favorite) .input-favorite {
     visibility: hidden;
 }
 
-#photoprism .disable-manage .search-results .result .input-favorite.v-btn:before {
+#photoprism .disable-update .search-results .result .input-favorite.v-btn:before {
     visibility: hidden;
 }
 
@@ -374,6 +374,13 @@ body.chrome #photoprism .search-results .result {
     opacity: 0.75;
     top: 4px;
     right: 4px;
+}
+
+#photoprism .cards-view .input-confirm-face,
+#photoprism .mosaic-view .input-confirm-face {
+    opacity: 0.75;
+    top: 4px;
+    left: 4px;
 }
 
 #photoprism .cards-view .input-hidden,
@@ -413,6 +420,7 @@ body.chrome #photoprism .search-results .result {
 
 #photoprism .search-results.select-results .type-image .input-view,
 #photoprism .search-results .type-raw .input-open,
+#photoprism .search-results .type-sphere .input-open,
 #photoprism .search-results .type-video.is-playable .input-open,
 #photoprism .search-results .type-animated.is-playable .input-open,
 #photoprism .search-results .type-live.is-playable .input-open,
@@ -425,6 +433,7 @@ body.chrome #photoprism .search-results .result {
 }
 
 #photoprism .search-results .type-raw .input-open .action-raw,
+#photoprism .search-results .type-sphere .input-open .action-sphere,
 #photoprism .search-results .type-video.is-playable .input-open .action-play,
 #photoprism .search-results .type-live.is-playable .input-open .action-live,
 #photoprism .search-results .type-animated.is-playable .input-open .action-animated,
@@ -476,6 +485,10 @@ body.chrome #photoprism .search-results .result {
 #photoprism .cards-view .card .card-details {
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
+}
+
+#photoprism .cards-view .card .card-details .subject-avatar {
+    margin-right: 3px;
 }
 
 #photoprism .cards-view .v-card .card-details {

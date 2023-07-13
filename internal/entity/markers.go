@@ -23,7 +23,7 @@ func (m Markers) Save(file *File) (count int, err error) {
 		}
 
 		if created, err := CreateMarkerIfNotExists(&m[i]); err != nil {
-			log.Errorf("markers: %s (save)", err)
+			return 0, err
 		} else {
 			m[i] = *created
 		}
@@ -52,6 +52,17 @@ func (m Markers) Contains(other Marker) bool {
 	}
 
 	return false
+}
+
+// Find checks whether a marker at the same position already exists and returns it if ot does, otherwise it returns nil.
+func (m Markers) Find(other Marker) *Marker {
+	for i := range m {
+		if m[i].OverlapPercent(other) > face.OverlapThreshold {
+			return &m[i]
+		}
+	}
+
+	return nil
 }
 
 // DetectedFaceCount returns the number of automatically detected face markers.

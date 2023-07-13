@@ -270,7 +270,7 @@ test.meta("testID", "albums-006").meta({ mode: "public" })(
 );
 
 test.meta("testID", "albums-007").meta({ type: "short", mode: "public" })(
-  "Common: Create, Edit, delete sharing link",
+  "Common: Create, Edit, delete sharing link for albums",
   async (t) => {
     await page.testCreateEditDeleteSharingLink("albums");
   }

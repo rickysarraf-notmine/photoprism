@@ -376,6 +376,7 @@ const clientConfig = {
     private_moments: 0,
     private_months: 0,
     private_states: 0,
+    private_countries: 0,
     review: 22,
     stories: 0,
     albums: 2,

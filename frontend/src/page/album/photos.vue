@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import {Photo, MediaLive, MediaRaw, MediaVideo, MediaAnimated} from "model/photo";
+import {Photo, MediaLive, MediaRaw, MediaSphere, MediaVideo, MediaAnimated} from "model/photo";
 import Album from "model/album";
 import Thumb from "model/thumb";
 import Event from "pubsub-js";
@@ -245,6 +245,8 @@ export default {
         } else {
           this.$viewer.show(Thumb.fromPhotos(this.results), index);
         }
+      } else if (showMerged && selected.Type == MediaSphere) {
+        this.$viewer.showSphere(Thumb.fromPhoto(selected));
       } else if (showMerged) {
         this.$viewer.show(Thumb.fromFiles([selected]), 0);
       } else {

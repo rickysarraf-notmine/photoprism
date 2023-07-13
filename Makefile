@@ -30,6 +30,9 @@ INSTALL_USER ?= $(DESTUID):$(DESTGID)
 INSTALL_MODE ?= u+rwX,a+rX
 INSTALL_MODE_BIN ?= 755
 
+# Other parameters.
+PLUGINS_PATH ?= storage/plugins
+
 UID := $(shell id -u)
 GID := $(shell id -g)
 HASRICHGO := $(shell which richgo)
@@ -179,6 +182,8 @@ clean-local-cache:
 	rm -rf $(BUILD_PATH)/storage/cache/*
 clean-local-config:
 	rm -f $(BUILD_PATH)/config/*
+clean-plugins:
+	rm -f $(PLUGINS_PATH)/*
 dep-list:
 	go list -u -m -json all | go-mod-outdated -direct
 dep-npm:
@@ -219,6 +224,16 @@ build-race:
 build-static:
 	rm -f $(BINARY_NAME)
 	scripts/build.sh static $(BINARY_NAME)
+build-plugins: build-plugin-demo build-plugin-realesrgan build-plugin-yolo8
+build-plugin-demo:
+	mkdir -p $(PLUGINS_PATH)
+	go build -tags=debug -buildmode=plugin -o $(PLUGINS_PATH)/demo.so internal/plugin/demo/demo.go
+build-plugin-realesrgan:
+	mkdir -p $(PLUGINS_PATH)
+	go build -tags=debug -buildmode=plugin -o $(PLUGINS_PATH)/realesrgan.so internal/plugin/realesrgan/realesrgan.go
+build-plugin-yolo8:
+	mkdir -p $(PLUGINS_PATH)
+	go build -tags=debug -buildmode=plugin -o $(PLUGINS_PATH)/yolo8.so internal/plugin/yolo8/yolo8.go
 build-tensorflow:
 	docker build -t photoprism/tensorflow:build docker/tensorflow
 	docker run -ti photoprism/tensorflow:build bash
@@ -236,18 +251,12 @@ acceptance:
 acceptance-short:
 	$(info Running JS acceptance tests in Chrome...)
 	(cd frontend &&	npm run testcafe -- chrome:headless --test-grep "^(Common|Core)\:*" --test-meta mode=public,type=short --config-file ./testcaferc.json "tests/acceptance")
-acceptance-firefox:
-	$(info Running JS acceptance tests in Firefox...)
-	(cd frontend &&	npm run testcafe -- firefox:headless --test-grep "^(Common|Core)\:*" --test-meta mode=public --config-file ./testcaferc.json "tests/acceptance")
 acceptance-auth:
 	$(info Running JS acceptance-auth tests in Chrome...)
 	(cd frontend &&	npm run testcafe -- chrome:headless --test-grep "^(Common|Core)\:*" --test-meta mode=auth --config-file ./testcaferc.json "tests/acceptance")
 acceptance-auth-short:
 	$(info Running JS acceptance-auth tests in Chrome...)
 	(cd frontend &&	npm run testcafe -- chrome:headless --test-grep "^(Common|Core)\:*" --test-meta mode=auth,type=short --config-file ./testcaferc.json "tests/acceptance")
-acceptance-auth-firefox:
-	$(info Running JS acceptance-auth tests in Firefox...)
-	(cd frontend &&	npm run testcafe -- firefox:headless --test-grep "^(Common|Core)\:*" --test-meta mode=auth --config-file ./testcaferc.json "tests/acceptance")
 reset-mariadb:
 	$(info Resetting photoprism database...)
 	mysql < scripts/sql/reset-photoprism.sql

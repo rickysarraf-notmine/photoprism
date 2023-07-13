@@ -102,9 +102,11 @@ services:
       PHOTOPRISM_THUMB_SIZE_UNCACHED: 7680           # on-demand rendering size limit (default 7680, min 720, max 7680)
       PHOTOPRISM_JPEG_SIZE: 7680                     # size limit for converted image files in pixels (720-30000)
       PHOTOPRISM_JPEG_QUALITY: 85                    # a higher value increases the quality and file size of JPEG images and thumbnails (25-100)
+      PHOTOPRISM_ENABLE_EXPVAR: "true"               # enable the expvar endpoint which can be used for monitoring.
       TF_CPP_MIN_LOG_LEVEL: 0                        # show TensorFlow log messages for development
       ## Run/install on first startup (options: update https gpu tensorflow davfs clitools clean):
       PHOTOPRISM_INIT: "https tensorflow"
+      PHOTOPRISM_WORKERS: 1
       ## Hardware Video Transcoding (optional):
       # PHOTOPRISM_FFMPEG_ENCODER: "nvidia"          # FFmpeg encoder ("software", "intel", "nvidia", "apple", "raspberry", "vaapi") Intel: "intel" for Broadwell or later and "vaapi" for Haswell or earlier
       # PHOTOPRISM_FFMPEG_ENCODER: "intel"           # FFmpeg encoder ("software", "intel", "nvidia", "apple", "raspberry", "vaapi") Intel: "intel" for Broadwell or later and "vaapi" for Haswell or earlier`
@@ -148,6 +150,17 @@ services:
       MARIADB_USER: "photoprism"
       MARIADB_PASSWORD: "photoprism"
       MARIADB_ROOT_PASSWORD: "photoprism"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5.0
+    restart: always
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 4001
+    ports:
+      - 6060:80
+    depends_on:
+      - mariadb
 
   ## HTTPS Reverse Proxy (recommended) ##
   ## includes "*.localssl.dev" SSL certificate for test environments

@@ -73,3 +73,32 @@ func (c *Config) FaceMatchDist() float64 {
 
 	return c.options.FaceMatchDist
 }
+
+// FaceRegionAngles returns a sanitized list of configured rotation angles (in degrees).
+func (c *Config) FaceRegionAngles() []int64 {
+	angles := make([]int64, 0)
+
+	for _, angle := range c.options.FaceRegionAngles {
+		if angle >= 0 && angle <= 360 {
+			angles = append(angles, angle)
+		}
+	}
+
+	if len(angles) == 0 {
+		return face.RegionAngles
+	}
+
+	return angles
+}
+
+// FaceRegionAngles returns a sanitized list of configured rotation angles (in pigo format - 0 to 1).
+func (c *Config) FaceRegionAnglesPigo() []float64 {
+	angles := c.FaceRegionAngles()
+	anglesNormalized := make([]float64, len(angles))
+
+	for i, angle := range angles {
+		anglesNormalized[i] = float64(angle) / 360
+	}
+
+	return anglesNormalized
+}

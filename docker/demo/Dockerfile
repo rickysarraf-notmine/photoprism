@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 FROM photoprism/photoprism:preview-ce as build
 
 # Set environment variables
@@ -27,6 +28,12 @@ COPY /docker/demo/index.gohtml /opt/photoprism/assets/templates
 
 # Download example photos
 RUN wget -qO- https://dl.photoprism.app/qa/demo.tar.gz | tar xvz -C /photoprism/originals
+
+# Add my example photos
+COPY /assets/examples/demo /photoprism/originals/demo/my
+
+# Add an additional user
+RUN photoprism user add family --password photoprism --role family --auth local
 
 # Import example photos
 RUN photoprism restore -a && \

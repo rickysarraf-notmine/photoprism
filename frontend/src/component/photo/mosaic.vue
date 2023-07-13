@@ -74,6 +74,7 @@
               <i v-if="photo.Type === 'raw'" class="action-raw" :title="$gettext('RAW')">raw_on</i>
               <i v-if="photo.Type === 'live'" class="action-live" :title="$gettext('Live')"><icon-live-photo/></i>
               <i v-if="photo.Type === 'video'" class="action-play" :title="$gettext('Video')">play_arrow</i>
+              <i v-if="photo.Type === 'sphere'" class="action-sphere" :title="$gettext('Photosphere')">panorama_photosphere</i>
               <i v-if="photo.Type === 'animated'" class="action-animated" :title="$gettext('Animated')">gif</i>
               <i v-if="photo.Type === 'vector'" class="action-vector" :title="$gettext('Vector')">font_download</i>
               <i v-if="photo.Type === 'image'" class="action-stack" :title="$gettext('Stack')">burst_mode</i>
@@ -114,7 +115,7 @@
               <i color="white" class="select-off">radio_button_off</i>
             </button>
 
-            <button v-if="!isSharedView"
+            <button v-if="!isSharedView || $config.canLike()"
                 class="input-favorite"
                 @touchstart.stop.prevent="input.touchStart($event, index)"
                 @touchend.stop.prevent="toggleLike($event, index)"

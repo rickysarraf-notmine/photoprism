@@ -13,7 +13,7 @@ type SearchPhotos struct {
 	Filter    string    `form:"filter" serialize:"-" notes:"-"`
 	ID        string    `form:"id" example:"id:123e4567-e89b-..." notes:"Finds pictures by Exif UID, XMP Document ID or Instance ID"`
 	UID       string    `form:"uid" example:"uid:pqbcf5j446s0futy" notes:"Limits results to the specified internal unique IDs"`
-	Type      string    `form:"type" example:"type:raw" notes:"Media Type (image, video, raw, live, animated); OR search with |"`
+	Type      string    `form:"type" example:"type:raw" notes:"Media Type (image, video, raw, live, sphere, animated); OR search with |"`
 	Path      string    `form:"path" example:"path:2020/Holiday" notes:"Path Name, OR search with |, supports * wildcards"`
 	Folder    string    `form:"folder" example:"folder:\"*/2020\"" notes:"Path Name, OR search with |, supports * wildcards"` // Alias for Path
 	Name      string    `form:"name" example:"name:\"IMG_9831-112*\"" notes:"File Name without path and extension, OR search with |"`
@@ -76,10 +76,14 @@ type SearchPhotos struct {
 	Lens      string    `form:"lens" example:"lens:ef24" notes:"Lens Make/Model Name"`                                                                                                                                // Lens UID or name
 	Before    time.Time `form:"before" time_format:"2006-01-02" notes:"Finds pictures taken before this date"`                                                                                                        // Finds images taken before date
 	After     time.Time `form:"after" time_format:"2006-01-02" notes:"Finds pictures taken after this date"`                                                                                                          // Finds images taken after date
+	BeforeT   time.Time `form:"beforet" time_format:"2006-01-02 15:04:05" notes:"Finds pictures taken before this date and time"`                                                                                     // Finds images taken before date
+	AfterT    time.Time `form:"aftert" time_format:"2006-01-02 15:04:05" notes:"Finds pictures taken after this date and time"`                                                                                       // Finds images taken after date
 	Count     int       `form:"count" binding:"required" serialize:"-"`                                                                                                                                               // Result FILE limit
 	Offset    int       `form:"offset" serialize:"-"`                                                                                                                                                                 // Result FILE offset
 	Order     string    `form:"order" serialize:"-"`                                                                                                                                                                  // Sort order
 	Merged    bool      `form:"merged" serialize:"-"`                                                                                                                                                                 // Merge FILES in response
+
+	Sphere    bool      `form:"sphere" notes:"Finds Photosphere Photos"`
 }
 
 func (f *SearchPhotos) GetQuery() string {
@@ -93,6 +97,12 @@ func (f *SearchPhotos) SetQuery(q string) {
 func (f *SearchPhotos) ParseQueryString() error {
 	if err := ParseQueryString(f); err != nil {
 		return err
+	}
+
+	if f.Filter != "" {
+		if err := Unserialize(f, f.Filter); err != nil {
+			return err
+		}
 	}
 
 	if f.Path != "" {
@@ -114,12 +124,6 @@ func (f *SearchPhotos) ParseQueryString() error {
 	} else if f.People != "" {
 		f.Subjects = f.People
 		f.People = ""
-	}
-
-	if f.Filter != "" {
-		if err := Unserialize(f, f.Filter); err != nil {
-			return err
-		}
 	}
 
 	// Strip file extensions if any.

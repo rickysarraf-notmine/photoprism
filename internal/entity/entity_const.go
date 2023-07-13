@@ -25,6 +25,7 @@ const (
 	MediaVideo    = string(media.Video)
 	MediaVector   = string(media.Vector)
 	MediaText     = string(media.Text)
+	MediaSphere   = string(media.Sphere)
 )
 
 // Storage root folders.

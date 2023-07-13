@@ -49,6 +49,7 @@ import VueLuxon from "vue-luxon";
 import VueFilters from "vue2-filters";
 import VueFullscreen from "vue-fullscreen";
 import VueInfiniteScroll from "vue-infinite-scroll";
+import { Cropper } from "vue-advanced-cropper";
 import Hls from "hls.js";
 import "common/maptiler-lang";
 import { T, Mount } from "common/vm";
@@ -116,6 +117,7 @@ config.update().finally(() => {
   Vue.use(VueFullscreen);
   Vue.use(VueFilters);
   Vue.use(Components);
+  Vue.use(Cropper);
   Vue.use(Dialogs);
   Vue.use(Router);
 

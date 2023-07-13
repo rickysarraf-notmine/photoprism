@@ -8,7 +8,7 @@ func (faces Faces) Contains(other Face) bool {
 	cropArea := other.CropArea()
 
 	for _, f := range faces {
-		if f.CropArea().OverlapPercent(cropArea) > OverlapThresholdFloor {
+		if f.OverlapsAboveThreshold(cropArea) {
 			return true
 		}
 	}
@@ -19,6 +19,28 @@ func (faces Faces) Contains(other Face) bool {
 // Append adds a face.
 func (faces *Faces) Append(f Face) {
 	*faces = append(*faces, f)
+}
+
+// AppendIfNotContains adds all faces that do not conflict with existing ones.
+func (faces *Faces) AppendIfNotContains(others ...Face) {
+	for _, other := range others {
+		if !faces.Contains(other) {
+			faces.Append(other)
+		}
+	}
+}
+
+// Match finds a sufficiently overlapping existing face region for a given face.
+func (faces Faces) Match(other Face) *Face {
+	cropArea := other.CropArea()
+
+	for _, f := range faces {
+		if f.OverlapsAboveThreshold(cropArea) {
+			return &f
+		}
+	}
+
+	return nil
 }
 
 // Count returns the number of faces detected.

@@ -1,15 +1,16 @@
 package face
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
 	_ "image/jpeg"
 	"io"
-	"os"
 	"path/filepath"
 	"runtime/debug"
 	"sort"
 
+	"github.com/disintegration/imaging"
 	pigo "github.com/esimov/pigo/core"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
@@ -68,8 +69,55 @@ type Detector struct {
 	perturb      int
 }
 
+// DetectAllRotated runs the detection algorithm over a couple rotated versions of the provided source image.
+func DetectAllRotated(fileName string, minSize int, angle float64) (faces RotatedFaces, err error) {
+	candidateFaces, err := DetectWithConfig(fileName, minSize, DetectorConfig{FindLandmarks: true, IgnoreLowQuality: false, Angle: angle})
+
+	if err != nil {
+		return faces, err
+	}
+
+	for _, face := range candidateFaces {
+		faces = append(faces, RotatedFace{Face: face, Angle: angle})
+	}
+
+	return faces, nil
+}
+
+// DetectAll runs the detection algorithm over the provided source image
+// and returns both high and low quality detections.
+func DetectAll(fileName string, minSize int) (faces Faces, err error) {
+	return DetectWithConfig(fileName, minSize, DetectorConfig{FindLandmarks: true, IgnoreLowQuality: false})
+}
+
+// Detect runs the detection algorithm over the provided source image using the given config.
+func DetectWithConfig(fileName string, minSize int, config DetectorConfig) (faces Faces, err error) {
+	candidateFaces, err := detect(fileName, config.FindLandmarks, minSize, config.IgnoreLowQuality, config.Angle)
+
+	if err != nil {
+		return faces, err
+	}
+
+	for _, face := range candidateFaces {
+		// Ignore candidates without eyes landmarks as an additional quality filter.
+		if config.IgnoreLowQuality || !config.FindLandmarks || face.Eyes != nil {
+			faces = append(faces, face)
+		}
+	}
+
+	return faces, nil
+}
+
 // Detect runs the detection algorithm over the provided source image.
 func Detect(fileName string, findLandmarks bool, minSize int) (faces Faces, err error) {
+	return detectDefault(fileName, findLandmarks, minSize)
+}
+
+func detectDefault(fileName string, findLandmarks bool, minSize int) (faces Faces, err error) {
+	return detect(fileName, findLandmarks, minSize, true, 0.0)
+}
+
+func detect(fileName string, findLandmarks bool, minSize int, ignoreLowQuality bool, angle float64) (faces Faces, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("faces: %s (panic)\nstack: %s", r, debug.Stack())
@@ -82,7 +130,7 @@ func Detect(fileName string, findLandmarks bool, minSize int) (faces Faces, err 
 
 	d := &Detector{
 		minSize:      minSize,
-		angle:        0.0,
+		angle:        angle,
 		shiftFactor:  0.1,
 		scaleFactor:  1.1,
 		iouThreshold: float64(OverlapThresholdFloor) / 100,
@@ -103,7 +151,7 @@ func Detect(fileName string, findLandmarks bool, minSize int) (faces Faces, err 
 		return faces, fmt.Errorf("faces: no result")
 	}
 
-	faces, err = d.Faces(det, params, findLandmarks)
+	faces, err = d.Faces(det, params, findLandmarks, ignoreLowQuality)
 
 	if err != nil {
 		return faces, fmt.Errorf("faces: %s", err)
@@ -116,17 +164,18 @@ func Detect(fileName string, findLandmarks bool, minSize int) (faces Faces, err 
 func (d *Detector) Detect(fileName string) (faces []pigo.Detection, params pigo.CascadeParams, err error) {
 	var srcFile io.Reader
 
-	file, err := os.Open(fileName)
-
+	img, err := imaging.Open(fileName, imaging.AutoOrientation(true))
 	if err != nil {
 		return faces, params, err
 	}
 
-	defer func(file *os.File) {
-		err = file.Close()
-	}(file)
+	buffer := &bytes.Buffer{}
+	err = imaging.Encode(buffer, img, imaging.PNG)
+	if err != nil {
+		return faces, params, err
+	}
 
-	srcFile = file
+	srcFile = buffer
 
 	src, err := pigo.DecodeImage(srcFile)
 
@@ -175,7 +224,7 @@ func (d *Detector) Detect(fileName string) (faces []pigo.Detection, params pigo.
 }
 
 // Faces adds landmark coordinates to detected faces and returns the results.
-func (d *Detector) Faces(det []pigo.Detection, params pigo.CascadeParams, findLandmarks bool) (results Faces, err error) {
+func (d *Detector) Faces(det []pigo.Detection, params pigo.CascadeParams, findLandmarks bool, ignoreLowQuality bool) (results Faces, err error) {
 	// Sort results by size.
 	sort.Slice(det, func(i, j int) bool {
 		return det[i].Scale > det[j].Scale
@@ -183,7 +232,7 @@ func (d *Detector) Faces(det []pigo.Detection, params pigo.CascadeParams, findLa
 
 	for _, face := range det {
 		// Skip result if quality is too low.
-		if face.Q < QualityThreshold(face.Scale) {
+		if face.Q < QualityThreshold(face.Scale) && ignoreLowQuality {
 			continue
 		}
 

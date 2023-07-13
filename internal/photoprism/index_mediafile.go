@@ -7,12 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dustin/go-humanize/english"
 	"github.com/jinzhu/gorm"
 
 	"github.com/photoprism/photoprism/internal/classify"
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/event"
+	"github.com/photoprism/photoprism/internal/face"
 	"github.com/photoprism/photoprism/internal/meta"
+	"github.com/photoprism/photoprism/internal/plugin"
 	"github.com/photoprism/photoprism/internal/query"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
@@ -329,6 +332,117 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 		result.Status = IndexSkipped
 		return result
 	} else if ind.findFaces && file.FilePrimary {
+		if m.HasFaces() {
+			faces := m.Faces()
+			log.Debugf("index: found face region metadata in %s (%s)", logName, faces)
+
+			for _, f := range faces {
+				log.Debugf("index: processing face region %s", f)
+
+				marker, err := file.FindFaceMarker(f)
+
+				if err != nil {
+					log.Errorf("index: %s (searching for face marker)", err)
+					continue
+				}
+
+				if marker != nil {
+					if marker.SubjectName() != "" {
+						log.Debugf("index: face region was already indexed %s", f)
+						continue
+					} else {
+						log.Debugf("index: face region was indexed, but was not named %s", f)
+					}
+				} else {
+					filePath := FileName(file.FileRoot, file.FileName)
+
+					// Hardcode the face score, which is usually computed by facenet.
+					// Setting a higher score (>15), will mean that the face region will be used for clustering.
+					f.Score = 1
+
+					// Calculate the embeddings vector for the given face region.
+					embeddings, err := ind.faceNet.Embeddings(filePath, f)
+
+					if err != nil {
+						log.Errorf("index: %s (calculating embeddings for %s)", err, logName)
+						continue
+					}
+
+					if embeddings.Empty() {
+						log.Warnf("index: no embeddings for face region %s and file %s, will try to recover", f, logName)
+
+						// Run face detection for the image at various rotation angles and check whether there is an overlapping region
+						for _, angle := range ind.conf.FaceRegionAnglesPigo() {
+							log.Debugf("index: running face detection at angle %.2f", angle)
+
+							if faces, err := face.DetectAllRotated(filePath, Config().FaceSize(), angle); err != nil {
+								log.Errorf("index: %s (detecting all faces for face region %s)", err, f)
+								continue
+							} else if matched := faces.Match(f); matched != nil {
+								matchedEmbeddings, err := ind.faceNet.EmbeddingsRotated(filePath, *matched)
+								if err != nil {
+									log.Errorf("index: %s (calculating embeddings for matched face %s)", err, matched)
+									continue
+								}
+
+								log.Debugf("index: matched face %s has %s", matched, english.Plural(matchedEmbeddings.Count(), "embedding", "embeddings"))
+
+								// If the matched face does not have any embeddings, but we are working with a rotated image,
+								// we might as well try to calculate the embeddings for the original face region using the same rotation angle.
+								if matchedEmbeddings.Empty() && angle > 0.0 {
+									matchedEmbeddings, err = ind.faceNet.EmbeddingsRotated(filePath, face.RotatedFace{Face: f, Angle: angle})
+									if err != nil {
+										log.Errorf("index: %s (calculating embeddings for rotated face %s)", err, matched)
+										continue
+									}
+
+									log.Debugf("index: rotated face %s has %s", f, english.Plural(matchedEmbeddings.Count(), "embedding", "embeddings"))
+								}
+
+								if matchedEmbeddings.One() {
+									// TODO Is this enough, or should we also modify the crop area for `f` to the `matched` crop area
+									embeddings = matchedEmbeddings
+									break
+								}
+							} else {
+								log.Warnf("index: could not match face region %s to any detected faces %s", f, faces)
+								continue
+							}
+						}
+					}
+
+					// Assign the embeddings to the face and add the face to the file, which will create a new marker.
+					f.Embeddings = embeddings
+					marker, err = file.AddFace(f, "")
+
+					if err != nil {
+						log.Errorf("index: %s (adding face %s to file %s)", err, f, clean.Log(file.FileUID))
+						continue
+					}
+
+					if marker == nil {
+						log.Errorf("index: could not create marker for file %s and face %s - possible bug", clean.Log(file.FileUID), f)
+						continue
+					}
+
+					// Set the source for face region markers to 'meta' to be able to distinguish from
+					// detected markers, which have the 'image' source.
+					marker.MarkerSrc = entity.SrcMeta
+				}
+
+				name := f.Area.Name
+				changed, err := marker.SetName(name, entity.SrcMeta)
+
+				if err != nil {
+					log.Errorf("index: %s (setting marker name for %s)", err, marker.MarkerUID)
+				} else if changed {
+					log.Debugf("index: successfully added face %s to file %s", f, clean.Log(file.FileUID))
+				} else {
+					log.Warnf("index: could not change name for marker %s (%s) to %s", clean.Log(marker.MarkerUID), clean.Log(marker.MarkerName), clean.Log(name))
+				}
+			}
+		}
+
 		if markers := file.Markers(); markers != nil {
 			// Detect faces.
 			faces := ind.Faces(m, markers.DetectedFaceCount())
@@ -421,6 +535,18 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 		if photo.TypeSrc == entity.SrcAuto && photo.PhotoType == entity.MediaImage && m.IsAnimatedImage() {
 			photo.PhotoType = entity.MediaAnimated
 		}
+
+		// Update photo type only if not manually modified.
+		if photo.TypeSrc == entity.SrcAuto && m.IsMotionPhoto() {
+			// Change the src type to prevent the (non-primary) generated video file from changing it
+			photo.PhotoType = entity.MediaLive
+			photo.TypeSrc = entity.SrcDefault
+		}
+
+		if m.IsPhotosphere() {
+			photo.PhotoType = entity.MediaSphere
+		}
+
 	case m.IsXMP():
 		if metaData, err := meta.XMP(m.FileName()); err == nil {
 			// Update basic metadata.
@@ -509,6 +635,10 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 				photo.PhotoType = entity.MediaRaw
 			} else if m.IsLive() {
 				photo.PhotoType = entity.MediaLive
+			} else if m.IsMotionPhoto() {
+				// Change the src type to prevent the (non-primary) generated video file from changing it
+				photo.PhotoType = entity.MediaLive
+				photo.TypeSrc = entity.SrcDefault
 			} else if m.IsVector() {
 				photo.PhotoType = entity.MediaVector
 			}
@@ -913,6 +1043,20 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 
 	if err := query.SetDownloadFileID(downloadedAs, file.ID); err != nil {
 		log.Errorf("index: %s in %s (set download id)", err, logName)
+	}
+
+	// Plugins hook
+	changed := plugin.OnIndex(&file, &photo)
+
+	// Update file and photo post-plugin update
+	if changed {
+		if err := file.Save(); err != nil {
+			log.Errorf("index: %s in %s (saving file post plugin hook)", err, logName)
+		}
+
+		if err := photo.Save(); err != nil {
+			log.Errorf("index: %s in %s (saving photo post plugin hook)", err, logName)
+		}
 	}
 
 	if !o.Stack || photo.PhotoStack == entity.IsUnstacked {

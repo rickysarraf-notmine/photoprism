@@ -206,6 +206,7 @@ func (c *Config) Propagate() {
 	face.ClusterCore = c.FaceClusterCore()
 	face.ClusterDist = c.FaceClusterDist()
 	face.MatchDist = c.FaceMatchDist()
+	face.RegionAngles = c.FaceRegionAngles()
 
 	// Set default theme and locale.
 	customize.DefaultTheme = c.DefaultTheme()
@@ -628,6 +629,11 @@ func (c *Config) DetectNSFW() bool {
 // UploadNSFW checks if NSFW photos can be uploaded.
 func (c *Config) UploadNSFW() bool {
 	return c.options.UploadNSFW
+}
+
+// EnableExpvar tests if the expvar endpoint should be enabled.
+func (c *Config) EnableExpvar() bool {
+	return c.options.EnableExpvar
 }
 
 // LogLevel returns the Logrus log level.

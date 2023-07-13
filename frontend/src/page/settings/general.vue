@@ -41,6 +41,20 @@
                 @change="onChange"
               ></v-select>
             </v-flex>
+
+            <v-flex xs12 sm6 class="px-2 pb-2">
+              <v-select
+                  v-model="settings.ui.homepage"
+                  :disabled="busy"
+                  :items="pages"
+                  :label="$gettext('Homepage')"
+                  color="secondary-dark"
+                  background-color="secondary-light"
+                  hide-details
+                  box class="input-homepage"
+                  @change="onChange"
+              ></v-select>
+            </v-flex>
           </v-layout>
         </v-card-actions>
       </v-card>
@@ -349,6 +363,46 @@
         </v-card-actions>
       </v-card>
 
+      <v-card v-if="settings.features.folders" flat tile class="mt-0 px-1 application">
+        <v-card-title primary-title class="pb-2">
+          <h3 class="body-2 mb-0">
+            <translate key="Folders">Folders</translate>
+          </h3>
+        </v-card-title>
+
+        <v-card-actions>
+          <v-layout wrap align-top>
+            <v-flex xs12 sm6 class="px-2 pb-2">
+              <v-select
+                  v-model="settings.folders.datemode"
+                  :disabled="busy"
+                  :items="options.FoldersDateMode()"
+                  :label="$gettext('Date Mode')"
+                  color="secondary-dark"
+                  background-color="secondary-light"
+                  hide-details
+                  box class="input-style"
+                  @change="onChange"
+              ></v-select>
+            </v-flex>
+
+            <v-flex xs12 sm6 class="px-2 pb-2">
+              <v-select
+                  v-model="settings.folders.sortorder"
+                  :disabled="busy"
+                  :items="options.FoldersSortOrder()"
+                  :label="$gettext('Default Sort Order')"
+                  color="secondary-dark"
+                  background-color="secondary-light"
+                  hide-details
+                  box class="input-style"
+                  @change="onChange"
+              ></v-select>
+            </v-flex>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
+
       <v-card v-if="settings.features.download" flat tile class="mt-0 px-1 application">
         <v-card-title primary-title class="pb-0">
           <h3 class="body-2 mb-0">
@@ -436,6 +490,7 @@ export default {
       mapsStyle: options.MapsStyle(this.$config.get("experimental")),
       currentMapsStyle: this.$config.settings().maps.style,
       languages: options.Languages(),
+      pages: options.Pages(),
       dialog: {
         sponsor: false,
       },

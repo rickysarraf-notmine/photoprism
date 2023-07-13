@@ -14,6 +14,7 @@ type Result struct {
 	Description  string       `json:"Description"`
 	Favorite     bool         `json:"Favorite"`
 	Playable     bool         `json:"Playable"`
+	Sphere       bool         `json:"Sphere"`
 	DownloadUrl  string       `json:"DownloadUrl"`
 	Width        int          `json:"Width"`
 	Height       int          `json:"Height"`

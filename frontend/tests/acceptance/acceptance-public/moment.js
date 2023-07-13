@@ -48,13 +48,13 @@ test.meta("testID", "moments-001").meta({ mode: "public" })(
       .click(albumdialog.dialogSave);
 
     await t
-      .expect(page.cardTitle.nth(0).innerText)
+      .expect(album.getNthAlbumTitle(0))
       .contains("Winter")
-      .expect(page.cardDescription.nth(0).innerText)
+      .expect(album.getNthAlbumDescription(0))
       .contains("We went to ski")
-      .expect(Selector("div.caption").nth(1).innerText)
+      .expect(album.getNthAlbumCategory(0))
       .contains("Mountains")
-      .expect(Selector("div.caption").nth(2).innerText)
+      .expect(album.getNthAlbumLocation(0))
       .contains("Snow-Land");
 
     await album.openNthAlbum(0);

@@ -14,7 +14,8 @@ func TestDateFromFilePath(t *testing.T) {
 	})
 	t.Run("NextcloudInvalid", func(t *testing.T) {
 		result := DateFromFilePath("nextcloud/2022/04/22-04-06 66-22-03 2160.jpg")
-		assert.True(t, result.IsZero())
+		assert.False(t, result.IsZero())
+		assert.Equal(t, "2022-04-22 00:00:00 +0000 UTC", result.String())
 	})
 	t.Run("NextcloudNotPlausible", func(t *testing.T) {
 		result := DateFromFilePath("nextcloud/2022/04/88-04-06 15-21-03 2160.jpg")
@@ -219,7 +220,7 @@ func TestDateFromFilePath(t *testing.T) {
 	})
 	t.Run("n >6", func(t *testing.T) {
 		result := DateFromFilePath("2020-01-30_09-87-18-23.jpg")
-		assert.Equal(t, "0001-01-01 00:00:00 +0000 UTC", result.String())
+		assert.Equal(t, "2020-01-30 00:00:00 +0000 UTC", result.String())
 	})
 	t.Run("year < yearmin", func(t *testing.T) {
 		result := DateFromFilePath("1020-01-30_09-57-18.jpg")
@@ -227,7 +228,7 @@ func TestDateFromFilePath(t *testing.T) {
 	})
 	t.Run("hour > hourmax", func(t *testing.T) {
 		result := DateFromFilePath("2020-01-30_25-57-18.jpg")
-		assert.Equal(t, "0001-01-01 00:00:00 +0000 UTC", result.String())
+		assert.Equal(t, "2020-01-30 00:00:00 +0000 UTC", result.String())
 	})
 	t.Run("invalid days", func(t *testing.T) {
 		result := DateFromFilePath("2020-01-00.jpg")
