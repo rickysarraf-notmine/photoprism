@@ -26,7 +26,7 @@ func DateFromFilePath(s string) (result time.Time) {
 		DateTimeHandler,
 		DateHandler,
 		DatePathHandler,
-		DateFilenameHandler,
+		WhatsAppDateHandler,
 	}
 
 	for _, handler := range handlers {
@@ -34,41 +34,51 @@ func DateFromFilePath(s string) (result time.Time) {
 		if !result.IsZero() {
 			break
 		}
-	} else if found = DateWhatsAppRegexp.Find(b); len(found) > 0 { // Is it a WhatsApp date path like "VID-20191120-WA0001.jpg"?
-		match := DateWhatsAppRegexp.FindSubmatch(b)
-
-		if len(match) != 4 {
-			return result
-		}
-
-		matchMap := make(map[string]string)
-		for i, name := range DateWhatsAppRegexp.SubexpNames() {
-			if i != 0 {
-				matchMap[name] = string(match[i])
-			}
-		}
-
-		year := ExpandYear(matchMap["year"])
-		month := Int(matchMap["month"])
-		day := Int(matchMap["day"])
-
-		// Perform date plausibility check.
-		if year < YearMin || year > YearMax || month < MonthMin || month > MonthMax || day < DayMin || day > DayMax {
-			return result
-		}
-
-		result = time.Date(
-			year,
-			time.Month(month),
-			day,
-			0,
-			0,
-			0,
-			0,
-			time.UTC)
 	}
 
 	return result.UTC()
+}
+
+// WhatsAppDateHandler checks whether the data contains a datetime like "VID-20191120-WA0001.jpg"
+func WhatsAppDateHandler(b []byte) time.Time {
+	found := DateWhatsAppRegexp.Find(b)
+
+	if len(found) == 0 {
+		return DefaultTime
+	}
+
+	match := DateWhatsAppRegexp.FindSubmatch(found)
+
+	if len(match) != 4 {
+		return DefaultTime
+	}
+
+
+	matchMap := make(map[string]string)
+	for i, name := range DateWhatsAppRegexp.SubexpNames() {
+		if i != 0 {
+			matchMap[name] = string(match[i])
+		}
+	}
+
+	year := ExpandYear(matchMap["year"])
+	month := Int(matchMap["month"])
+	day := Int(matchMap["day"])
+
+	// Perform date plausibility check.
+	if year < YearMin || year > YearMax || month < MonthMin || month > MonthMax || day < DayMin || day > DayMax {
+		return DefaultTime
+	}
+
+	return time.Date(
+		year,
+		time.Month(month),
+		day,
+		0,
+		0,
+		0,
+		0,
+		time.UTC)
 }
 
 // DateTimeHandler checks whether the data contains a datetime like "2020-01-30_09-57-18"
@@ -184,35 +194,6 @@ func DatePathHandler(b []byte) time.Time {
 	}
 
 	return DefaultTime
-}
-
-// DateFilenameHandler checks whether the data contains a date like "20200130"
-func DateFilenameHandler(b []byte) time.Time {
-	found := DateFilenameRegexp.Find(b)
-
-	if len(found) == 0 {
-		return DefaultTime
-	}
-
-	match := string(found)
-
-	year := Int(match[0:4])
-	month := Int(match[4:6])
-	day := Int(match[6:8])
-
-	if !IsValidDate(year, month, day) {
-		return DefaultTime
-	}
-
-	return time.Date(
-		year,
-		time.Month(month),
-		day,
-		0,
-		0,
-		0,
-		0,
-		time.UTC)
 }
 
 // IsValidTime tests if the given time is plausible

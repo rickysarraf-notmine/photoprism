@@ -11,7 +11,6 @@ import (
 
 var DateRegexp = regexp.MustCompile("\\D\\d{4}[\\-_]\\d{2}[\\-_]\\d{2,}")
 var DatePathRegexp = regexp.MustCompile("\\D\\d{4}/\\d{1,2}/?\\d*")
-var DateFilenameRegexp = regexp.MustCompile("\\d{4}\\d{2}\\d{2}")
 var DateTimeRegexp = regexp.MustCompile("\\D\\d{2,4}[\\-_]\\d{2}[\\-_]\\d{2}.{1,4}\\d{2}\\D\\d{2}\\D\\d{2,}")
 var DateWhatsAppRegexp = regexp.MustCompile("(?:IMG|VID)-(?P<year>\\d{4})(?P<month>\\d{2})(?P<day>\\d{2})-WA")
 var DateIntRegexp = regexp.MustCompile("\\d{1,4}")

@@ -131,7 +131,7 @@ func TestDateTime(t *testing.T) {
 
 func TestIsTime(t *testing.T) {
 	t.Run("/2020/1212/20130518_142022_3D657EBD.jpg", func(t *testing.T) {
-		assert.True(t, IsTime("/2020/1212/20130518_142022_3D657EBD.jpg"))
+		assert.False(t, IsTime("/2020/1212/20130518_142022_3D657EBD.jpg"))
 	})
 
 	t.Run("telegram_2020_01_30_09_57_18.jpg", func(t *testing.T) {
