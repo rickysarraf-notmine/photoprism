@@ -28,6 +28,7 @@ jobs:
           path: |
             plugins/
             storage/plugins/
+            ~/.cache/
             ~/.cache/docker-compose
           key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}
 
