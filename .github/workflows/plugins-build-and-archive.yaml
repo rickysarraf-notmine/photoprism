@@ -19,6 +19,7 @@ jobs:
       - name: Get Date
         id: get-date
         run: |
+          mkdir -p ~/.cache/docker-compose
           echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
         shell: bash
 
