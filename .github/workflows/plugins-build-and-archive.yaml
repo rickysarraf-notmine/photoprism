@@ -2,12 +2,12 @@ name: Build and archive plugin solibs
 
 on:
   push:
-    branches: [ develop, preview, rrs-kvalev-preview ]
+    branches: [ rrs-kvalev-preview, rrs-kvalev-preview-testing, rrs-lastzero-kvalev-testing ]
   pull_request:
-    branches: [ develop, preview, rrs-kvalev-preview ]
+    branches: [ rrs-kvalev-preview, rrs-kvalev-preview-testing, rrs-lastzero-kvalev-testing ]
 
   workflow_dispatch:
-    branches: [ develop, preview, rrs-kvalev-preview ]
+    branches: [ rrs-kvalev-preview, rrs-kvalev-preview-testing, rrs-lastzero-kvalev-testing ]
 
 jobs:
   build-and-archive-plugins:
@@ -15,6 +15,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Cache
+        uses: actions/cache@v3
 
       - name: Create compose stack
         run: docker-compose -f docker-compose.ci.yml up -d --build --force-recreate
