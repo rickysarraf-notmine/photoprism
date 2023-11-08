@@ -17,7 +17,11 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Cache
+        id: cache-plugin
         uses: actions/cache@v3
+        with:
+          path: plugins/
+          key: cache-plugin
 
       - name: Create compose stack
         run: docker-compose -f docker-compose.ci.yml up -d --build --force-recreate
