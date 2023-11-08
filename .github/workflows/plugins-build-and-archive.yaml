@@ -16,6 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Cache
         uses: actions/cache@v3
         with:
@@ -23,6 +29,7 @@ jobs:
             plugins/
             storage/plugins/
             ~/.cache/docker-compose
+          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}
 
       - name: Create compose stack
         run: docker-compose -f docker-compose.ci.yml up -d --build --force-recreate
