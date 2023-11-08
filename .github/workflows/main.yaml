@@ -24,9 +24,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - name: Cache
-        uses: actions/cache@v3
-
       - name: Create compose stack
         run: docker-compose -f docker-compose.ci.yml up -d --build --force-recreate
 
