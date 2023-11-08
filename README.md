@@ -1,3 +1,20 @@
+Branch Structure
+================
+
+
+# CI Action branches
+    
+### Branch rrs-kvalev-preview: Include kvalev's preview branch + My local changes
+#### This is what is used in production!!!
+
+### Branch rrs-kvalev-preview-testing: Include kvalev's preview branch + His
+#### pending MRs + My local changes
+    
+### Branch rrs-lastzero-kvalev-testing: Includes lastzero's preview branch +
+#### kvalev's preview branch + kvalev's pending changes + My local changes
+
+
+
 PhotoPrism: Browse Your Life in Pictures
 ========================================
 
