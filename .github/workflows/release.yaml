@@ -7,9 +7,11 @@ on:
   push:
     branches:
       - rrs-kvalev-preview
+      - rrs-kvalev-preview-testing
+      - rrs-lastzero-kvalev-testing
 
 env:
-  TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || 'rrs-kvalev-preview' || 'rrs-preview-latest' }}
+  TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || 'rrs-kvalev-preview' || 'rrs-kvalev-preview-testing' || 'rrs-lastzero-kvalev-testing' }}
   DOCKER_REPO: rickysarraf/photoprism
 
 jobs:
