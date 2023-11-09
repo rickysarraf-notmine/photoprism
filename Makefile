@@ -192,13 +192,13 @@ dep-list:
 dep-npm:
 	sudo npm install -g npm
 dep-js:
-	(cd frontend && npm ci --no-update-notifier --no-audit)
+	(cd frontend && npm ci --no-update-notifier --no-audit --no-network-family-autoselection)
 dep-go:
 	go build -v ./...
 dep-upgrade:
 	go get -u -t ./...
 dep-upgrade-js:
-	(cd frontend &&	npm --depth 3 update --legacy-peer-deps)
+	(cd frontend &&	npm --depth 3 update --legacy-peer-deps --no-network-family-autoselection)
 dep-tensorflow:
 	scripts/download-facenet.sh
 	scripts/download-nasnet.sh
@@ -213,7 +213,7 @@ zip-nasnet:
 zip-nsfw:
 	(cd assets && zip -r nsfw.zip nsfw -x "*/.*" -x "*/version.txt")
 build-js:
-	(cd frontend &&	env NODE_ENV=production npm run build)
+	(cd frontend &&	env NODE_ENV=production npm run build --no-network-family-autoselection)
 build-go: build-debug
 build-debug:
 	rm -f $(BINARY_NAME)
@@ -246,10 +246,10 @@ build-tensorflow-arm64:
 	docker build -t photoprism/tensorflow:arm64 docker/tensorflow/arm64
 	docker run -ti photoprism/tensorflow:arm64 bash
 watch-js:
-	(cd frontend &&	env NODE_ENV=development npm run watch)
+	(cd frontend &&	env NODE_ENV=development npm run watch --no-network-family-autoselection)
 test-js:
 	$(info Running JS unit tests...)
-	(cd frontend && env TZ=UTC NODE_ENV=development BABEL_ENV=test npm run test)
+	(cd frontend && env TZ=UTC NODE_ENV=development BABEL_ENV=test npm run test --no-network-family-autoselection)
 acceptance:
 	$(info Running public-mode tests in 'chromium:headless'...)
 	(cd frontend &&	npm run testcafe -- chrome:headless --test-grep "^(Common|Core)\:*" --test-meta mode=public --config-file ./testcaferc.json "tests/acceptance")
@@ -604,9 +604,9 @@ packer-digitalocean:
 drone-sign:
 	drone sign photoprism/photoprism --save
 lint-js:
-	(cd frontend &&	npm run lint)
+	(cd frontend &&	npm run lint --no-network-family-autoselection)
 fmt-js:
-	(cd frontend &&	npm run fmt)
+	(cd frontend &&	npm run fmt --no-network-family-autoselection)
 fmt-go:
 	go fmt ./pkg/... ./internal/... ./cmd/...
 	gofmt -w -s pkg internal cmd
