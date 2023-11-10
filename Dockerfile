@@ -1,5 +1,8 @@
 # Ubuntu 23.04 (Lunar Lobster)
-FROM photoprism/develop:230712-lunar
+#FROM photoprism/develop:230712-lunar
+
+# Use Debian Bookworm
+FROM photoprism/develop:bookworm
 
 ## Alternative Environments:
 # FROM photoprism/develop:jammy    # Ubuntu 22.04 LTS (Jammy Jellyfish)
