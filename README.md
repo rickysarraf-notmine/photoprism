@@ -14,7 +14,6 @@ Branch Structure
 #### kvalev's preview branch + kvalev's pending changes + My local changes
 
 
-
 PhotoPrism: Browse Your Life in Pictures
 ========================================
 
