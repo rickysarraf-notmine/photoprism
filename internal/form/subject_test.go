@@ -17,15 +17,15 @@ func TestNewSubject(t *testing.T) {
 			SubjHidden   bool   `json:"Hidden"`
 			SubjPrivate  bool   `json:"Private"`
 			SubjExcluded bool   `json:"Excluded"`
-			SubjThumb string   `json:"Thumb"`
-			SubjThumbSrc string   `json:"ThumbSrc"`
+			SubjThumb    string `json:"Thumb"`
+			SubjThumbSrc string `json:"ThumbSrc"`
 		}{
 			SubjName:     "Foo",
 			SubjAlias:    "bar",
 			SubjFavorite: true,
 			SubjHidden:   true,
 			SubjExcluded: false,
-			SubjThumb: "thumb-000",
+			SubjThumb:    "thumb-000",
 			SubjThumbSrc: "manual",
 		}
 

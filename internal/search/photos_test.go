@@ -606,9 +606,9 @@ func TestPhotos(t *testing.T) {
 		assert.LessOrEqual(t, 1, len(photos))
 
 	})
-	t.Run("form.fmin", func(t *testing.T) {
+	t.Run("form.f", func(t *testing.T) {
 		var f form.SearchPhotos
-		f.Query = "Fmin:5"
+		f.Query = "F:5-100"
 		f.Count = 10
 		f.Offset = 0
 		f.Order = "oldest"
@@ -621,9 +621,9 @@ func TestPhotos(t *testing.T) {
 
 		assert.LessOrEqual(t, 1, len(photos))
 	})
-	t.Run("form.fmax", func(t *testing.T) {
+	t.Run("form.f", func(t *testing.T) {
 		var f form.SearchPhotos
-		f.Query = "Fmax:2"
+		f.Query = "F:0-2"
 		f.Count = 10
 		f.Offset = 0
 		f.Order = "newest"
@@ -639,7 +639,7 @@ func TestPhotos(t *testing.T) {
 	})
 	t.Run("form.Lat and form.Lng", func(t *testing.T) {
 		var f form.SearchPhotos
-		f.Query = "Lat:33.45343166666667 Lng:25.764711666666667 Dist:2000"
+		f.Query = "Lat:33.45343166666667 Lng:25.764711666666667 Dist:4000"
 		f.Count = 10
 		f.Offset = 0
 		f.Order = "imported"
@@ -665,6 +665,50 @@ func TestPhotos(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.LessOrEqual(t, 2, len(photos))
+
+	})
+	t.Run("latlng:33.453431,-180.0,49.519234,180.0", func(t *testing.T) {
+		var f form.SearchPhotos
+		f.Query = "latlng:33.453431,-180.0,49.519234,180.0"
+		f.Count = 10
+		f.Offset = 0
+		f.Order = "imported"
+
+		photos, _, err := Photos(f)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for _, p := range photos {
+			assert.GreaterOrEqual(t, float32(49.519234), p.PhotoLat)
+			assert.LessOrEqual(t, float32(33.45343166666667), p.PhotoLat)
+		}
+
+		assert.LessOrEqual(t, 2, len(photos))
+
+	})
+	t.Run("latlng:0.00,-30.123.0,49.519234,9.1001234", func(t *testing.T) {
+		var f form.SearchPhotos
+		f.Query = "latlng:0.00,-30.123.0,49.519234,9.1001234"
+		f.Count = 10
+		f.Offset = 0
+		f.Order = "imported"
+
+		photos, _, err := Photos(f)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for _, p := range photos {
+			assert.GreaterOrEqual(t, float32(49.519234), p.PhotoLat)
+			assert.LessOrEqual(t, float32(0.00), p.PhotoLat)
+			assert.GreaterOrEqual(t, float32(9.1001234), p.PhotoLng)
+			assert.LessOrEqual(t, float32(-30.123), p.PhotoLng)
+		}
+
+		assert.LessOrEqual(t, 10, len(photos))
 
 	})
 	t.Run("form.Before and form.After Order:relevance", func(t *testing.T) {
@@ -875,7 +919,7 @@ func TestPhotos(t *testing.T) {
 	t.Run("search with multiple parameters", func(t *testing.T) {
 		var f form.SearchPhotos
 		f.Hidden = true
-		f.Scan = true
+		f.Scan = "true"
 		f.Year = "2010"
 		f.Day = "1"
 		f.Photo = true
@@ -895,7 +939,7 @@ func TestPhotos(t *testing.T) {
 	t.Run("search with multiple parameters", func(t *testing.T) {
 		var f form.SearchPhotos
 		f.Hidden = true
-		f.Scan = true
+		f.Scan = "true"
 		f.Year = strconv.Itoa(2010)
 		f.Day = strconv.Itoa(1)
 		f.Video = true

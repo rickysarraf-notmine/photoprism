@@ -9,7 +9,7 @@ import (
 
 var (
 	onceStatesCache sync.Once
-	statesCache *gc.Cache
+	statesCache     *gc.Cache
 )
 
 func initStatesCache() {
@@ -21,7 +21,6 @@ func StatesCache() *gc.Cache {
 
 	return statesCache
 }
-
 
 func CacheSet(city, state string) {
 	StatesCache().SetDefault(city, state)

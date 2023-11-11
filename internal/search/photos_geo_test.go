@@ -126,7 +126,7 @@ func TestGeo(t *testing.T) {
 			Query:    "",
 			Before:   time.Time{},
 			After:    time.Time{},
-			Favorite: true,
+			Favorite: "true",
 			Lat:      1.234,
 			Lng:      4.321,
 			S2:       "",
@@ -154,7 +154,7 @@ func TestGeo(t *testing.T) {
 			Query:    "",
 			Before:   time.Time{},
 			After:    time.Time{},
-			Favorite: false,
+			Favorite: "false",
 			Lat:      0,
 			Lng:      0,
 			S2:       "",
@@ -172,12 +172,33 @@ func TestGeo(t *testing.T) {
 		assert.LessOrEqual(t, 3, len(result))
 		assert.IsType(t, GeoResults{}, result)
 	})
+	t.Run("search for min and max altitude", func(t *testing.T) {
+		f := form.SearchPhotosGeo{
+			Query:    "",
+			Before:   time.Time{},
+			After:    time.Time{},
+			Favorite: "false",
+			Lat:      0,
+			Lng:      0,
+			S2:       "",
+			Olc:      "",
+			Dist:     0,
+			Alt:      "200-500",
+		}
+
+		result, err := PhotosGeo(f)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.IsType(t, GeoResults{}, result)
+	})
 	t.Run("search for s2", func(t *testing.T) {
 		f := form.SearchPhotosGeo{
 			Query:    "",
 			Before:   time.Time{},
 			After:    time.Time{},
-			Favorite: false,
+			Favorite: "false",
 			Lat:      0,
 			Lng:      0,
 			S2:       "85",
@@ -195,12 +216,12 @@ func TestGeo(t *testing.T) {
 		assert.Empty(t, result)
 		assert.IsType(t, GeoResults{}, result)
 	})
-	t.Run("search for Olc", func(t *testing.T) {
+	t.Run("search for OLC", func(t *testing.T) {
 		f := form.SearchPhotosGeo{
 			Query:    "",
 			Before:   time.Time{},
 			After:    time.Time{},
-			Favorite: false,
+			Favorite: "false",
 			Lat:      0,
 			Lng:      0,
 			S2:       "",
@@ -777,11 +798,10 @@ func TestGeo(t *testing.T) {
 
 		assert.Equal(t, len(photos5), len(photos4))
 	})
-
 	t.Run("f.Scan = true", func(t *testing.T) {
 		var frm form.SearchPhotosGeo
 
-		frm.Scan = true
+		frm.Scan = "true"
 
 		photos, err := PhotosGeo(frm)
 

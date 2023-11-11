@@ -189,6 +189,10 @@ import Subject from "model/subject";
 export default {
   name: 'PPhotoClipboard',
   props: {
+    context: {
+      type: String,
+      default: 'photos',
+    },
     selection: {
       type: Array,
       default: () => [],
@@ -200,10 +204,6 @@ export default {
     album: {
       type: Object,
       default: () => {},
-    },
-    context: {
-      type: String,
-      default: '',
     },
   },
   data() {

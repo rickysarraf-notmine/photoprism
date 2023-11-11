@@ -1,3 +1,5 @@
+/* App Navigation */
+
 #p-navigation {
     z-index: 10;
 }
@@ -118,6 +120,12 @@ nav .v-list__tile__title.title {
 #photoprism .page-toolbar .input-category .v-select__selections .v-select__selection {
     white-space: nowrap;
     overflow: hidden;
+}
+
+#photoprism .p-photo-toolbar.embedded {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .p-user-box {

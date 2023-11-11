@@ -22,6 +22,5 @@ func (*DemoPlugin) OnIndex(file *entity.File, photo *entity.Photo) error {
 	return nil
 }
 
-
 // Export the plugin.
 var Plugin DemoPlugin

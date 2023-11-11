@@ -42,9 +42,11 @@ import { canUseOGV, canUseVP8, canUseVP9, canUseAv1, canUseWebM, canUseHevc } fr
 export const CodecOGV = "ogv";
 export const CodecVP8 = "vp8";
 export const CodecVP9 = "vp9";
-export const CodecAv1 = "av01";
+export const CodecAv01 = "av01";
+export const CodecAv1C = "av1c";
 export const CodecAvc1 = "avc1";
 export const CodecHvc1 = "hvc1";
+export const CodecHev1 = "hev1";
 export const FormatMp4 = "mp4";
 export const FormatAv1 = "av01";
 export const FormatAvc = "avc";
@@ -135,10 +137,14 @@ export class Photo extends RestModel {
       Views: 0,
       Camera: {},
       CameraID: 0,
+      CameraMake: "",
+      CameraModel: "",
       CameraSerial: "",
       CameraSrc: "",
       Lens: {},
       LensID: 0,
+      LensMake: "",
+      LensModel: "",
       Country: "",
       Year: YearUnknown,
       Month: MonthUnknown,
@@ -444,14 +450,14 @@ export class Photo extends RestModel {
     let width = actualWidth;
     let height = actualHeight;
 
-    if (vw < width + 80) {
-      let newWidth = vw - 90;
+    if (vw < width + 90) {
+      let newWidth = vw - 100;
       height = Math.round(newWidth * (actualHeight / actualWidth));
       width = newWidth;
     }
 
-    if (vh < height + 80) {
-      let newHeight = vh - 90;
+    if (vh < height + 90) {
+      let newHeight = vh - 100;
       width = Math.round(newHeight * (actualWidth / actualHeight));
       height = newHeight;
     }
@@ -502,16 +508,17 @@ export class Photo extends RestModel {
 
     if (file) {
       let videoFormat = FormatAvc;
+      const fileCodec = file.Codec ? file.Codec : "";
 
-      if (canUseHevc && file.Codec === CodecHvc1) {
+      if (canUseHevc && (fileCodec === CodecHvc1 || fileCodec === CodecHev1)) {
         videoFormat = FormatHevc;
-      } else if (canUseOGV && file.Codec === CodecOGV) {
+      } else if (canUseOGV && fileCodec === CodecOGV) {
         videoFormat = CodecOGV;
-      } else if (canUseVP8 && file.Codec === CodecVP8) {
+      } else if (canUseVP8 && fileCodec === CodecVP8) {
         videoFormat = CodecVP8;
-      } else if (canUseVP9 && file.Codec === CodecVP9) {
+      } else if (canUseVP9 && fileCodec === CodecVP9) {
         videoFormat = CodecVP9;
-      } else if (canUseAv1 && file.Codec === CodecAv1) {
+      } else if (canUseAv1 && (fileCodec === CodecAv01 || fileCodec === CodecAv1C)) {
         videoFormat = FormatAv1;
       } else if (canUseWebM && file.FileType === FormatWebM) {
         videoFormat = FormatWebM;
@@ -532,13 +539,75 @@ export class Photo extends RestModel {
       return this;
     }
 
+    // Return the primary image, if found.
     let file = files.find((f) => !!f.Primary);
 
+    // Found?
     if (file) {
       return file;
     }
 
-    return files.find((f) => f.FileType === FormatJpeg || f.FileType === FormatPng);
+    // Find and return the first JPEG or PNG image otherwise.
+    file = files.find((f) => f.FileType === FormatJpeg || f.FileType === FormatPng);
+
+    // Found?
+    if (file) {
+      return file;
+    }
+
+    return files.find((f) => !f.Sidecar);
+  });
+
+  originalFile() {
+    // Default to main file if there is only one.
+    if (this.Files?.length < 2) {
+      return this.mainFile();
+    }
+
+    // If there are multiple files, find the first one with
+    // a format other than JPEG, e.g. RAW or Live.
+    return this.getOriginalFileFromFiles(this.Files);
+  }
+
+  getOriginalFileFromFiles = memoizeOne((files) => {
+    if (!files) {
+      return this;
+    }
+
+    let file;
+
+    // Find file with matching media type.
+    switch (this.Type) {
+      case MediaAnimated:
+        file = files.find((f) => f.MediaType === MediaImage && f.Root === "/");
+        break;
+      case MediaLive:
+        file = files.find(
+          (f) => (f.MediaType === MediaVideo || f.MediaType === MediaLive) && f.Root === "/"
+        );
+        break;
+      case MediaRaw:
+      case MediaVideo:
+      case MediaVector:
+        file = files.find((f) => f.MediaType === this.Type && f.Root === "/");
+        break;
+    }
+
+    // Found?
+    if (file) {
+      return file;
+    }
+
+    // Find first original media file with a format other than JPEG.
+    file = files.find((f) => !f.Sidecar && f.FileType !== FormatJpeg && f.Root === "/");
+
+    // Found?
+    if (file) {
+      return file;
+    }
+
+    // Find and return the primary JPEG or PNG otherwise.
+    return this.getMainFileFromFiles(files);
   });
 
   jpegFiles() {
@@ -796,13 +865,15 @@ export class Photo extends RestModel {
       }
     }
 
+    if (!file.Size) {
+      return;
+    }
+
     if (file.Size > 102400) {
       const size = Number.parseFloat(file.Size) / 1048576;
-
       info.push(size.toFixed(1) + " MB");
-    } else if (file.Size) {
+    } else {
       const size = Number.parseFloat(file.Size) / 1024;
-
       info.push(size.toFixed(1) + " KB");
     }
   }
@@ -838,6 +909,7 @@ export class Photo extends RestModel {
     return info.join(", ");
   });
 
+  // Example: 00:00:03, HEVC, 1440 × 1920, 4.2 MB
   getVideoInfo = () => {
     let file = this.videoFile() || this.mainFile();
     return this.generateVideoInfo(file);
@@ -855,7 +927,7 @@ export class Photo extends RestModel {
     }
 
     if (file.Codec) {
-      info.push(file.Codec.toUpperCase());
+      info.push(Util.formatCodec(file.Codec));
     }
 
     this.addSizeInfo(file, info);
@@ -867,16 +939,19 @@ export class Photo extends RestModel {
     return info.join(", ");
   });
 
+  // Example: Apple iPhone 12 Pro Max, DNG, 4032 × 3024, 32.9 MB
   getPhotoInfo = () => {
-    let file = this.videoFile();
-    if (!file || !file.Width) {
-      file = this.mainFile();
-    }
-
-    return this.generatePhotoInfo(this.Camera, this.CameraModel, this.CameraMake, file);
+    let file = this.originalFile() || this.videoFile();
+    return this.generatePhotoInfo(
+      this.Camera,
+      this.CameraID,
+      this.CameraMake,
+      this.CameraModel,
+      file
+    );
   };
 
-  generatePhotoInfo = memoizeOne((camera, cameraModel, cameraMake, file) => {
+  generatePhotoInfo = memoizeOne((camera, cameraId, cameraMake, cameraModel, file) => {
     let info = [];
 
     if (camera) {
@@ -885,16 +960,18 @@ export class Photo extends RestModel {
       } else {
         info.push(camera.Make + " " + camera.Model);
       }
-    } else if (cameraModel && cameraMake) {
-      if (cameraModel.length > 7) {
+    } else if (cameraMake && cameraModel) {
+      if ((cameraMake + cameraModel).length > 19) {
         info.push(cameraModel);
       } else {
         info.push(cameraMake + " " + cameraModel);
       }
+    } else if (cameraId > 1 && cameraModel) {
+      info.push(cameraModel);
     }
 
     if (file && file.Width && file.Codec) {
-      info.push(file.Codec.toUpperCase());
+      info.push(Util.formatCodec(file.Codec));
     }
 
     this.addSizeInfo(file, info);
@@ -905,6 +982,70 @@ export class Photo extends RestModel {
 
     return info.join(", ");
   });
+
+  // Example: iPhone 12 Pro Max 5.1mm ƒ/1.6, 26mm, ISO32, 1/4525
+  getLensInfo = () => {
+    return this.generateLensInfo(
+      this.Lens,
+      this.LensID,
+      this.LensMake,
+      this.LensModel,
+      this.CameraModel,
+      this.FNumber,
+      this.Iso,
+      this.Exposure,
+      this.FocalLength
+    );
+  };
+
+  generateLensInfo = memoizeOne(
+    (lens, lensId, lensMake, lensModel, cameraModel, fNumber, iso, exposure, focalLength) => {
+      let info = [];
+
+      // Example: EF-S18-55mm f/3.5-5.6 IS STM
+      if (lens && lens.Model && lens.ID > 1) {
+        if (lens.Model.length > 7) {
+          info.push(lens.Model);
+        } else {
+          info.push(lens.Make + " " + lens.Model);
+        }
+      } else if (lensId > 1) {
+        if (!lensModel && !!lensMake) {
+          info.push(lensMake);
+        } else {
+          lensModel = lensModel.replace("f/", "ƒ/");
+
+          if (lensModel.length > 45) {
+            return lensModel;
+          } else {
+            info.push(lensModel);
+          }
+        }
+      }
+
+      if (focalLength) {
+        info.push(focalLength + "mm");
+      }
+
+      if (fNumber && (!lensModel || !lensModel.endsWith(fNumber.toString()))) {
+        info.push("ƒ/" + fNumber);
+      }
+
+      if (iso && lensModel.length < 27) {
+        info.push("ISO " + iso);
+      }
+
+      if (exposure) {
+        info.push(exposure);
+      }
+
+      if (!info.length) {
+        return $gettext("Unknown");
+      }
+
+      return info.join(", ");
+    }
+  );
 
   getCamera() {
     if (this.Camera) {

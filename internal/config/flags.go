@@ -12,6 +12,7 @@ import (
 	"github.com/photoprism/photoprism/internal/i18n"
 	"github.com/photoprism/photoprism/internal/server/header"
 	"github.com/photoprism/photoprism/internal/thumb"
+	"github.com/photoprism/photoprism/internal/ttl"
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
@@ -456,8 +457,13 @@ var Flags = CliFlags{
 		}}, {
 		Flag: cli.BoolFlag{
 			Name:   "disable-tls",
-			Usage:  "disable HTTPS even if a certificate is available",
+			Usage:  "disable HTTPS/TLS even if the site URL starts with https:// and a certificate is available",
 			EnvVar: EnvVar("DISABLE_TLS"),
+		}}, {
+		Flag: cli.BoolFlag{
+			Name:   "default-tls",
+			Usage:  "default to a self-signed HTTPS/TLS certificate if no other certificate is available",
+			EnvVar: EnvVar("DEFAULT_TLS"),
 		}}, {
 		Flag: cli.StringFlag{
 			Name:   "tls-email",
@@ -467,12 +473,12 @@ var Flags = CliFlags{
 		}}, {
 		Flag: cli.StringFlag{
 			Name:   "tls-cert",
-			Usage:  "public HTTPS certificate `FILE` (.crt)",
+			Usage:  "public HTTPS certificate `FILE` (.crt), ignored for Unix domain sockets",
 			EnvVar: EnvVar("TLS_CERT"),
 		}}, {
 		Flag: cli.StringFlag{
 			Name:   "tls-key",
-			Usage:  "private HTTPS key `FILE` (.key)",
+			Usage:  "private HTTPS key `FILE` (.key), ignored for Unix domain sockets",
 			EnvVar: EnvVar("TLS_KEY"),
 		}}, {
 		Flag: cli.StringFlag{
@@ -485,26 +491,33 @@ var Flags = CliFlags{
 			Usage:  "Web server compression `METHOD` (gzip, none)",
 			EnvVar: EnvVar("HTTP_COMPRESSION"),
 		}}, {
-		Flag: cli.IntFlag{
-			Name:   "http-cache-maxage",
-			Value:  int(thumb.CacheMaxAge),
-			Usage:  "time in `SECONDS` until cached content expires",
-			EnvVar: EnvVar("HTTP_CACHE_MAXAGE"),
-		}}, {
 		Flag: cli.BoolFlag{
 			Name:   "http-cache-public",
 			Usage:  "allow static content to be cached by a CDN or caching proxy",
 			EnvVar: EnvVar("HTTP_CACHE_PUBLIC"),
 		}}, {
+		Flag: cli.IntFlag{
+			Name:   "http-cache-maxage",
+			Value:  int(ttl.Default),
+			Usage:  "time in `SECONDS` until cached content expires",
+			EnvVar: EnvVar("HTTP_CACHE_MAXAGE"),
+		}}, {
+		Flag: cli.IntFlag{
+			Name:   "http-video-maxage",
+			Value:  int(ttl.Video),
+			Usage:  "time in `SECONDS` until cached videos expire",
+			EnvVar: EnvVar("HTTP_VIDEO_MAXAGE"),
+		}}, {
 		Flag: cli.StringFlag{
 			Name:   "http-host, ip",
-			Usage:  "Web server `IP` address",
+			Value:  "0.0.0.0",
+			Usage:  "Web server `IP` address or Unix domain socket, e.g. unix:/var/run/photoprism.sock",
 			EnvVar: EnvVar("HTTP_HOST"),
 		}}, {
 		Flag: cli.IntFlag{
 			Name:   "http-port, port",
 			Value:  2342,
-			Usage:  "Web server port `NUMBER`",
+			Usage:  "Web server port `NUMBER`, ignored for Unix domain sockets",
 			EnvVar: EnvVar("HTTP_PORT"),
 		}}, {
 		Flag: cli.StringFlag{
@@ -565,7 +578,7 @@ var Flags = CliFlags{
 		Flag: cli.StringFlag{
 			Name:   "ffmpeg-bin",
 			Usage:  "FFmpeg `COMMAND` for video transcoding and thumbnail extraction",
-			Value:  "ffmpeg",
+			Value:  ffmpeg.DefaultBin,
 			EnvVar: EnvVar("FFMPEG_BIN"),
 		}}, {
 		Flag: cli.StringFlag{
@@ -575,16 +588,16 @@ var Flags = CliFlags{
 			EnvVar: EnvVar("FFMPEG_ENCODER"),
 		}}, {
 		Flag: cli.IntFlag{
-			Name:   "ffmpeg-bitrate, vb",
-			Usage:  "maximum FFmpeg encoding `BITRATE` (Mbit/s)",
-			Value:  50,
-			EnvVar: EnvVar("FFMPEG_BITRATE"),
+			Name:   "ffmpeg-size, vs",
+			Usage:  "maximum video size in `PIXELS` (720-7680)",
+			Value:  thumb.Sizes[thumb.Fit3840].Width,
+			EnvVar: EnvVar("FFMPEG_SIZE"),
 		}}, {
 		Flag: cli.IntFlag{
-			Name:   "ffmpeg-resolution",
-			Usage:  "maximum FFmpeg encoding `RESOLUTION` (height)",
-			Value:  4096,
-			EnvVar: EnvVar("FFMPEG_RESOLUTION"),
+			Name:   "ffmpeg-bitrate, vb",
+			Usage:  "maximum video `BITRATE` in Mbit/s",
+			Value:  50,
+			EnvVar: EnvVar("FFMPEG_BITRATE"),
 		}}, {
 		Flag: cli.StringFlag{
 			Name:   "ffmpeg-map-video",
@@ -766,7 +779,7 @@ var Flags = CliFlags{
 		Flag: cli.Int64SliceFlag{
 			Name:   "face-region-angles",
 			Usage:  "rotation angles at which face detection is ran as fallback in case no embeddings can be calculated for manual face regions (0-360°)",
-			Value: (*cli.Int64Slice)(&face.RegionAngles),
+			Value:  (*cli.Int64Slice)(&face.RegionAngles),
 			EnvVar: EnvVar("FACE_REGION_ANGLES"),
 		}}, {
 		Flag: cli.StringFlag{

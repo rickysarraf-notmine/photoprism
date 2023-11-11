@@ -53,7 +53,6 @@ func WhatsAppDateHandler(b []byte) time.Time {
 		return DefaultTime
 	}
 
-
 	matchMap := make(map[string]string)
 	for i, name := range DateWhatsAppRegexp.SubexpNames() {
 		if i != 0 {

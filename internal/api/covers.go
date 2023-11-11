@@ -78,7 +78,7 @@ func AlbumCover(router *gin.RouterGroup) {
 		f, err := query.AlbumCoverByUID(uid, conf.Settings().Features.Private)
 
 		if err != nil {
-			log.Debugf("%s: %s contains no photos, using generic cover", albumCover, uid)
+			log.Debugf("%s: %s contains no pictures, using generic cover", albumCover, uid)
 			c.Data(http.StatusOK, "image/svg+xml", albumIconSvg)
 			return
 		}
@@ -116,7 +116,7 @@ func AlbumCover(router *gin.RouterGroup) {
 			c.Data(http.StatusOK, "image/svg+xml", albumIconSvg)
 			return
 		} else if thumbnail == "" {
-			log.Errorf("%s: %s has empty thumb name - possible bug", albumCover, filepath.Base(fileName))
+			log.Errorf("%s: %s has empty thumb name - you may have found a bug", albumCover, filepath.Base(fileName))
 			c.Data(http.StatusOK, "image/svg+xml", albumIconSvg)
 			return
 		}
@@ -231,7 +231,7 @@ func LabelCover(router *gin.RouterGroup) {
 			c.Data(http.StatusOK, "image/svg+xml", labelIconSvg)
 			return
 		} else if thumbnail == "" {
-			log.Errorf("%s: %s has empty thumb name - possible bug", labelCover, filepath.Base(fileName))
+			log.Errorf("%s: %s has empty thumb name - you may have found a bug", labelCover, filepath.Base(fileName))
 			c.Data(http.StatusOK, "image/svg+xml", labelIconSvg)
 			return
 		}

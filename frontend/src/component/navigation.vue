@@ -65,7 +65,7 @@
         </v-list>
       </v-toolbar>
 
-      <v-list class="pt-3 p-flex-menu">
+      <v-list class="pt-3 p-flex-menu navigation-menu">
         <v-list-tile v-if="isMini && !isRestricted" class="nav-expand" @click.stop="toggleIsMini()">
           <v-list-tile-action :title="$gettext('Expand')">
             <v-icon v-if="!rtl">chevron_right</v-icon>
@@ -165,6 +165,8 @@
             <v-list-tile-content>
               <v-list-tile-title :class="`p-flex-menuitem menu-item ${rtl ? '--rtl' : ''}`">
                 <translate>Archive</translate>
+                <span v-show="config.count.archived > 0"
+                      :class="`nav-count ${rtl ? '--rtl' : ''}`">{{ config.count.archived | abbreviateCount }}</span>
               </v-list-tile-title>
             </v-list-tile-content>
           </v-list-tile>
@@ -531,6 +533,18 @@
             </v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
+
+        <v-list-tile v-show="featMembership" :to="{ name: 'upgrade' }" class="nav-membership" @click.stop="">
+          <v-list-tile-action :title="$gettext('Support Our Mission')">
+            <v-icon>diamond</v-icon>
+          </v-list-tile-action>
+
+          <v-list-tile-content>
+            <v-list-tile-title>
+              <translate key="Support Our Mission">Support Our Mission</translate>
+            </v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
       </v-list>
 
       <v-list class="p-user-box">
@@ -548,7 +562,7 @@
           </v-list-tile-content>
         </v-list-tile>
 
-        <v-list-tile v-show="auth && !isPublic && $config.feature('account')" class="p-profile" @click.stop="onAccount">
+        <v-list-tile v-show="auth && !isPublic" class="p-profile" @click.stop="onAccountSettings">
           <v-list-tile-avatar size="36">
             <img :src="userAvatarURL" :alt="accountInfo" :title="accountInfo">
           </v-list-tile-avatar>
@@ -673,7 +687,7 @@
       <span v-else>{{ config.legalInfo }}</span>
     </div>
     <p-reload-dialog :show="reload.dialog" @close="reload.dialog = false"></p-reload-dialog>
-    <p-upload-dialog :show="upload.dialog" @cancel="upload.dialog = false"
+    <p-upload-dialog :show="upload.dialog" :data="upload.data" @cancel="upload.dialog = false"
                      @confirm="upload.dialog = false"></p-upload-dialog>
     <p-photo-edit-dialog :show="edit.dialog" :selection="edit.selection" :index="edit.index" :album="edit.album"
                          @close="edit.dialog = false"></p-photo-edit-dialog>
@@ -682,6 +696,7 @@
 
 <script>
 import Event from "pubsub-js";
+import Album from "model/album";
 
 export default {
   name: "PNavigation",
@@ -711,6 +726,7 @@ export default {
     const isReadOnly = this.$config.get("readonly");
     const isRestricted = this.$config.deny("photos", "access_library");
     const isSuperAdmin = this.$session.isSuperAdmin();
+    const tier = this.$config.getTier();
 
     return {
       canSearchPlaces: this.$config.allow("places", "search"),
@@ -724,7 +740,8 @@ export default {
       appIcon: this.$config.getIcon(),
       indexing: false,
       drawer: null,
-      featUpgrade: this.$config.getTier() < 8 && isSuperAdmin && !isPublic && !isDemo,
+      featUpgrade: tier < 6 && isSuperAdmin && !isPublic && !isDemo,
+      featMembership: tier < 3 && isSuperAdmin && !isPublic && !isDemo,
       isRestricted: isRestricted,
       isMini: localStorage.getItem('last_navigation_mode') !== 'false' || isRestricted,
       isDemo: isDemo,
@@ -743,6 +760,7 @@ export default {
       },
       upload: {
         dialog: false,
+        data: {},
       },
       edit: {
         dialog: false,
@@ -786,7 +804,14 @@ export default {
     this.subscriptions.push(Event.subscribe('index', this.onIndex));
     this.subscriptions.push(Event.subscribe('import', this.onIndex));
     this.subscriptions.push(Event.subscribe("dialog.reload", () => this.reload.dialog = true));
-    this.subscriptions.push(Event.subscribe("dialog.upload", () => this.upload.dialog = true));
+    this.subscriptions.push(Event.subscribe("dialog.upload", (ev, data) => {
+      if(data) {
+        this.upload.data = data;
+      } else {
+        this.upload.data = {};
+      }
+      this.upload.dialog = true;
+    }));
     this.subscriptions.push(Event.subscribe("dialog.edit", (ev, data) => {
       if (!this.edit.dialog) {
         this.edit.dialog = true;
@@ -816,7 +841,18 @@ export default {
     },
     openUpload() {
       if (this.auth && !this.isReadOnly && this.$config.feature('upload')) {
-        this.upload.dialog = true;
+        if (this.$route.name === 'album' && this.$route.params?.album) {
+          return new Album().find(this.$route.params?.album).then(m => {
+            this.upload.dialog = true;
+            this.upload.data = {albums: [m]};
+          }).catch(() => {
+            this.upload.dialog = true;
+            this.upload.data = {albums: []};
+          });
+        } else {
+          this.upload.dialog = true;
+          this.upload.data = {albums: []};
+        }
       } else {
         this.goHome();
       }
@@ -836,8 +872,12 @@ export default {
       this.isMini = !this.isMini;
       localStorage.setItem('last_navigation_mode', `${this.isMini}`);
     },
-    onAccount: function () {
-      this.$router.push({name: "settings_account"});
+    onAccountSettings: function () {
+      if (this.$config.feature('account')) {
+        this.$router.push({name: "settings_account"});
+      } else {
+        this.$router.push({name: "settings"});
+      }
     },
     onInfo() {
       if (this.isSponsor && this.config.legalUrl) {

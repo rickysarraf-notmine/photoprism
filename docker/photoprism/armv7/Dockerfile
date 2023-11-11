@@ -8,9 +8,10 @@ FROM photoprism/develop:armv7 as build
 
 # Declare build parameters.
 ARG TARGETARCH
+ARG TARGETPLATFORM
 ARG BUILD_TAG
 
-# Copy source to image.
+# Copy project files.
 WORKDIR "/go/src/github.com/photoprism/photoprism"
 COPY . .
 
@@ -18,18 +19,19 @@ COPY . .
 RUN make all install DESTDIR=/opt/photoprism
 
 ################################################## PRODUCTION STAGE ####################################################
-#### Base Image: Ubuntu 22.04 LTS (Jammy Jellyfish)
-FROM ubuntu:jammy
+#### Base Image: Ubuntu 23.10 (Mantic Minotaur)
+FROM ubuntu:mantic
 
 # Add Open Container Initiative (OCI) annotations.
 # See: https://github.com/opencontainers/image-spec/blob/main/annotations.md
 LABEL org.opencontainers.image.title="PhotoPrism® (ARMv7)"
-LABEL org.opencontainers.image.description="Ubuntu 22.04 LTS (Jammy Jellyfish)"
+LABEL org.opencontainers.image.description="Ubuntu 23.10 (Mantic Minotaur)"
 LABEL org.opencontainers.image.url="https://hub.docker.com/r/photoprism/photoprism"
 LABEL org.opencontainers.image.source="https://github.com/photoprism/photoprism"
 LABEL org.opencontainers.image.documentation="https://docs.photoprism.app/getting-started/"
 LABEL org.opencontainers.image.authors="PhotoPrism UG <hello@photoprism.app>"
 LABEL org.opencontainers.image.vendor="PhotoPrism UG"
+LABEL org.opencontainers.image.ref.name="photoprism"
 
 # Declare build parameters.
 ARG TARGETARCH
@@ -103,7 +105,7 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
     echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/80forceyes && \
     echo 'APT::Get::Fix-Missing "true";' > /etc/apt/apt.conf.d/80fixmissing && \
     echo 'force-confold' > /etc/dpkg/dpkg.cfg.d/force-confold && \
-    apt-get update && apt-get -qq upgrade && \
+    apt-get update && apt-get -qq dist-upgrade && \
     apt-get -qq install --no-install-recommends \
         libc6 ca-certificates bash sudo nano avahi-utils jq lsof lshw \
         exiftool mariadb-client sqlite3 tzdata gpg make zip unzip wget curl rsync \

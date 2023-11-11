@@ -58,7 +58,7 @@ func GetThumb(router *gin.RouterGroup) {
 				c.Data(http.StatusOK, "image/svg+xml", brokenIconSvg)
 				return
 			} else if fileName == "" {
-				log.Errorf("%s: empty file name, potential bug", logPrefix)
+				log.Errorf("%s: empty file name - you may have found a bug", logPrefix)
 				c.Data(http.StatusOK, "image/svg+xml", brokenIconSvg)
 				return
 			}
@@ -143,9 +143,7 @@ func GetThumb(router *gin.RouterGroup) {
 
 		// Find supported preview image if media file is not a JPEG or PNG.
 		if f.NoJPEG() && f.NoPNG() {
-			f, err = query.FileByPhotoUID(f.PhotoUID)
-
-			if err != nil {
+			if f, err = query.FileByPhotoUID(f.PhotoUID); err != nil {
 				c.Data(http.StatusOK, "image/svg+xml", fileIconSvg)
 				return
 			}
@@ -211,7 +209,7 @@ func GetThumb(router *gin.RouterGroup) {
 			c.Data(http.StatusOK, "image/svg+xml", brokenIconSvg)
 			return
 		} else if thumbName == "" {
-			log.Errorf("%s: %s has empty thumb name - possible bug", logPrefix, filepath.Base(fileName))
+			log.Errorf("%s: %s has empty thumb name - you may have found a bug", logPrefix, filepath.Base(fileName))
 			c.Data(http.StatusOK, "image/svg+xml", brokenIconSvg)
 			return
 		}

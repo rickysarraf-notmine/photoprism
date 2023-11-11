@@ -31,7 +31,7 @@
           ref="items"
           :key="photo.ID"
           :data-index="index"
-          class="flex xs12 sm6 md4 lg3 xlg2 xxxl1 d-flex"
+          class="flex xs12 sm6 md4 lg3 xlg2 ul1 d-flex"
       >
         <div v-if="index < firstVisibleElementIndex || index > lastVisibileElementIndex"
              :data-uid="photo.UID"
@@ -92,7 +92,7 @@
           >
             <v-layout v-if="photo.Type === 'live' || photo.Type === 'animated'" class="live-player">
               <video :id="'live-player-' + photo.ID" :key="photo.ID" width="500" height="500" preload="none"
-                    loop muted playsinline>
+                     loop muted playsinline>
                 <source :src="photo.videoUrl()">
               </video>
             </v-layout>
@@ -205,6 +205,11 @@
                   <i>movie</i>
                   {{ photo.getVideoInfo() }}
                 </button>
+                <button v-else-if="photo.Type === 'live'" :title="$gettext('Live')"
+                        @click.exact="openPhoto(index)">
+                  <i>play_circle</i>
+                  {{ photo.getVideoInfo() }}
+                </button>
                 <button v-else-if="photo.Type === 'animated'" :title="$gettext('Animated')+' GIF'"
                         @click.exact="openPhoto(index)">
                   <i>gif_box</i>
@@ -219,6 +224,11 @@
                         :data-uid="photo.UID" @click.exact="editPhoto(index)">
                   <i>photo_camera</i>
                   {{ photo.getPhotoInfo() }}
+                </button>
+                <button v-if="photo.LensID > 1 || photo.FocalLength" :title="$gettext('Lens')" class="action-lens-edit"
+                        :data-uid="photo.UID" @click.exact="editPhoto(index)">
+                  <i>camera</i>
+                  {{ photo.getLensInfo() }}
                 </button>
                 <template v-if="filter.order === 'name' && $config.feature('download')">
                   <br>
@@ -460,7 +470,7 @@ export default {
       /**
        * updating the clipboard does not rerender this component. Because of that
        * there can be scenarios where the select-icon is missing after a change,
-       * for example when selecting mutliple elements at once. We therefore
+       * for example when selecting multiple elements at once. We therefore
        * force an update to fix that.
        */
       this.$forceUpdate();

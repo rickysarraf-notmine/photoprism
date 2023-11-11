@@ -33,6 +33,7 @@ import (
 	"github.com/photoprism/photoprism/internal/i18n"
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/internal/thumb"
+	"github.com/photoprism/photoprism/internal/ttl"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/rnd"
@@ -73,7 +74,7 @@ func init() {
 		t := thumb.Sizes[name]
 
 		if t.Public {
-			Thumbs = append(Thumbs, ThumbSize{Size: string(name), Use: t.Use, Width: t.Width, Height: t.Height})
+			Thumbs = append(Thumbs, ThumbSize{Size: string(name), Usage: t.Usage, Width: t.Width, Height: t.Height})
 		}
 	}
 }
@@ -144,7 +145,7 @@ func (c *Config) Restart() bool {
 // CliContext returns the cli context if set.
 func (c *Config) CliContext() *cli.Context {
 	if c.cliCtx == nil {
-		log.Warnf("config: cli context not set - possible bug")
+		log.Warnf("config: cli context not set - you may have found a bug")
 	}
 
 	return c.cliCtx
@@ -162,7 +163,7 @@ func (c *Config) CliGlobalString(name string) string {
 // Options returns the raw config options.
 func (c *Config) Options() *Options {
 	if c.options == nil {
-		log.Warnf("config: options should not be nil - possible bug")
+		log.Warnf("config: options should not be nil - you may have found a bug")
 		c.options = NewOptions(nil)
 	}
 
@@ -180,8 +181,11 @@ func (c *Config) Propagate() {
 	thumb.SizeUncached = c.ThumbSizeUncached()
 	thumb.Filter = c.ThumbFilter()
 	thumb.JpegQuality = c.JpegQuality()
-	thumb.CacheMaxAge = c.HttpCacheMaxAge()
 	thumb.CachePublic = c.HttpCachePublic()
+
+	// Set cache expiration defaults.
+	ttl.Default = c.HttpCacheMaxAge()
+	ttl.Video = c.HttpVideoMaxAge()
 
 	// Set geocoding parameters.
 	places.UserAgent = c.UserAgent()
@@ -799,21 +803,21 @@ func (c *Config) ResolutionLimit() int {
 	return result
 }
 
-// UpdateHub renews backend api credentials with an optional activation code.
-func (c *Config) UpdateHub() {
+// RenewApiKeys renews the api credentials for maps and places.
+func (c *Config) RenewApiKeys() {
 	if c.hub == nil {
 		return
 	}
 
 	if token := os.Getenv(EnvVar("CONNECT")); token != "" && !c.Hub().Sponsor() {
-		_ = c.ResyncHub(token)
+		_ = c.RenewApiKeysWithToken(token)
 	} else {
-		_ = c.ResyncHub("")
+		_ = c.RenewApiKeysWithToken("")
 	}
 }
 
-// ResyncHub renews backend api credentials for maps and places with an optional token.
-func (c *Config) ResyncHub(token string) error {
+// RenewApiKeysWithToken renews the api credentials for maps and places with an activation token.
+func (c *Config) RenewApiKeysWithToken(token string) error {
 	if c.hub == nil {
 		return fmt.Errorf("hub is not initialized")
 	}
@@ -824,7 +828,8 @@ func (c *Config) ResyncHub(token string) error {
 			return i18n.Error(i18n.ErrAccountConnect)
 		}
 	} else if err = c.hub.Save(); err != nil {
-		log.Debugf("config: %s while saving api keys for maps and places", err)
+		log.Warnf("config: failed to save api keys for maps and places (%s)", err)
+		return i18n.Error(i18n.ErrSaveFailed)
 	} else {
 		c.hub.Propagate()
 	}
@@ -847,7 +852,7 @@ func (c *Config) initHub() {
 	}
 
 	if update {
-		c.UpdateHub()
+		c.RenewApiKeys()
 	}
 
 	c.hub.Propagate()
@@ -858,7 +863,7 @@ func (c *Config) initHub() {
 		for {
 			select {
 			case <-ticker.C:
-				c.UpdateHub()
+				c.RenewApiKeys()
 			}
 		}
 	}()

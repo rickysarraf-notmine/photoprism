@@ -3,8 +3,17 @@
        :infinite-scroll-disabled="scrollDisabled" :infinite-scroll-distance="scrollDistance"
        :infinite-scroll-listen-for-event="'scrollRefresh'">
 
-    <p-photo-toolbar :filter="filter" :settings="settings" :refresh="refresh"
-                     :update-filter="updateFilter" :update-query="updateQuery"></p-photo-toolbar>
+    <p-photo-toolbar
+      :context="context"
+      :filter="filter"
+      :static-filter="staticFilter"
+      :settings="settings"
+      :refresh="refresh"
+      :update-filter="updateFilter"
+      :update-query="updateQuery"
+      :on-close="onClose"
+      :embedded="embedded"
+    />
 
     <v-container v-if="loading" fluid class="pa-4">
       <v-progress-linear color="secondary-dark" :indeterminate="true"></v-progress-linear>
@@ -12,7 +21,7 @@
     <v-container v-else fluid class="pa-0">
       <p-scroll-top></p-scroll-top>
 
-      <p-photo-clipboard :refresh="refresh" :selection="selection" :context="context" :album="labelOrSubjectAlbum"></p-photo-clipboard>
+      <p-photo-clipboard :context="context" :refresh="refresh" :selection="selection"></p-photo-clipboard>
 
       <p-photo-mosaic v-if="settings.view === 'mosaic'"
                       :context="context"
@@ -60,6 +69,14 @@ export default {
       default: () => {
       },
     },
+    onClose: {
+      type: Function,
+      default: undefined,
+    },
+    embedded: {
+      type: Boolean,
+      default: false
+    },
   },
   data() {
     const query = this.$route.query;
@@ -74,6 +91,7 @@ export default {
     const color = query['color'] ? query['color'] : '';
     const label = query['label'] ? query['label'] : '';
     const person = query['person'] ? query['person'] : '';
+    const latlng = query['latlng'] ? query['latlng'] : '';
     const subject = query['subject'] ? query['subject'] : '';
     const view = this.viewType();
     const filter = {
@@ -81,6 +99,7 @@ export default {
       camera: camera,
       lens: lens,
       label: label,
+      latlng: latlng,
       year: year,
       month: month,
       color: color,
@@ -183,6 +202,7 @@ export default {
       this.filter.month = query['month'] ? parseInt(query['month']) : 0;
       this.filter.color = query['color'] ? query['color'] : '';
       this.filter.label = query['label'] ? query['label'] : '';
+      this.filter.latlng = query['latlng'] ? query['latlng'] : '';
       this.filter.person = query['person'] ? query['person'] : '';
       this.filter.subject = query['subject'] ? query['subject'] : '';
       this.filter.order = this.sortOrder();
@@ -264,8 +284,12 @@ export default {
       window.localStorage.setItem("photos_offset", offset);
     },
     viewType() {
-      let queryParam = this.$route.query['view'] ? this.$route.query['view'] : "";
-      let storedType = window.localStorage.getItem("photos_view");
+      if (this.embedded) {
+        return 'mosaic';
+      }
+
+      let queryParam = this.$route.query['view'] ? this.$route.query['view'] : '';
+      let storedType = window.localStorage.getItem('photos_view');
 
       if (queryParam) {
         window.localStorage.setItem("photos_view", queryParam);
@@ -279,17 +303,21 @@ export default {
       return 'cards';
     },
     sortOrder() {
-      let queryParam = this.$route.query["order"];
-      let storedType = window.localStorage.getItem("photos_order");
+      if (this.embedded) {
+        return 'newest';
+      }
+
+      let queryParam = this.$route.query['order'];
+      let storedType = window.localStorage.getItem('photos_order');
 
       if (queryParam) {
-        window.localStorage.setItem("photos_order", queryParam);
+        window.localStorage.setItem('photos_order', queryParam);
         return queryParam;
       } else if (storedType) {
         return storedType;
       }
 
-      return "newest";
+      return 'newest';
     },
     openLocation(index) {
       if (!this.hasPlaces || !this.canSearchPlaces) {
@@ -303,9 +331,9 @@ export default {
       }
 
       if (photo.CellID && photo.CellID !== "zz") {
-        this.$router.push({name: "places_query", params: {q: photo.CellID}});
+        this.$router.push({name: "places", query: {q: photo.CellID}});
       } else if (photo.Country && photo.Country !== "zz") {
-        this.$router.push({name: "places_query", params: {q: "country:" + photo.Country}});
+        this.$router.push({name: "places", query: {q: "country:" + photo.Country}});
       } else {
         this.$notify.warn("unknown location");
       }
@@ -397,7 +425,7 @@ export default {
         if (this.complete) {
           this.setOffset(response.offset);
 
-          if (this.results.length > 1) {
+          if (!this.embedded && this.results.length > 1) {
             this.$notify.info(this.$gettextInterpolate(this.$gettext("%{n} pictures found"), {n: this.results.length}));
           }
         } else if (this.results.length >= Photo.limit()) {
@@ -560,14 +588,13 @@ export default {
         if (this.complete) {
           if (!this.results.length) {
             this.$notify.warn(this.$gettext("No pictures found"));
-          } else if (this.results.length === 1) {
+          } else if (!this.embedded && this.results.length === 1) {
             this.$notify.info(this.$gettext("One picture found"));
-          } else {
+          } else if (!this.embedded) {
             this.$notify.info(this.$gettextInterpolate(this.$gettext("%{n} pictures found"), {n: this.results.length}));
           }
         } else {
-          this.$notify.info(this.$gettextInterpolate(this.$gettext("More than %{n} pictures found"), {n: 100}));
-
+          // this.$notify.info(this.$gettextInterpolate(this.$gettext("More than %{n} pictures found"), {n: 100}));
           this.$nextTick(() => {
             if (this.$root.$el.clientHeight <= window.document.documentElement.clientHeight + 300) {
               this.$emit("scrollRefresh");
@@ -650,14 +677,16 @@ export default {
           this.dirty = true;
           this.complete = false;
 
-          if (this.context === "archive") break;
+          if (this.context !== "archive") {
+            for (let i = 0; i < data.entities.length; i++) {
+              const uid = data.entities[i];
 
-          for (let i = 0; i < data.entities.length; i++) {
-            const uid = data.entities[i];
-
-            this.removeResult(this.results, uid);
-            this.removeResult(this.viewer.results, uid);
-            this.$clipboard.removeId(uid);
+              this.removeResult(this.results, uid);
+              this.removeResult(this.viewer.results, uid);
+              this.$clipboard.removeId(uid);
+            }
+          } else if (!this.results.length) {
+            this.refresh();
           }
 
           break;

@@ -10,6 +10,4 @@ const (
 	Video    Type = "video"
 	Vector   Type = "vector"
 	Sidecar  Type = "sidecar"
-	Text     Type = "text"
-	Other    Type = "other"
 )

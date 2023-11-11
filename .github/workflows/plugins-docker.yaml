@@ -40,5 +40,5 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ext/${{ matrix.plugin.name }}
-          tags: kvalev/${{ matrix.plugin.name }}:${{ matrix.plugin.version }}
+          tags: rickysarraf/${{ matrix.plugin.name }}:${{ matrix.plugin.version }}
           push: true

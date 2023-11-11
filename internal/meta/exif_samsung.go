@@ -42,9 +42,9 @@ type trailerEntry struct {
 // ExifSamsungTrailer reads and populates the metadata from the trailer section  for images taken with a Samsung device.
 //
 // Resources:
-// 	- https://gist.github.com/HikerBoricua/54aec42ee47f2ecb374ec3208b3a98ee
-// 	- https://github.com/exiftool/exiftool/blob/57f44297961839f40e70d682865c41828b7f71b5/lib/Image/ExifTool/JPEG.pm#L277-L279
-// 	- https://github.com/exiftool/exiftool/blob/57f44297961839f40e70d682865c41828b7f71b5/lib/Image/ExifTool/Samsung.pm#L1300-L1322
+//   - https://gist.github.com/HikerBoricua/54aec42ee47f2ecb374ec3208b3a98ee
+//   - https://github.com/exiftool/exiftool/blob/57f44297961839f40e70d682865c41828b7f71b5/lib/Image/ExifTool/JPEG.pm#L277-L279
+//   - https://github.com/exiftool/exiftool/blob/57f44297961839f40e70d682865c41828b7f71b5/lib/Image/ExifTool/Samsung.pm#L1300-L1322
 func (metadata *Data) ExifSamsungTrailer(fileName string, fileType fs.Type) (bool, error) {
 	if !metadata.isSamsungMedia(fileType) {
 		return false, nil

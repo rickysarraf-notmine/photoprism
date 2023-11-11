@@ -20,7 +20,8 @@ import (
 // GET /api/v1/photos/:uid/faces
 //
 // Parameters:
-//   uid: string PhotoUID as returned by the API
+//
+//	uid: string PhotoUID as returned by the API
 func GetPhotoFaces(router *gin.RouterGroup) {
 	router.GET("/photos/:uid/faces", func(c *gin.Context) {
 		s := Auth(c, acl.ResourcePhotos, acl.ActionUpdate)
@@ -64,7 +65,8 @@ func GetPhotoFaces(router *gin.RouterGroup) {
 // POST /api/v1/photos/:uid/faces
 //
 // Parameters:
-//   uid: string PhotoUID as returned by the API
+//
+//	uid: string PhotoUID as returned by the API
 func CreatePhotoFace(router *gin.RouterGroup) {
 	router.POST("/photos/:uid/faces", func(c *gin.Context) {
 		s := Auth(c, acl.ResourcePhotos, acl.ActionUpdate)

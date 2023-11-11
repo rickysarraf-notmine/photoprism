@@ -38,7 +38,7 @@ func (a Area) String() string {
 
 // Scale creates a new area by scaling the current one by the given factor.
 func (a Area) Scale(factor float32) Area {
-	return NewArea(a.Name, a.X * factor, a.Y * factor, a.W * factor, a.H * factor)
+	return NewArea(a.Name, a.X*factor, a.Y*factor, a.W*factor, a.H*factor)
 }
 
 // Thumb returns a string identifying the file and crop area to create a thumb.

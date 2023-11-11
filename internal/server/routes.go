@@ -9,7 +9,7 @@ import (
 
 var APIv1 *gin.RouterGroup
 
-// registerRoutes configures the available web server routes.
+// registerRoutes configures the available Web server routes.
 func registerRoutes(router *gin.Engine, conf *config.Config) {
 	// Enables automatic redirection if the current route cannot be matched but a
 	// handler for the path with (without) the trailing slash exists.
@@ -100,6 +100,7 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 	api.GetFile(APIv1)
 	api.DeleteFile(APIv1)
 	api.ChangeFileOrientation(APIv1)
+	api.CreateMarker(APIv1)
 	api.UpdateMarker(APIv1)
 	api.ClearMarkerSubject(APIv1)
 	api.PhotoPrimary(APIv1)
