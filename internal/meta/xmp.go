@@ -141,5 +141,7 @@ func (data *Data) XMP(fileName string, fileType fs.Type) (err error) {
 		})
 	}
 
+	data.Favorite = doc.Favorite()
+
 	return nil
 }

@@ -85,7 +85,7 @@ func NewSettings(theme, lang string) *Settings {
 			Settings:  true,
 			Services:  true,
 			Account:   true,
-			Delete:    false,
+			Delete:    true,
 		},
 		Import: ImportSettings{
 			Path: RootPath,
@@ -145,7 +145,7 @@ func (s *Settings) Load(fileName string) error {
 		return err
 	}
 
-	if err := yaml.Unmarshal(yamlConfig, s); err != nil {
+	if err = yaml.Unmarshal(yamlConfig, s); err != nil {
 		return err
 	}
 
@@ -164,7 +164,7 @@ func (s *Settings) Save(fileName string) error {
 
 	s.Propagate()
 
-	if err := os.WriteFile(fileName, data, fs.ModeFile); err != nil {
+	if err = os.WriteFile(fileName, data, fs.ModeFile); err != nil {
 		return err
 	}
 

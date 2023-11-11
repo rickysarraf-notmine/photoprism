@@ -395,6 +395,7 @@ func (m *Photo) BeforeCreate(scope *gorm.Scope) error {
 	}
 
 	m.PhotoUID = rnd.GenerateUID(PhotoUID)
+
 	return scope.SetColumn("PhotoUID", m.PhotoUID)
 }
 
@@ -468,7 +469,7 @@ func (m *Photo) IndexKeywords() error {
 		kw := FirstOrCreateKeyword(NewKeyword(w))
 
 		if kw == nil {
-			log.Errorf("index keyword should not be nil - possible bug")
+			log.Errorf("index keyword should not be nil - you may have found a bug")
 			continue
 		}
 
@@ -588,7 +589,7 @@ func (m *Photo) AddLabels(labels classify.Labels) {
 		labelEntity := FirstOrCreateLabel(NewLabel(classifyLabel.Title(), classifyLabel.Priority))
 
 		if labelEntity == nil {
-			log.Errorf("index: label %s should not be nil - possible bug (%s)", clean.Log(classifyLabel.Title()), m)
+			log.Errorf("index: label %s should not be nil - you may have found a bug (%s)", clean.Log(classifyLabel.Title()), m)
 			continue
 		}
 
@@ -604,7 +605,7 @@ func (m *Photo) AddLabels(labels classify.Labels) {
 		photoLabel := FirstOrCreatePhotoLabel(NewPhotoLabel(m.ID, labelEntity.ID, classifyLabel.Uncertainty, classifyLabel.Source))
 
 		if photoLabel == nil {
-			log.Errorf("index: photo-label %d should not be nil - possible bug (%s)", labelEntity.ID, m)
+			log.Errorf("index: photo-label %d should not be nil - you may have found a bug (%s)", labelEntity.ID, m)
 			continue
 		}
 

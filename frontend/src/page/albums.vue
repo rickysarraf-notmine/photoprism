@@ -76,7 +76,7 @@
                         flat solo hide-details
                         color="secondary-dark"
                         background-color="secondary"
-                        :items="options.sorting"
+                        :items="context === 'album' ? options.sorting : options.sorting.filter(item => item.value !== 'edited')"
                         @change="(v) => {updateQuery({'order': v})}">
               </v-select>
             </v-flex>
@@ -346,7 +346,7 @@ export default {
           {value: 'newest', text: this.$gettext('Newest First')},
           {value: 'oldest', text: this.$gettext('Oldest First')},
           {value: 'added', text: this.$gettext('Recently Added')},
-          {value: 'edited', text: this.$gettext('Recently Edited')},
+          {value: 'edited', text: this.$gettext('Recently Edited')}
         ],
       },
     };
@@ -471,7 +471,14 @@ export default {
         return;
       }
 
-      Event.publish("dialog.upload");
+      // Pre-select manually managed album in upload dialog.
+      if(this.context === 'album' && this.selection && this.selection.length === 1) {
+        return this.model.find(this.selection[0])
+          .then(m => Event.publish("dialog.upload", {albums: [m]}))
+          .catch(() => Event.publish("dialog.upload", {albums: []}));
+      } else {
+        Event.publish("dialog.upload", {albums: []});
+      }
     },
     toggleLike(ev, index) {
       if (!this.canManage) {
@@ -750,8 +757,7 @@ export default {
             this.$notify.info(this.$gettextInterpolate(this.$gettext("%{n} albums found"), {n: this.results.length}));
           }
         } else {
-          this.$notify.info(this.$gettext('More than 20 albums found'));
-
+          // this.$notify.info(this.$gettext('More than 20 albums found'));
           this.$nextTick(() => {
             if (this.$root.$el.clientHeight <= window.document.documentElement.clientHeight + 300) {
               this.$emit("scrollRefresh");

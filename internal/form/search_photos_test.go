@@ -120,9 +120,9 @@ func TestParseQueryString(t *testing.T) {
 		assert.Equal(t, "fooBar baz", form.Query)
 		assert.Equal(t, "23", form.Camera)
 		assert.Equal(t, time.Date(2019, 01, 15, 0, 0, 0, 0, time.UTC), form.Before)
-		assert.Equal(t, false, form.Favorite)
-		assert.Equal(t, uint(0x61a8), form.Dist)
-		assert.Equal(t, float32(33.45343), form.Lat)
+		assert.Equal(t, "false", form.Favorite)
+		assert.Equal(t, float64(25000), form.Dist)
+		assert.Equal(t, 33.45343166666667, form.Lat)
 	})
 	t.Run("valid query 2", func(t *testing.T) {
 		form := &SearchPhotos{Query: "chroma:200 title:\"te:st\" after:2018-01-15 favorite:true lng:33.45343166666667"}
@@ -138,7 +138,7 @@ func TestParseQueryString(t *testing.T) {
 		assert.Equal(t, int16(200), form.Chroma)
 		assert.Equal(t, "te:st", form.Title)
 		assert.Equal(t, time.Date(2018, 01, 15, 0, 0, 0, 0, time.UTC), form.After)
-		assert.Equal(t, float32(33.45343), form.Lng)
+		assert.Equal(t, 33.45343166666667, form.Lng)
 	})
 	t.Run("valid query with filter", func(t *testing.T) {
 		form := &SearchPhotos{Query: "label:cat title:\"fooBar baz\"", Filter: "label:dog"}
@@ -190,7 +190,7 @@ func TestParseQueryString(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.True(t, form.Favorite)
+		assert.Equal(t, "cat", form.Favorite)
 	})
 	t.Run("query for primary with uncommon bool value", func(t *testing.T) {
 		form := &SearchPhotos{Query: "primary:&cat"}
@@ -311,7 +311,7 @@ func TestParseQueryString(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.True(t, form.Scan)
+		assert.Equal(t, ";cat", form.Scan)
 	})
 	t.Run("query for panorama with uncommon bool value", func(t *testing.T) {
 		form := &SearchPhotos{Query: "panorama:*cat"}
@@ -544,31 +544,24 @@ func TestParseQueryString(t *testing.T) {
 
 		assert.Contains(t, err.Error(), "invalid syntax")
 	})
-	t.Run("query for fmin with invalid type", func(t *testing.T) {
-		form := &SearchPhotos{Query: "fmin:=}cat{"}
+	t.Run("query for f with invalid type", func(t *testing.T) {
+		form := &SearchPhotos{Query: "f:=}cat{"}
 
 		err := form.ParseQueryString()
 
-		if err == nil {
+		if err != nil {
 			t.Fatal(err)
 		}
 
-		// log.Debugf("%+v\n", form)
-
-		assert.Contains(t, err.Error(), "invalid syntax")
 	})
-	t.Run("query for fmax with invalid type", func(t *testing.T) {
-		form := &SearchPhotos{Query: "fmax:ca#$t"}
+	t.Run("query for f with invalid type", func(t *testing.T) {
+		form := &SearchPhotos{Query: "f:ca#$t"}
 
 		err := form.ParseQueryString()
 
-		if err == nil {
+		if err != nil {
 			t.Fatal(err)
 		}
-
-		// log.Debugf("%+v\n", form)
-
-		assert.Contains(t, err.Error(), "invalid syntax")
 	})
 	t.Run("query for chroma with invalid type", func(t *testing.T) {
 		form := &SearchPhotos{Query: "chroma:&|cat"}
@@ -650,6 +643,17 @@ func TestParseQueryString(t *testing.T) {
 		}
 
 		assert.Equal(t, "cat", form.Lens)
+	})
+	t.Run("Altitude", func(t *testing.T) {
+		form := &SearchPhotos{Query: "alt:200-500"}
+
+		err := form.ParseQueryString()
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, "200-500", form.Alt)
 	})
 	t.Run("query for before with invalid type", func(t *testing.T) {
 		form := &SearchPhotos{Query: "before:cat"}

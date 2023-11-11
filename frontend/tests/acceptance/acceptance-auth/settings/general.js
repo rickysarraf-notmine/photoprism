@@ -30,12 +30,15 @@ test.meta("testID", "settings-general-001").meta({ type: "short", mode: "auth" }
   "Common: Disable delete",
   async (t) => {
     await menu.openPage("archive");
+    await toolbar.checkToolbarActionAvailability("delete-all", true);
     await photo.triggerHoverAction("nth", 0, "select");
     await contextmenu.checkContextMenuActionAvailability("delete", true);
     await contextmenu.clearSelection();
     await menu.openPage("settings");
     await t.click(settings.deleteCheckbox);
     await menu.openPage("archive");
+    await toolbar.checkToolbarActionAvailability("delete-all", false);
+
     await photo.triggerHoverAction("nth", 0, "select");
 
     await contextmenu.checkContextMenuActionAvailability("restore", true);
@@ -300,6 +303,9 @@ test.meta("testID", "settings-general-005").meta({ type: "short", mode: "auth" }
 
     await photo.checkPhotoVisibility("pqnah1k2frui6p63", false);
 
+    await t.navigateTo("/library/archive");
+    await toolbar.checkToolbarActionAvailability("delete-all", true);
+
     await menu.openPage("settings");
     await t
       .click(settings.archiveCheckbox)
@@ -337,6 +343,9 @@ test.meta("testID", "settings-general-005").meta({ type: "short", mode: "auth" }
     await toolbar.search("Archive / 2020");
 
     await photo.checkPhotoVisibility("pqnah1k2frui6p63", true);
+
+    await t.navigateTo("/library/archive");
+    await toolbar.checkToolbarActionAvailability("delete-all", false);
 
     await menu.openPage("settings");
     await t

@@ -59,7 +59,7 @@ func (w *Purge) Start(opt PurgeOptions) (purgedFiles map[string]bool, purgedPhot
 	purgedFiles = make(map[string]bool)
 	purgedPhotos = make(map[string]bool)
 
-	if err := mutex.MainWorker.Start(); err != nil {
+	if err = mutex.MainWorker.Start(); err != nil {
 		log.Warnf("purge: %s (start)", err.Error())
 		return purgedFiles, purgedPhotos, 0, err
 	}
@@ -215,7 +215,7 @@ func (w *Purge) Start(opt PurgeOptions) (purgedFiles map[string]bool, purgedPhot
 	limit = 10000
 	offset = 0
 	for {
-		photos, err := query.PhotosMissing(limit, offset)
+		photos, err := query.MissingPhotos(limit, offset)
 
 		if err != nil {
 			return purgedFiles, purgedPhotos, updates(), err

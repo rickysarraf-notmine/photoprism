@@ -87,7 +87,7 @@ func FolderCover(router *gin.RouterGroup) {
 		f, err := query.FolderCoverByUID(uid)
 
 		if err != nil {
-			log.Debugf("%s: %s contains no photos, using generic cover", folderCover, uid)
+			log.Debugf("%s: %s contains no pictures, using generic cover", folderCover, uid)
 			c.Data(http.StatusOK, "image/svg+xml", folderIconSvg)
 			return
 		}
@@ -125,7 +125,7 @@ func FolderCover(router *gin.RouterGroup) {
 			c.Data(http.StatusOK, "image/svg+xml", folderIconSvg)
 			return
 		} else if thumbnail == "" {
-			log.Errorf("%s: %s has empty thumb name - possible bug", folderCover, filepath.Base(fileName))
+			log.Errorf("%s: %s has empty thumb name - you may have found a bug", folderCover, filepath.Base(fileName))
 			c.Data(http.StatusOK, "image/svg+xml", folderIconSvg)
 			return
 		}

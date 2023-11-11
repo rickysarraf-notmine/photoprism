@@ -5,7 +5,7 @@
         <v-expansion-panel-content v-if="!file.Missing" :key="file.UID" class="pa-0 elevation-0 secondary-light"
                                    style="margin-top: 1px;">
           <template #header>
-            <div class="caption">{{ file.baseName(70) }}</div>
+            <div class="caption filename">{{ file.baseName(70) }}</div>
           </template>
           <v-card>
             <v-card-text class="white pa-0">
@@ -77,25 +77,25 @@
                           <td title="Unique ID">
                             UID
                           </td>
-                          <td>{{ file.UID | uppercase }}</td>
+                          <td><span class="clickable" @click.stop.prevent="copyText(file.UID)">{{ file.UID | uppercase }}</span></td>
                         </tr>
                         <tr v-if="file.InstanceID" title="XMP">
                           <td>
                             <translate>Instance ID</translate>
                           </td>
-                          <td>{{ file.InstanceID | uppercase }}</td>
+                          <td><span class="clickable" @click.stop.prevent="copyText(file.InstanceID)">{{ file.InstanceID | uppercase }}</span></td>
                         </tr>
                         <tr>
                           <td title="SHA-1">
                             <translate>Hash</translate>
                           </td>
-                          <td>{{ file.Hash }}</td>
+                          <td><span class="clickable" @click.stop.prevent="copyText(file.Hash)">{{ file.Hash }}</span></td>
                         </tr>
                         <tr v-if="file.Name">
                           <td>
                             <translate>Filename</translate>
                           </td>
-                          <td>{{ file.Name }}</td>
+                          <td><span class="clickable" @click.stop.prevent="copyText(file.Name)">{{ file.Name }}</span></td>
                         </tr>
                         <tr v-if="file.Root">
                           <td>
@@ -107,7 +107,7 @@
                           <td>
                             <translate>Original Name</translate>
                           </td>
-                          <td>{{ file.OriginalName }}</td>
+                          <td><span class="clickable" @click.stop.prevent="copyText(file.OriginalName)">{{ file.OriginalName }}</span></td>
                         </tr>
                         <tr>
                           <td>
@@ -207,7 +207,7 @@
                                 hide-details
                                 color="secondary-dark"
                                 :items="options.Orientations()"
-                                :readonly="readonly || !features.edit || (file.FileType !== 'jpg' && file.FileType !== 'png') || file.Error"
+                                :readonly="readonly || !features.edit || file.Error || (file.Frames && file.Frames > 1) || (file.Duration && file.Duration > 1) || (file.FileType !== 'jpg' && file.FileType !== 'png')"
                                 :disabled="busy"
                                 class="input-orientation"
                                 @change="changeOrientation(file)">
@@ -294,7 +294,10 @@ export default {
       type: Object,
       default: () => {},
     },
-    uid: String,
+    uid: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
@@ -329,6 +332,18 @@ export default {
   },
   computed: {},
   methods: {
+    async copyText(text) {
+      if (!text) {
+        return;
+      }
+
+      try {
+        await Util.copyToMachineClipboard(text);
+        this.$notify.success(this.$gettext("Copied to clipboard"));
+      } catch (error) {
+        this.$notify.error(this.$gettext("Failed copying to clipboard"));
+      }
+    },
     orientationClass(file) {
       if (!file) {
         return [];
@@ -365,8 +380,11 @@ export default {
       }
 
       const name = m.Name;
-      const path = name.substring(0, name.lastIndexOf('/'));
 
+      // "#" chars in path names must be explicitly escaped,
+      // see https://github.com/photoprism/photoprism/issues/3695
+      const path = name.substring(0, name.lastIndexOf('/'))
+        .replaceAll(":", "%3A").replaceAll("#", "%23");
       return this.$router.resolve({ path: '/index/files/' + path }).href;
     },
     downloadFile(file) {

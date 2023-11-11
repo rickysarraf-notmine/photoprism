@@ -1,5 +1,5 @@
-#### Base Image: Ubuntu 22.04 LTS (Jammy Jellyfish)
-FROM ubuntu:jammy
+#### Base Image: Ubuntu 23.10 (Mantic Minotaur)
+FROM ubuntu:mantic
 
 # Copyright © 2018 - 2023 PhotoPrism UG. All rights reserved.
 #
@@ -9,7 +9,7 @@ FROM ubuntu:jammy
 # Add Open Container Initiative (OCI) annotations.
 # See: https://github.com/opencontainers/image-spec/blob/main/annotations.md
 LABEL org.opencontainers.image.title="PhotoPrism® Build Image (ARMv7)"
-LABEL org.opencontainers.image.description="Ubuntu 22.04 LTS (Jammy Jellyfish)"
+LABEL org.opencontainers.image.description="Ubuntu 23.10 (Mantic Minotaur)"
 LABEL org.opencontainers.image.url="https://hub.docker.com/repository/docker/photoprism/develop"
 LABEL org.opencontainers.image.source="https://github.com/photoprism/photoprism"
 LABEL org.opencontainers.image.documentation="https://docs.photoprism.app/developer-guide/setup/"
@@ -48,19 +48,19 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
     echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/80forceyes && \
     echo 'APT::Get::Fix-Missing "true";' > /etc/apt/apt.conf.d/80fixmissing && \
     echo 'force-confold' > /etc/dpkg/dpkg.cfg.d/force-confold && \
-    apt-get update && apt-get -qq upgrade && apt-get -qq install --no-install-recommends \
+    apt-get update && apt-get -qq dist-upgrade && apt-get -qq install --no-install-recommends \
         apt-utils gpg pkg-config software-properties-common ca-certificates avahi-utils \
         build-essential gcc g++ sudo bash make nano lsof lshw git jq \
-        autoconf automake cmake libtool libjpeg8 libjpeg8-dev \
+        autoconf automake cmake libtool libjpeg-dev libpng-dev libwebp-dev \
         zip unzip wget curl rsync sqlite3 chrpath gettext libc6-dev \
         libssl-dev libxft-dev libfreetype6 libfreetype6-dev libfontconfig1 \
-        libfontconfig1-dev libhdf5-serial-dev libpng-dev libzmq3-dev \
+        libfontconfig1-dev libhdf5-serial-dev libzmq3-dev \
         libx264-dev libx265-dev libde265-dev libaom-dev libnss3 libxtst6 librsvg2-bin tzdata \
         exiftool ffmpeg libavcodec-extra \
     && \
     /scripts/install-nodejs.sh && \
-    /scripts/install-tensorflow.sh && \
     /scripts/install-libheif.sh && \
+    /scripts/install-tensorflow.sh && \
     /scripts/install-go.sh && \
     /scripts/install-go-tools.sh && \
     echo 'alias ll="ls -alh"' >> /etc/skel/.bashrc && \
@@ -79,14 +79,14 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
         /photoprism/storage/cache && \
     /scripts/cleanup.sh
 
-# download models and testdata
+# Download models and testdata.
 RUN mkdir /tmp/photoprism && \
     wget "https://dl.photoprism.app/tensorflow/nsfw.zip?${BUILD_TAG}" -O /tmp/photoprism/nsfw.zip && \
     wget "https://dl.photoprism.app/tensorflow/nasnet.zip?${BUILD_TAG}" -O /tmp/photoprism/nasnet.zip && \
     wget "https://dl.photoprism.app/tensorflow/facenet.zip?${BUILD_TAG}" -O /tmp/photoprism/facenet.zip && \
     wget "https://dl.photoprism.app/qa/testdata.zip?${BUILD_TAG}" -O /tmp/photoprism/testdata.zip
 
-# set up project directory
+# Default working directory.
 WORKDIR "/go/src/github.com/photoprism/photoprism"
 
 # Expose the following container ports:
@@ -103,3 +103,4 @@ ENTRYPOINT ["/scripts/entrypoint.sh"]
 
 # Keep container running.
 CMD ["tail", "-f", "/dev/null"]
+

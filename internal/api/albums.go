@@ -49,8 +49,17 @@ func GetAlbum(router *gin.RouterGroup) {
 			return
 		}
 
-		id := clean.UID(c.Param("uid"))
-		a, err := query.AlbumByUID(id)
+		// Get sanitized album UID from request path.
+		uid := clean.UID(c.Param("uid"))
+
+		// Visitors and other restricted users can only access shared content.
+		if (s.User().HasSharedAccessOnly(acl.ResourceAlbums) || s.NotRegistered()) && !s.HasShare(uid) {
+			AbortForbidden(c)
+			return
+		}
+
+		// Find album by UID.
+		a, err := query.AlbumByUID(uid)
 
 		if err != nil {
 			AbortAlbumNotFound(c)
@@ -130,7 +139,16 @@ func UpdateAlbum(router *gin.RouterGroup) {
 			return
 		}
 
+		// Get sanitized album UID from request path.
 		uid := clean.UID(c.Param("uid"))
+
+		// Visitors and other restricted users can only access shared content.
+		if (s.User().HasSharedAccessOnly(acl.ResourceAlbums) || s.NotRegistered()) && !s.HasShare(uid) {
+			AbortForbidden(c)
+			return
+		}
+
+		// Find album by UID.
 		a, err := query.AlbumByUID(uid)
 
 		if err != nil {
@@ -161,6 +179,10 @@ func UpdateAlbum(router *gin.RouterGroup) {
 			return
 		}
 
+		// Flush album cover cache.
+		RemoveFromAlbumCoverCache(uid)
+
+		// Update client.
 		UpdateClientConfig()
 
 		// Update album YAML backup.
@@ -181,9 +203,17 @@ func DeleteAlbum(router *gin.RouterGroup) {
 			return
 		}
 
-		id := clean.UID(c.Param("uid"))
+		// Get sanitized album UID from request path.
+		uid := clean.UID(c.Param("uid"))
 
-		a, err := query.AlbumByUID(id)
+		// Visitors and other restricted users can only access shared content.
+		if (s.User().HasSharedAccessOnly(acl.ResourceAlbums) || s.NotRegistered()) && !s.HasShare(uid) {
+			AbortForbidden(c)
+			return
+		}
+
+		// Find album by UID.
+		a, err := query.AlbumByUID(uid)
 
 		if err != nil {
 			AbortAlbumNotFound(c)
@@ -208,7 +238,7 @@ func DeleteAlbum(router *gin.RouterGroup) {
 			return
 		}
 
-		// PublishAlbumEvent(EntityDeleted, id, c)
+		// PublishAlbumEvent(EntityDeleted, uid, c)
 
 		UpdateClientConfig()
 
@@ -234,8 +264,17 @@ func LikeAlbum(router *gin.RouterGroup) {
 			return
 		}
 
-		id := clean.UID(c.Param("uid"))
-		a, err := query.AlbumByUID(id)
+		// Get sanitized album UID from request path.
+		uid := clean.UID(c.Param("uid"))
+
+		// Visitors and other restricted users can only access shared content.
+		if (s.User().HasSharedAccessOnly(acl.ResourceAlbums) || s.NotRegistered()) && !s.HasShare(uid) {
+			AbortForbidden(c)
+			return
+		}
+
+		// Find album by UID.
+		a, err := query.AlbumByUID(uid)
 
 		if err != nil {
 			AbortAlbumNotFound(c)
@@ -249,7 +288,7 @@ func LikeAlbum(router *gin.RouterGroup) {
 
 		UpdateClientConfig()
 
-		PublishAlbumEvent(EntityUpdated, id, c)
+		PublishAlbumEvent(EntityUpdated, uid, c)
 
 		// Update album YAML backup.
 		SaveAlbumAsYaml(a)
@@ -273,8 +312,17 @@ func DislikeAlbum(router *gin.RouterGroup) {
 			return
 		}
 
-		id := clean.UID(c.Param("uid"))
-		a, err := query.AlbumByUID(id)
+		// Get sanitized album UID from request path.
+		uid := clean.UID(c.Param("uid"))
+
+		// Visitors and other restricted users can only access shared content.
+		if (s.User().HasSharedAccessOnly(acl.ResourceAlbums) || s.NotRegistered()) && !s.HasShare(uid) {
+			AbortForbidden(c)
+			return
+		}
+
+		// Find album by UID.
+		a, err := query.AlbumByUID(uid)
 
 		if err != nil {
 			AbortAlbumNotFound(c)
@@ -288,7 +336,7 @@ func DislikeAlbum(router *gin.RouterGroup) {
 
 		UpdateClientConfig()
 
-		PublishAlbumEvent(EntityUpdated, id, c)
+		PublishAlbumEvent(EntityUpdated, uid, c)
 
 		// Update album YAML backup.
 		SaveAlbumAsYaml(a)
@@ -308,7 +356,17 @@ func CloneAlbums(router *gin.RouterGroup) {
 			return
 		}
 
-		a, err := query.AlbumByUID(clean.UID(c.Param("uid")))
+		// Get sanitized album UID from request path.
+		uid := clean.UID(c.Param("uid"))
+
+		// Visitors and other restricted users can only access shared content.
+		if (s.User().HasSharedAccessOnly(acl.ResourceAlbums) || s.NotRegistered()) && !s.HasShare(uid) {
+			AbortForbidden(c)
+			return
+		}
+
+		// Find album by UID.
+		a, err := query.AlbumByUID(uid)
 
 		if err != nil {
 			AbortAlbumNotFound(c)
@@ -373,7 +431,16 @@ func AddPhotosToAlbum(router *gin.RouterGroup) {
 			return
 		}
 
+		// Get sanitized album UID from request path.
 		uid := clean.UID(c.Param("uid"))
+
+		// Visitors and other restricted users can only access shared content.
+		if (s.User().HasSharedAccessOnly(acl.ResourceAlbums) || s.NotRegistered()) && !s.HasShare(uid) {
+			AbortForbidden(c)
+			return
+		}
+
+		// Find album by UID.
 		a, err := query.AlbumByUID(uid)
 
 		if err != nil {
@@ -440,7 +507,17 @@ func RemovePhotosFromAlbum(router *gin.RouterGroup) {
 			return
 		}
 
-		a, err := query.AlbumByUID(clean.UID(c.Param("uid")))
+		// Get sanitized album UID from request path.
+		uid := clean.UID(c.Param("uid"))
+
+		// Visitors and other restricted users can only access shared content.
+		if (s.User().HasSharedAccessOnly(acl.ResourceAlbums) || s.NotRegistered()) && !s.HasShare(uid) {
+			AbortForbidden(c)
+			return
+		}
+
+		// Find album by UID.
+		a, err := query.AlbumByUID(uid)
 
 		if err != nil {
 			AbortAlbumNotFound(c)

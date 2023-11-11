@@ -23,13 +23,13 @@ type Options struct {
 	Copyright             string        `json:"-"`
 	PartnerID             string        `yaml:"-" json:"-" flag:"partner-id"`
 	AuthMode              string        `yaml:"AuthMode" json:"-" flag:"auth-mode"`
-	LoginUri              string        `yaml:"LoginUri" json:"-" flag:"login-uri"`
-	RegisterUri           string        `yaml:"RegisterUri" json:"-" flag:"register-uri"`
-	PasswordLength        int           `yaml:"PasswordLength" json:"-" flag:"password-length"`
-	PasswordResetUri      string        `yaml:"PasswordResetUri" json:"-" flag:"password-reset-uri"`
 	Public                bool          `yaml:"Public" json:"-" flag:"public"`
 	AdminUser             string        `yaml:"AdminUser" json:"-" flag:"admin-user"`
 	AdminPassword         string        `yaml:"AdminPassword" json:"-" flag:"admin-password"`
+	PasswordLength        int           `yaml:"PasswordLength" json:"-" flag:"password-length"`
+	PasswordResetUri      string        `yaml:"PasswordResetUri" json:"-" flag:"password-reset-uri"`
+	RegisterUri           string        `yaml:"RegisterUri" json:"-" flag:"register-uri"`
+	LoginUri              string        `yaml:"LoginUri" json:"-" flag:"login-uri"`
 	SessionMaxAge         int64         `yaml:"SessionMaxAge" json:"-" flag:"session-maxage"`
 	SessionTimeout        int64         `yaml:"SessionTimeout" json:"-" flag:"session-timeout"`
 	LogLevel              string        `yaml:"LogLevel" json:"-" flag:"log-level"`
@@ -106,15 +106,18 @@ type Options struct {
 	ProxyProtoHeaders     []string      `yaml:"ProxyProtoHeaders" json:"-" flag:"proxy-proto-header"`
 	ProxyProtoHttps       []string      `yaml:"ProxyProtoHttps" json:"-" flag:"proxy-proto-https"`
 	DisableTLS            bool          `yaml:"DisableTLS" json:"DisableTLS" flag:"disable-tls"`
+	DefaultTLS            bool          `yaml:"DefaultTLS" json:"DefaultTLS" flag:"default-tls"`
 	TLSEmail              string        `yaml:"TLSEmail" json:"TLSEmail" flag:"tls-email"`
 	TLSCert               string        `yaml:"TLSCert" json:"TLSCert" flag:"tls-cert"`
 	TLSKey                string        `yaml:"TLSKey" json:"TLSKey" flag:"tls-key"`
 	HttpMode              string        `yaml:"HttpMode" json:"-" flag:"http-mode"`
 	HttpCompression       string        `yaml:"HttpCompression" json:"-" flag:"http-compression"`
-	HttpCacheMaxAge       int           `yaml:"HttpCacheMaxAge" json:"HttpCacheMaxAge" flag:"http-cache-maxage"`
 	HttpCachePublic       bool          `yaml:"HttpCachePublic" json:"HttpCachePublic" flag:"http-cache-public"`
+	HttpCacheMaxAge       int           `yaml:"HttpCacheMaxAge" json:"HttpCacheMaxAge" flag:"http-cache-maxage"`
+	HttpVideoMaxAge       int           `yaml:"HttpVideoMaxAge" json:"HttpVideoMaxAge" flag:"http-video-maxage"`
 	HttpHost              string        `yaml:"HttpHost" json:"-" flag:"http-host"`
 	HttpPort              int           `yaml:"HttpPort" json:"-" flag:"http-port"`
+	HttpSocket            string        `yaml:"-" json:"-" flag:"-"`
 	DatabaseDriver        string        `yaml:"DatabaseDriver" json:"-" flag:"database-driver"`
 	DatabaseDsn           string        `yaml:"DatabaseDsn" json:"-" flag:"database-dsn"`
 	DatabaseName          string        `yaml:"DatabaseName" json:"-" flag:"database-name"`
@@ -127,8 +130,8 @@ type Options struct {
 	SipsBlacklist         string        `yaml:"SipsBlacklist" json:"-" flag:"sips-blacklist"`
 	FFmpegBin             string        `yaml:"FFmpegBin" json:"-" flag:"ffmpeg-bin"`
 	FFmpegEncoder         string        `yaml:"FFmpegEncoder" json:"FFmpegEncoder" flag:"ffmpeg-encoder"`
+	FFmpegSize            int           `yaml:"FFmpegSize" json:"FFmpegSize" flag:"ffmpeg-size"`
 	FFmpegBitrate         int           `yaml:"FFmpegBitrate" json:"FFmpegBitrate" flag:"ffmpeg-bitrate"`
-	FFmpegResolution      int           `yaml:"FFmpegResolution" json:"FFmpegResolution" flag:"ffmpeg-resolution"`
 	FFmpegMapVideo        string        `yaml:"FFmpegMapVideo" json:"FFmpegMapVideo" flag:"ffmpeg-map-video"`
 	FFmpegMapAudio        string        `yaml:"FFmpegMapAudio" json:"FFmpegMapAudio" flag:"ffmpeg-map-audio"`
 	ExifToolBin           string        `yaml:"ExifToolBin" json:"-" flag:"exiftool-bin"`
