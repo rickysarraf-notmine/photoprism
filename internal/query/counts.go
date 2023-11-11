@@ -55,8 +55,7 @@ func (c *Counts) Refresh() {
 	Db().Table("albums").
 		Select("SUM(album_type = ?) AS albums, SUM(album_type = ?) AS moments, "+
 			"SUM(album_type = ?) AS folders",
-			"SUM(album_type = ?) AS countries",
-			entity.AlbumManual, entity.AlbumMoment, entity.AlbumFolder, entity.AlbumCountry).
+			entity.AlbumManual, entity.AlbumMoment, entity.AlbumFolder).
 		Where("deleted_at IS NULL").
 		Take(c)
 
@@ -64,6 +63,10 @@ func (c *Counts) Refresh() {
 		Select("COUNT(*) AS files").
 		Where("file_missing = 0 AND file_root = ?", entity.RootOriginals).
 		Take(c)
+
+        Db().Table("countries").
+                Select("(COUNT(*) - 1) AS countries").
+                Take(c)
 
 	Db().Table("places").
 		Select("SUM(photo_count > 0) AS places").
