@@ -82,14 +82,14 @@ type SearchPhotos struct {
 	Review    bool      `form:"review" notes:"Finds pictures in review"`                                                                        // Find photos in review
 	Before    time.Time `form:"before" time_format:"2006-01-02" notes:"Finds pictures taken before this date"`                                  // Finds images taken before date
 	After     time.Time `form:"after" time_format:"2006-01-02" notes:"Finds pictures taken after this date"`                                    // Finds images taken after date
-	BeforeT   time.Time `form:"beforet" time_format:"2006-01-02 15:04:05" notes:"Finds pictures taken before this date and time"`                                                                                     // Finds images taken before date
-	AfterT    time.Time `form:"aftert" time_format:"2006-01-02 15:04:05" notes:"Finds pictures taken after this date and time"`                                                                                       // Finds images taken after date
+	BeforeT   time.Time `form:"beforet" time_format:"2006-01-02 15:04:05" notes:"Finds pictures taken before this date and time"`               // Finds images taken before date
+	AfterT    time.Time `form:"aftert" time_format:"2006-01-02 15:04:05" notes:"Finds pictures taken after this date and time"`                 // Finds images taken after date
 	Count     int       `form:"count" binding:"required" serialize:"-"`                                                                         // Result FILE limit
 	Offset    int       `form:"offset" serialize:"-"`                                                                                           // Result FILE offset
 	Order     string    `form:"order" serialize:"-"`                                                                                            // Sort order
 	Merged    bool      `form:"merged" serialize:"-"`                                                                                           // Merge FILES in response
 
-	Sphere    bool      `form:"sphere" notes:"Finds Photosphere Photos"`
+	Sphere bool `form:"sphere" notes:"Finds Photosphere Photos"`
 }
 
 func (f *SearchPhotos) GetQuery() string {

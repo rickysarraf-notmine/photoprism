@@ -379,8 +379,8 @@ func (m *Subject) SaveForm(f form.Subject) (changed bool, err error) {
 			"SubjHidden":   m.SubjHidden,
 			"SubjPrivate":  m.SubjPrivate,
 			"SubjExcluded": m.SubjExcluded,
-			"Thumb": m.Thumb,
-			"ThumbSrc": m.ThumbSrc,
+			"Thumb":        m.Thumb,
+			"ThumbSrc":     m.ThumbSrc,
 		}
 
 		if err := m.Updates(values); err == nil {
