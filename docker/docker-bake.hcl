@@ -6,7 +6,8 @@ variable "DOCKER_REPO" {
 }
 
 group "default" {
-    targets = ["arm", "amd64"]
+#    targets = ["arm", "amd64"]
+    targets = ["amd64"]
 }
 
 group "arm" {
