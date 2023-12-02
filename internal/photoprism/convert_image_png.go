@@ -28,7 +28,7 @@ func (c *Convert) PngConvertCommands(f *MediaFile, pngName string) (result []*ex
 	// Extract a video still image that can be used as preview.
 	if f.IsAnimated() && !f.IsWebP() && c.conf.FFmpegEnabled() {
 		// Use "ffmpeg" to extract a PNG still image from the video.
-		result = append(result, exec.Command(c.conf.FFmpegBin(), "-y", "-i", f.FileName(), "-ss", ffmpeg.PreviewTimeOffset(f.Duration()), "-vframes", "1", pngName))
+		result = append(result, exec.Command(c.conf.FFmpegBin(), "-y", "-ss", ffmpeg.PreviewTimeOffset(f.Duration()), "-i", f.FileName(), "-vframes", "1", pngName))
 	}
 
 	// Use heif-convert for HEIC/HEIF and AVIF image files.
@@ -41,16 +41,16 @@ func (c *Convert) PngConvertCommands(f *MediaFile, pngName string) (result []*ex
 		result = append(result, exec.Command(c.conf.JpegXLDecoderBin(), f.FileName(), pngName))
 	}
 
-	// Try ImageMagick for other image file formats if allowed.
-	if c.conf.ImageMagickEnabled() && c.imagemagickBlacklist.Allow(fileExt) &&
+	// SVG vector graphics can be converted with librsvg if installed,
+	// otherwise try to convert the media file with ImageMagick.
+	if c.conf.RsvgConvertEnabled() && f.IsSVG() {
+		args := []string{"-a", "-f", "png", "-o", pngName, f.FileName()}
+		result = append(result, exec.Command(c.conf.RsvgConvertBin(), args...))
+	} else if c.conf.ImageMagickEnabled() && c.imagemagickBlacklist.Allow(fileExt) &&
 		(f.IsImage() && !f.IsJpegXL() && !f.IsRaw() && !f.IsHEIF() || f.IsVector() && c.conf.VectorEnabled()) {
 		resize := fmt.Sprintf("%dx%d>", c.conf.PngSize(), c.conf.PngSize())
 		args := []string{f.FileName(), "-flatten", "-resize", resize, pngName}
 		result = append(result, exec.Command(c.conf.ImageMagickBin(), args...))
-	} else if f.IsVector() && c.conf.RsvgConvertEnabled() {
-		// Vector graphics may be also be converted with librsvg if installed.
-		args := []string{"-a", "-f", "png", "-o", pngName, f.FileName()}
-		result = append(result, exec.Command(c.conf.RsvgConvertBin(), args...))
 	}
 
 	// No suitable converter found?

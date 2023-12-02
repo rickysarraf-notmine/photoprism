@@ -5,7 +5,7 @@ As an alternative to our [Docker images](https://docs.photoprism.app/getting-sta
 - <https://dl.photoprism.app/pkg/linux/amd64.tar.gz>
 - <https://dl.photoprism.app/pkg/linux/arm64.tar.gz>
 
-Since these packages need to be set up manually and do not include the system dependencies required to make use of all the features, we recommend that only advanced users choose this installation method.
+Since these packages need to be set up manually and do not include the system dependencies required to make use of all the features, we recommend that **only experienced users** choose this installation method.
 
 Also note that the minimum required glibc version is 2.35, so for example Ubuntu 22.04 and Debian Bookworm will work with these binaries, but older Linux distributions may not be compatible.
 
@@ -39,27 +39,39 @@ Run `photoprism --help` in a terminal to get an [overview of the command flags a
 
 If no explicit *originals*, *import* and/or *assets* path has been configured, a list of [default directory paths](https://github.com/photoprism/photoprism/blob/develop/pkg/fs/dirs.go) will be searched and the first existing directory will be used for the respective path.
 
-Global config defaults can be defined in a `/etc/photoprism/defaults.yml` file (see below). When specifying paths, `~` is supported as a placeholder for the current user's home directory, e.g. `~/Pictures`.
+Global config defaults can be defined in a `/etc/photoprism/defaults.yml` file (see below). When specifying paths, `~` is supported as a placeholder for the current user's home directory, e.g. `~/Pictures`. Relative paths can also be specified via `./pathname`.
 
-Please keep in mind that any changes to the global config options, either [through the UI](https://docs.photoprism.app/user-guide/settings/advanced/), [config files](https://docs.photoprism.app/getting-started/config-files/), or by [setting environment variables](https://docs.photoprism.app/getting-started/config-options/), require a restart to take effect.
+Please keep in mind that any changes to the config options, either [through the UI](https://docs.photoprism.app/user-guide/settings/advanced/), [config files](https://docs.photoprism.app/getting-started/config-files/), or by [setting environment variables](https://docs.photoprism.app/getting-started/config-options/), require a restart to take effect.
 
 ### `defaults.yml`
 
-Global config defaults, including the config and storage paths to use, can optionally be set with a `defaults.yml` file in the `/etc/photoprism` directory (requires root privileges). A custom filename for loading the defaults can be specified with the `PHOTOPRISM_DEFAULTS_YAML` environment variable or the `--defaults-yaml` command flag.
+Global config defaults, including the config and storage paths to use, can optionally be [set with a `defaults.yml` file](https://dl.photoprism.app/pkg/linux/defaults.yml) in the `/etc/photoprism` directory (requires root privileges). A custom filename for loading the defaults can be specified with the `PHOTOPRISM_DEFAULTS_YAML` environment variable or the `--defaults-yaml` command flag.
 
-Since you only need to add the values for which you want to have a custom default, a `defaults.yml` file does not need to contain all available options and can thus be kept to a minimum, e.g.:
+A `defaults.yml` file affects all users and should only contain values for options for which you want to set a global default, e.g.:
 
-```
-Debug: false
+```yaml
+ConfigPath: "~/.config/photoprism"
+StoragePath: "~/.photoprism"
+OriginalsPath: "~/Pictures"
+ImportPath: "/media"
+AdminUser: "admin"
+AdminPassword: "insecure"
+AuthMode: "password"
+DatabaseDriver: "sqlite"
 JpegQuality: 85
-ConfigPath: "~/.photoprism"
+DetectNSFW: false
+UploadNSFW: true
 ```
+
+For a list of supported options and their names, see <https://docs.photoprism.app/getting-started/config-files/#config-options>.
+
+When specifying values, make sure that the data type is the [same as in the documentation](https://docs.photoprism.app/getting-started/config-files/#config-options), e.g. *bool* values must be either `true` or `false` and *int* values must be whole numbers without any quotes like in the example above.
 
 ### `options.yml`
 
-Default config values in the `defaults.yml` file can be overridden by values specified in a [`options.yml`](https://docs.photoprism.app/getting-started/config-files/) file, the command flags, and the environment variables. The config path from which the `options.yml` file is loaded, if it exists, can be set by adding a `ConfigPath` value to the `defaults.yml`, using the `--config-path` command flag, or with the `PHOTOPRISM_CONFIG_PATH` environment variable.
+Default config values can be overridden by values [specified in an `options.yml` file](https://dl.photoprism.app/pkg/linux/options.yml) as well as with command flags and environment variables. To load values from an existing `options.yml` file, you can specify its storage path (excluding the filename) by setting the `ConfigPath` option in your `defaults.yml` file, using the `--config-path` command flag, or with the `PHOTOPRISM_CONFIG_PATH` environment variable.
 
-For a list of supported options and their names, see <https://docs.photoprism.app/getting-started/config-files/>.
+The values in an `options.yml` file are not global and can be used to customize individual instances e.g. based on the default values in a `defaults.yml` file. Both files allow you to set any of the [supported options](https://docs.photoprism.app/getting-started/config-files/#config-options).
 
 ## Documentation
 

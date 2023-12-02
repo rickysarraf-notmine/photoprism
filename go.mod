@@ -17,18 +17,18 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	github.com/google/open-location-code/go v0.0.0-20221010173056-817c0086479a
-	github.com/gorilla/websocket v1.5.0
+	github.com/gorilla/websocket v1.5.1
 	github.com/gosimple/slug v1.13.1
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/inflection v1.0.0
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/karrick/godirwalk v1.17.0
-	github.com/klauspost/cpuid/v2 v2.2.5
+	github.com/klauspost/cpuid/v2 v2.2.6
 	github.com/leandro-lugaresi/hub v1.1.1
 	github.com/leonelquinteros/gotext v1.5.2
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0
-	github.com/mandykoh/prism v0.35.1
+	github.com/mandykoh/prism v0.35.2
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-sqlite3 v2.0.1+incompatible // indirect
 	github.com/montanaflynn/stats v0.7.1
@@ -43,8 +43,8 @@ require (
 	github.com/ulule/deepcopier v0.0.0-20200430083143-45decc6639b6
 	github.com/urfave/cli v1.22.14
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
-	golang.org/x/crypto v0.14.0
-	golang.org/x/net v0.17.0
+	golang.org/x/crypto v0.16.0
+	golang.org/x/net v0.18.0
 	gonum.org/v1/gonum v0.14.0
 	gopkg.in/photoprism/go-tz.v2 v2.1.2
 	gopkg.in/yaml.v2 v2.4.0
@@ -52,7 +52,7 @@ require (
 
 require (
 	github.com/go-xmlfmt/xmlfmt v1.1.2 // indirect
-	golang.org/x/image v0.13.0
+	golang.org/x/image v0.14.0
 )
 
 require github.com/olekukonko/tablewriter v0.0.5
@@ -85,8 +85,8 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
