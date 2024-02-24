@@ -49,12 +49,13 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
     echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/80forceyes && \
     echo 'APT::Get::Fix-Missing "true";' > /etc/apt/apt.conf.d/80fixmissing && \
     echo 'force-confold' > /etc/dpkg/dpkg.cfg.d/force-confold && \
+    echo 'APT::Default-Release "bookworm";' > /etc/apt/apt.conf.d/99release && \
     apt-get update && apt-get -qq dist-upgrade && \
     apt-get -qq install \
         libc6 ca-certificates sudo bash tzdata \
         gpg zip unzip wget curl rsync make nano vim-tiny \
         jq lsof lshw sqlite3 mariadb-client imagemagick libvips-dev \
-        exiftool darktable rawtherapee libheif-examples librsvg2-bin \
+        exiftool darktable rawtherapee libheif-examples/testing librsvg2-bin \
         ffmpeg libavcodec-extra x264 x265 libvpx7 libwebm1 \
         libmatroska7 libdvdread8 libebml5 libgav1-bin libatomic1 \
     && \
