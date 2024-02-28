@@ -30,7 +30,7 @@ func (c *Convert) ToJson(f *MediaFile, force bool) (jsonName string, err error) 
 
 	log.Debugf("exiftool: extracting metadata from %s", clean.Log(f.RootRelName()))
 
-	cmd := exec.Command(c.conf.ExifToolBin(), "-n", "-m", "-api", "LargeFileSupport", "-all", "-struct", "-j", f.FileName())
+	cmd := exec.Command(c.conf.ExifToolBin(), "-n", "-m", "-api", "LargeFileSupport", "-j", f.FileName())
 
 	// Fetch command output.
 	var out bytes.Buffer
