@@ -31,7 +31,7 @@ func IndexMain(related *RelatedFiles, ind *Index, o IndexOptions) (result IndexR
 
 	// Create JSON sidecar file, if needed.
 	if jsonErr := f.CreateExifToolJson(ind.convert); jsonErr != nil {
-		log.Errorf("index: %s", clean.Log(jsonErr.Error()))
+		log.Errorf("index: %s", clean.Error(jsonErr))
 	}
 
 	// Extract embedded video from motion photo.

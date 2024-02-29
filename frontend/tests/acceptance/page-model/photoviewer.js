@@ -37,9 +37,8 @@ export default class Page {
   }
 
   async triggerPhotoViewerAction(action) {
-    if (action !== "close") {
-      await t.click(Selector("button.pswp__button.action-" + action));
-    }
+    await t.hover(Selector("button.pswp__button.action-" + action));
+    await t.click(Selector("button.pswp__button.action-" + action));
     if (t.browser.platform === "mobile") {
       await t.wait(5000);
     }
@@ -47,16 +46,12 @@ export default class Page {
       if (await Selector("button.pswp__button.action-" + action).visible) {
         await t.click(Selector("button.pswp__button.action-" + action));
       } else {
-        if (await Selector("button.pswp__button.action-" + action, { timeout: 8000 }).visible) {
+        await t.wait(8000);
+        if (await Selector("button.pswp__button.action-" + action).visible) {
           await t.click(Selector("button.pswp__button.action-" + action));
         } else {
           console.log("Could not close Photoviewer");
         }
-      }
-
-      // The close button is quite moody, so sometimes we have to click it twice and sometimes it takes a bit for the photoviewer to be closed.
-      if (await Selector("button.pswp__button.action-" + action, { timeout: 5000 }).visible) {
-        await t.click(Selector("button.pswp__button.action-" + action));
       }
     }
   }

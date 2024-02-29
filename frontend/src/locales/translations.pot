@@ -34,15 +34,20 @@ msgstr ""
 msgid "%{n} pictures found"
 msgstr ""
 
-#: src/options/options.js:423
+#: src/options/options.js:427
 msgid "1 hour"
 msgstr ""
 
-#: src/options/options.js:425
+#: src/options/options.js:429
 msgid "12 hours"
 msgstr ""
 
-#: src/options/options.js:424
+#: src/page/settings/account.vue:66
+#: src/page/settings/account.vue:68
+msgid "2-Factor Authentication"
+msgstr ""
+
+#: src/options/options.js:428
 msgid "4 hours"
 msgstr ""
 
@@ -62,7 +67,12 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: src/component/navigation.vue:103
+#: src/options/auth.js:26
+#: src/options/auth.js:43
+msgid "Access Token"
+msgstr ""
+
+#: src/component/navigation.vue:104
 #: src/component/navigation.vue:2040
 #: src/dialog/share/upload.vue:108
 #: src/model/service.js:98
@@ -151,7 +161,7 @@ msgid "Added"
 msgstr ""
 
 #: src/options/admin.js:6
-#: src/options/admin.js:19
+#: src/options/auth.js:6
 msgid "Admin"
 msgstr ""
 
@@ -159,23 +169,23 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: src/options/options.js:433
+#: src/options/options.js:437
 msgid "After 1 day"
 msgstr ""
 
-#: src/options/options.js:434
+#: src/options/options.js:438
 msgid "After 3 days"
 msgstr ""
 
-#: src/options/options.js:435
+#: src/options/options.js:439
 msgid "After 7 days"
 msgstr ""
 
-#: src/options/options.js:437
+#: src/options/options.js:441
 msgid "After one month"
 msgstr ""
 
-#: src/options/options.js:439
+#: src/options/options.js:443
 msgid "After one year"
 msgstr ""
 
@@ -184,11 +194,11 @@ msgstr ""
 msgid "After selecting pictures from search results, you can add them to an album using the context menu."
 msgstr ""
 
-#: src/options/options.js:438
+#: src/options/options.js:442
 msgid "After two months"
 msgstr ""
 
-#: src/options/options.js:436
+#: src/options/options.js:440
 msgid "After two weeks"
 msgstr ""
 
@@ -294,11 +304,11 @@ msgstr ""
 #: src/component/navigation.vue:97
 #: src/component/photo/cards.vue:313
 #: src/component/photo/cards.vue:501
-#: src/component/photo/list.vue:192
+#: src/component/photo/list.vue:191
 #: src/component/photo/mosaic.vue:234
 #: src/dialog/photo/edit/files.vue:104
 #: src/dialog/photo/edit/files.vue:101
-#: src/options/options.js:358
+#: src/options/options.js:362
 msgid "Animated"
 msgstr ""
 
@@ -314,6 +324,10 @@ msgstr ""
 msgid "API Key"
 msgstr ""
 
+#: src/options/auth.js:25
+msgid "Application"
+msgstr ""
+
 #: src/dialog/photo/edit/details.vue:116
 msgid "Apply"
 msgstr ""
@@ -322,6 +336,11 @@ msgstr ""
 #: src/component/photo/clipboard.vue:88
 #: src/dialog/photo/edit/details.vue:115
 msgid "Approve"
+msgstr ""
+
+#: src/page/settings/account.vue:60
+#: src/page/settings/account.vue:62
+msgid "Apps and Devices"
 msgstr ""
 
 #: src/app/routes.js:256
@@ -381,8 +400,8 @@ msgstr ""
 
 #: src/dialog/admin/users/add.vue:219
 #: src/dialog/admin/users/edit.vue:364
-#: src/page/admin/sessions.vue:71
-#: src/page/admin/sessions.vue:31
+#: src/page/admin/sessions.vue:74
+#: src/page/admin/sessions.vue:27
 #: src/page/admin/users.vue:37
 msgid "Authentication"
 msgstr ""
@@ -417,24 +436,24 @@ msgstr ""
 msgid "Bio"
 msgstr ""
 
-#: src/page/settings/account.vue:70
-#: src/page/settings/account.vue:72
+#: src/page/settings/account.vue:82
+#: src/page/settings/account.vue:84
 msgid "Birth Date"
 msgstr ""
 
-#: src/options/options.js:458
+#: src/options/options.js:462
 msgid "Black"
 msgstr ""
 
-#: src/options/options.js:471
+#: src/options/options.js:475
 msgid "Blackman: Lanczos Modification, Less Ringing Artifacts"
 msgstr ""
 
-#: src/options/options.js:454
+#: src/options/options.js:458
 msgid "Blue"
 msgstr ""
 
-#: src/options/options.js:455
+#: src/options/options.js:459
 msgid "Brown"
 msgstr ""
 
@@ -451,7 +470,7 @@ msgid "Browse indexed files and folders in Library."
 msgstr ""
 
 #: src/page/about/feedback.vue:8
-#: src/options/options.js:465
+#: src/options/options.js:469
 msgid "Bug Report"
 msgstr ""
 
@@ -546,9 +565,9 @@ msgstr ""
 msgid "Change Avatar"
 msgstr ""
 
-#: src/page/settings/account.vue:54
+#: src/page/settings/account.vue:72
 #: src/dialog/account/password.vue:8
-#: src/page/settings/account.vue:56
+#: src/page/settings/account.vue:74
 msgid "Change Password"
 msgstr ""
 
@@ -567,13 +586,13 @@ msgstr ""
 #: src/dialog/admin/users/edit.vue:67
 #: src/dialog/admin/users/edit.vue:163
 #: src/dialog/album/edit.vue:56
-#: src/dialog/photo/edit/files.vue:129
+#: src/dialog/photo/edit/files.vue:141
 #: src/dialog/service/edit.vue:102
 #: src/dialog/share.vue:88
 #: src/dialog/share.vue:104
 #: src/page/albums.vue:553
-#: src/page/settings/account.vue:114
-#: src/page/settings/account.vue:129
+#: src/page/settings/account.vue:116
+#: src/page/settings/account.vue:131
 #: src/page/settings/advanced.vue:51
 #: src/page/settings/general.vue:96
 #: src/page/settings/library.vue:50
@@ -597,7 +616,17 @@ msgstr ""
 msgid "Cleanup"
 msgstr ""
 
-#: src/page/admin/sessions.vue:115
+#: src/options/auth.js:11
+#: src/options/auth.js:23
+#: src/options/auth.js:42
+msgid "Client"
+msgstr ""
+
+#: src/options/auth.js:24
+msgid "Client Credentials"
+msgstr ""
+
+#: src/page/admin/sessions.vue:124
 #: src/component/photo-viewer.vue:71
 #: src/component/photo/toolbar.vue:220
 #: src/dialog/photo/edit/details.vue:112
@@ -642,9 +671,9 @@ msgstr ""
 msgid "Connect"
 msgstr ""
 
-#: src/page/settings/account.vue:60
+#: src/page/settings/account.vue:54
 #: src/dialog/webdav.vue:4
-#: src/page/settings/account.vue:62
+#: src/page/settings/account.vue:56
 #: src/page/settings/services.vue:50
 msgid "Connect via WebDAV"
 msgstr ""
@@ -654,8 +683,8 @@ msgstr ""
 msgid "Connected"
 msgstr ""
 
-#: src/page/settings/account.vue:116
-#: src/page/settings/account.vue:95
+#: src/page/settings/account.vue:128
+#: src/page/settings/account.vue:107
 msgid "Contact Details"
 msgstr ""
 
@@ -678,8 +707,8 @@ msgstr ""
 msgid "Contains one picture."
 msgstr ""
 
-#: src/options/admin.js:9
-#: src/options/admin.js:31
+#: src/options/admin.js:18
+#: src/options/auth.js:9
 msgid "Contributor"
 msgstr ""
 
@@ -687,6 +716,8 @@ msgstr ""
 msgid "Converting"
 msgstr ""
 
+#: src/dialog/photo/edit/files.vue:59
+#: src/dialog/photo/edit/info.vue:61
 #: src/dialog/share.vue:58
 #: src/dialog/webdav.vue:37
 msgid "Copied to clipboard"
@@ -700,10 +731,10 @@ msgstr ""
 msgid "Couldn't find anything."
 msgstr ""
 
-#: src/page/settings/account.vue:758
+#: src/page/settings/account.vue:832
 #: src/component/photo/toolbar.vue:262
 #: src/dialog/photo/edit/details.vue:250
-#: src/page/settings/account.vue:612
+#: src/page/settings/account.vue:686
 msgid "Country"
 msgstr ""
 
@@ -715,7 +746,7 @@ msgstr ""
 msgid "Create album"
 msgstr ""
 
-#: src/page/admin/sessions.vue:77
+#: src/page/admin/sessions.vue:86
 #: src/dialog/photo/edit/info.vue:183
 msgid "Created"
 msgstr ""
@@ -724,7 +755,7 @@ msgstr ""
 msgid "Creating thumbnails for"
 msgstr ""
 
-#: src/options/options.js:473
+#: src/options/options.js:477
 msgid "Cubic: Moderate Quality, Good Performance"
 msgstr ""
 
@@ -733,21 +764,21 @@ msgid "Current Password"
 msgstr ""
 
 #: src/page/about/feedback.vue:5
-#: src/options/options.js:462
+#: src/options/options.js:466
 msgid "Customer Support"
 msgstr ""
 
-#: src/options/options.js:453
+#: src/options/options.js:457
 msgid "Cyan"
 msgstr ""
 
-#: src/options/options.js:426
+#: src/options/options.js:430
 msgid "Daily"
 msgstr ""
 
-#: src/page/settings/account.vue:478
+#: src/page/settings/account.vue:552
 #: src/dialog/photo/edit/details.vue:116
-#: src/page/settings/account.vue:478
+#: src/page/settings/account.vue:552
 msgid "Day"
 msgstr ""
 
@@ -755,13 +786,16 @@ msgstr ""
 msgid "Debug Logs"
 msgstr ""
 
-#: src/options/admin.js:43
-#: src/options/admin.js:44
-#: src/options/admin.js:57
-#: src/page/admin/sessions.vue:56
+#: src/options/admin.js:31
+#: src/page/admin/sessions.vue:60
 #: src/page/admin/users.vue:100
-#: src/options/options.js:313
-#: src/options/options.js:377
+#: src/model/session.js:63
+#: src/options/auth.js:20
+#: src/options/auth.js:21
+#: src/options/auth.js:38
+#: src/options/auth.js:39
+#: src/options/options.js:317
+#: src/options/options.js:381
 #: src/options/themes.js:492
 #: src/page/places.vue:142
 msgid "Default"
@@ -918,7 +952,7 @@ msgstr ""
 msgid "Don't use TensorFlow for image classification."
 msgstr ""
 
-#: src/options/options.js:466
+#: src/options/options.js:470
 msgid "Donations"
 msgstr ""
 
@@ -967,7 +1001,7 @@ msgstr ""
 #: src/component/photo/clipboard.vue:210
 #: src/component/photo/list.vue:124
 #: src/component/subject/clipboard.vue:55
-#: src/dialog/photo/edit/files.vue:96
+#: src/dialog/photo/edit/files.vue:108
 #: src/page/library/browse.vue:111
 msgid "Downloading…"
 msgstr ""
@@ -1035,7 +1069,7 @@ msgstr ""
 #: src/dialog/admin/users/add.vue:176
 #: src/dialog/admin/users/edit.vue:317
 #: src/page/settings/account.vue:222
-#: src/page/settings/account.vue:647
+#: src/page/settings/account.vue:721
 #: src/page/settings/account.vue:222
 msgid "Email"
 msgstr ""
@@ -1058,7 +1092,7 @@ msgstr ""
 msgid "Errors"
 msgstr ""
 
-#: src/dialog/photo/edit/info.vue:65
+#: src/dialog/photo/edit/info.vue:77
 msgid "Estimate"
 msgstr ""
 
@@ -1070,7 +1104,7 @@ msgstr ""
 msgid "Estimates"
 msgstr ""
 
-#: src/options/options.js:427
+#: src/options/options.js:431
 msgid "Every two days"
 msgstr ""
 
@@ -1096,7 +1130,7 @@ msgstr ""
 msgid "Experimental Features"
 msgstr ""
 
-#: src/page/admin/sessions.vue:89
+#: src/page/admin/sessions.vue:98
 #: src/dialog/service/edit.vue:249
 #: src/dialog/share.vue:64
 msgid "Expires"
@@ -1118,6 +1152,8 @@ msgstr ""
 msgid "Faces"
 msgstr ""
 
+#: src/dialog/photo/edit/files.vue:61
+#: src/dialog/photo/edit/info.vue:63
 #: src/dialog/share.vue:60
 #: src/dialog/webdav.vue:39
 msgid "Failed copying to clipboard"
@@ -1137,7 +1173,7 @@ msgstr ""
 msgid "Family Name"
 msgstr ""
 
-#: src/options/options.js:297
+#: src/options/options.js:301
 msgid "Fast"
 msgstr ""
 
@@ -1154,12 +1190,12 @@ msgid "Favorites"
 msgstr ""
 
 #: src/page/about/feedback.vue:7
-#: src/options/options.js:464
+#: src/options/options.js:468
 msgid "Feature Request"
 msgstr ""
 
-#: src/page/settings/account.vue:849
-#: src/page/settings/account.vue:703
+#: src/page/settings/account.vue:923
+#: src/page/settings/account.vue:777
 msgid "Feed"
 msgstr ""
 
@@ -1168,7 +1204,7 @@ msgstr ""
 msgid "Feedback"
 msgstr ""
 
-#: src/options/options.js:479
+#: src/options/options.js:483
 msgid "Female"
 msgstr ""
 
@@ -1279,20 +1315,20 @@ msgstr ""
 msgid "Global Options"
 msgstr ""
 
-#: src/options/options.js:448
+#: src/options/options.js:452
 msgid "Gold"
 msgstr ""
 
-#: src/options/options.js:451
+#: src/options/options.js:455
 msgid "Green"
 msgstr ""
 
-#: src/options/options.js:457
+#: src/options/options.js:461
 msgid "Grey"
 msgstr ""
 
-#: src/options/admin.js:10
-#: src/options/admin.js:35
+#: src/options/admin.js:22
+#: src/options/auth.js:10
 msgid "Guest"
 msgstr ""
 
@@ -1327,7 +1363,7 @@ msgstr ""
 msgid "Hide photos that have been moved to archive."
 msgstr ""
 
-#: src/options/options.js:381
+#: src/options/options.js:385
 msgid "High"
 msgstr ""
 
@@ -1345,9 +1381,9 @@ msgstr ""
 msgid "image"
 msgstr ""
 
-#: src/dialog/photo/edit/info.vue:69
+#: src/dialog/photo/edit/info.vue:81
 #: src/model/file.js:217
-#: src/options/options.js:350
+#: src/options/options.js:354
 msgid "Image"
 msgstr ""
 
@@ -1456,15 +1492,15 @@ msgstr ""
 #: src/page/settings/account.vue:225
 #: src/page/settings/account.vue:284
 #: src/page/settings/account.vue:312
-#: src/page/settings/account.vue:596
-#: src/page/settings/account.vue:622
-#: src/page/settings/account.vue:650
-#: src/page/settings/account.vue:678
-#: src/page/settings/account.vue:742
-#: src/page/settings/account.vue:769
-#: src/page/settings/account.vue:796
-#: src/page/settings/account.vue:824
-#: src/page/settings/account.vue:852
+#: src/page/settings/account.vue:670
+#: src/page/settings/account.vue:696
+#: src/page/settings/account.vue:724
+#: src/page/settings/account.vue:752
+#: src/page/settings/account.vue:816
+#: src/page/settings/account.vue:843
+#: src/page/settings/account.vue:870
+#: src/page/settings/account.vue:898
+#: src/page/settings/account.vue:926
 #: src/page/settings/account.vue:91
 #: src/page/settings/account.vue:117
 #: src/page/settings/account.vue:143
@@ -1472,11 +1508,11 @@ msgstr ""
 #: src/page/settings/account.vue:225
 #: src/page/settings/account.vue:284
 #: src/page/settings/account.vue:312
-#: src/page/settings/account.vue:596
-#: src/page/settings/account.vue:623
-#: src/page/settings/account.vue:650
-#: src/page/settings/account.vue:678
-#: src/page/settings/account.vue:706
+#: src/page/settings/account.vue:670
+#: src/page/settings/account.vue:697
+#: src/page/settings/account.vue:724
+#: src/page/settings/account.vue:752
+#: src/page/settings/account.vue:780
 msgid "Invalid"
 msgstr ""
 
@@ -1535,7 +1571,7 @@ msgstr ""
 msgid "Labels deleted"
 msgstr ""
 
-#: src/options/options.js:472
+#: src/options/options.js:476
 msgid "Lanczos: Detail Preservation, Minimal Artifacts"
 msgstr ""
 
@@ -1543,8 +1579,8 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: src/page/admin/sessions.vue:83
-#: src/page/admin/sessions.vue:33
+#: src/page/admin/sessions.vue:92
+#: src/page/admin/sessions.vue:30
 msgid "Last Active"
 msgstr ""
 
@@ -1561,8 +1597,8 @@ msgstr ""
 msgid "Latitude"
 msgstr ""
 
-#: src/options/admin.js:47
-#: src/options/admin.js:65
+#: src/options/admin.js:39
+#: src/options/auth.js:28
 msgid "LDAP/AD"
 msgstr ""
 
@@ -1609,7 +1645,7 @@ msgstr ""
 msgid "Like"
 msgstr ""
 
-#: src/options/options.js:450
+#: src/options/options.js:454
 msgid "Lime"
 msgstr ""
 
@@ -1617,13 +1653,13 @@ msgstr ""
 msgid "Limit reached, showing first %{n} files"
 msgstr ""
 
-#: src/options/options.js:474
+#: src/options/options.js:478
 msgid "Linear: Very Smooth, Best Performance"
 msgstr ""
 
-#: src/options/admin.js:48
-#: src/options/admin.js:49
 #: src/model/link.js:119
+#: src/options/auth.js:29
+#: src/options/auth.js:30
 msgid "Link"
 msgstr ""
 
@@ -1635,9 +1671,9 @@ msgstr ""
 #: src/app/routes.js:228
 #: src/component/photo/cards.vue:297
 #: src/component/photo/cards.vue:492
-#: src/component/photo/list.vue:183
+#: src/component/photo/list.vue:182
 #: src/component/photo/mosaic.vue:218
-#: src/options/options.js:362
+#: src/options/options.js:366
 msgid "Live"
 msgstr ""
 
@@ -1645,9 +1681,9 @@ msgstr ""
 msgid "Live Photos"
 msgstr ""
 
-#: src/options/admin.js:45
-#: src/options/admin.js:46
-#: src/options/admin.js:61
+#: src/options/admin.js:35
+#: src/options/auth.js:22
+#: src/options/auth.js:27
 msgid "Local"
 msgstr ""
 
@@ -1660,13 +1696,13 @@ msgstr ""
 msgid "location"
 msgstr ""
 
-#: src/page/settings/account.vue:739
+#: src/page/settings/account.vue:813
 #: src/component/photo/cards.vue:554
 #: src/component/photo/list.vue:139
 #: src/dialog/album/edit.vue:126
-#: src/dialog/photo/edit/info.vue:71
+#: src/dialog/photo/edit/info.vue:83
 #: src/page/albums.vue:88
-#: src/page/settings/account.vue:593
+#: src/page/settings/account.vue:667
 msgid "Location"
 msgstr ""
 
@@ -1699,15 +1735,15 @@ msgstr ""
 msgid "Longitude"
 msgstr ""
 
-#: src/options/options.js:385
+#: src/options/options.js:389
 msgid "Low"
 msgstr ""
 
-#: src/options/options.js:340
+#: src/options/options.js:344
 msgid "Low Resolution"
 msgstr ""
 
-#: src/options/options.js:444
+#: src/options/options.js:448
 msgid "Magenta"
 msgstr ""
 
@@ -1716,7 +1752,7 @@ msgstr ""
 msgid "Main Color"
 msgstr ""
 
-#: src/options/options.js:478
+#: src/options/options.js:482
 msgid "Male"
 msgstr ""
 
@@ -1745,7 +1781,7 @@ msgstr ""
 msgid "Marker"
 msgstr ""
 
-#: src/options/options.js:301
+#: src/options/options.js:305
 msgid "Medium"
 msgstr ""
 
@@ -1762,7 +1798,7 @@ msgstr ""
 msgid "Message sent"
 msgstr ""
 
-#: src/dialog/photo/edit/info.vue:61
+#: src/dialog/photo/edit/info.vue:73
 msgid "Metadata"
 msgstr ""
 
@@ -1786,10 +1822,10 @@ msgstr ""
 msgid "Monochrome"
 msgstr ""
 
-#: src/page/settings/account.vue:501
+#: src/page/settings/account.vue:575
 #: src/component/photo/toolbar.vue:384
 #: src/dialog/photo/edit/details.vue:142
-#: src/page/settings/account.vue:501
+#: src/page/settings/account.vue:575
 msgid "Month"
 msgstr ""
 
@@ -1815,11 +1851,11 @@ msgstr ""
 #: src/page/about/feedback.vue:175
 #: src/component/photo/cards.vue:542
 #: src/component/photo/list.vue:139
-#: src/component/photo/list.vue:235
+#: src/component/photo/list.vue:234
 #: src/dialog/album/edit.vue:105
 #: src/dialog/photo/edit/files.vue:42
 #: src/dialog/photo/edit/info.vue:32
-#: src/dialog/photo/edit/info.vue:67
+#: src/dialog/photo/edit/info.vue:79
 #: src/dialog/photo/edit/labels.vue:84
 #: src/dialog/photo/edit/labels.vue:200
 #: src/dialog/photo/edit/people.vue:21
@@ -1847,10 +1883,10 @@ msgstr ""
 msgid "Name too long"
 msgstr ""
 
-#: src/page/admin/sessions.vue:69
-#: src/page/admin/users.vue:133
-#: src/options/options.js:422
-#: src/options/options.js:432
+#: src/page/admin/sessions.vue:74
+#: src/page/admin/users.vue:134
+#: src/options/options.js:426
+#: src/options/options.js:436
 #: src/page/settings/services.vue:54
 msgid "Never"
 msgstr ""
@@ -1872,11 +1908,11 @@ msgstr ""
 
 #: src/dialog/people/merge.vue:15
 #: src/dialog/photo/archive.vue:15
-#: src/dialog/photo/edit/info.vue:331
-#: src/dialog/photo/edit/info.vue:352
-#: src/dialog/photo/edit/info.vue:373
-#: src/dialog/photo/edit/info.vue:394
-#: src/dialog/photo/edit/info.vue:414
+#: src/dialog/photo/edit/info.vue:354
+#: src/dialog/photo/edit/info.vue:375
+#: src/dialog/photo/edit/info.vue:396
+#: src/dialog/photo/edit/info.vue:417
+#: src/dialog/photo/edit/info.vue:437
 msgid "No"
 msgstr ""
 
@@ -1958,10 +1994,10 @@ msgstr ""
 msgid "Non-photographic and low-quality images require a review before they appear in search results."
 msgstr ""
 
-#: src/options/admin.js:50
-#: src/options/admin.js:69
-#: src/options/options.js:293
-#: src/options/options.js:389
+#: src/options/admin.js:43
+#: src/options/auth.js:31
+#: src/options/options.js:297
+#: src/options/options.js:393
 msgid "None"
 msgstr ""
 
@@ -1985,7 +2021,7 @@ msgstr ""
 msgid "Nothing to see here yet."
 msgstr ""
 
-#: src/page/admin/sessions.vue:45
+#: src/page/admin/sessions.vue:46
 #: src/page/admin/users.vue:43
 msgid "Nothing was found."
 msgstr ""
@@ -2006,7 +2042,7 @@ msgstr ""
 msgid "On Windows, enter the following resource in the connection dialog:"
 msgstr ""
 
-#: src/options/options.js:428
+#: src/options/options.js:432
 msgid "Once a week"
 msgstr ""
 
@@ -2041,11 +2077,11 @@ msgstr ""
 msgid "One picture found"
 msgstr ""
 
-#: src/options/options.js:447
+#: src/options/options.js:451
 msgid "Orange"
 msgstr ""
 
-#: src/page/settings/account.vue:619
+#: src/page/settings/account.vue:693
 msgid "Organization"
 msgstr ""
 
@@ -2073,8 +2109,8 @@ msgstr ""
 msgid "Originals"
 msgstr ""
 
-#: src/options/options.js:467
-#: src/options/options.js:480
+#: src/options/options.js:471
+#: src/options/options.js:484
 msgid "Other"
 msgstr ""
 
@@ -2082,7 +2118,7 @@ msgstr ""
 msgid "Our mission is to provide the most user- and privacy-friendly solution to keep your pictures organized and accessible."
 msgstr ""
 
-#: src/options/options.js:327
+#: src/options/options.js:331
 #: src/page/places.vue:158
 msgid "Outdoor"
 msgstr ""
@@ -2132,12 +2168,16 @@ msgstr ""
 msgid "Permanently remove files to free up storage."
 msgstr ""
 
-#: src/page/settings/account.vue:793
-#: src/page/settings/account.vue:647
+#: src/options/auth.js:41
+msgid "Personal"
+msgstr ""
+
+#: src/page/settings/account.vue:867
+#: src/page/settings/account.vue:721
 msgid "Phone"
 msgstr ""
 
-#: src/model/photo.js:1255
+#: src/model/photo.js:1275
 msgid "Photo"
 msgstr ""
 
@@ -2159,7 +2199,7 @@ msgstr ""
 msgid "Photos"
 msgstr ""
 
-#: src/options/options.js:445
+#: src/options/options.js:449
 msgid "Pink"
 msgstr ""
 
@@ -2265,7 +2305,7 @@ msgid "Private"
 msgstr ""
 
 #: src/page/about/feedback.vue:6
-#: src/options/options.js:463
+#: src/options/options.js:467
 msgid "Product Feedback"
 msgstr ""
 
@@ -2274,7 +2314,11 @@ msgstr ""
 msgid "Projection"
 msgstr ""
 
-#: src/options/options.js:443
+#: src/page/admin/users.vue:106
+msgid "providerName"
+msgstr ""
+
+#: src/options/options.js:447
 msgid "Purple"
 msgstr ""
 
@@ -2286,9 +2330,7 @@ msgstr ""
 msgid "Quality Score"
 msgstr ""
 
-#: src/page/admin/sessions.vue:62
 #: src/page/admin/users.vue:93
-#: src/page/admin/users.vue:106
 msgid "r"
 msgstr ""
 
@@ -2296,7 +2338,7 @@ msgstr ""
 msgid "Random"
 msgstr ""
 
-#: src/options/options.js:354
+#: src/options/options.js:358
 msgid "Raw"
 msgstr ""
 
@@ -2342,7 +2384,7 @@ msgstr ""
 msgid "Recognizes faces so that specific people can be found."
 msgstr ""
 
-#: src/options/options.js:446
+#: src/options/options.js:450
 msgid "Red"
 msgstr ""
 
@@ -2364,7 +2406,7 @@ msgstr ""
 msgid "Reload"
 msgstr ""
 
-#: src/component/navigation.vue:141
+#: src/component/navigation.vue:142
 #: src/dialog/reload.vue:26
 #: src/page/settings/general.vue:92
 #: src/page/settings/library.vue:46
@@ -2442,13 +2484,13 @@ msgstr ""
 
 #: src/dialog/admin/users/add.vue:198
 #: src/dialog/admin/users/edit.vue:341
-#: src/page/admin/sessions.vue:64
+#: src/page/admin/sessions.vue:67
 #: src/page/admin/sessions.vue:2
 #: src/page/admin/users.vue:36
 msgid "Role"
 msgstr ""
 
-#: src/options/options.js:322
+#: src/options/options.js:326
 #: src/page/places.vue:154
 msgid "Satellite"
 msgstr ""
@@ -2467,6 +2509,11 @@ msgstr ""
 
 #: src/component/navigation.vue:121
 msgid "Scans"
+msgstr ""
+
+#: src/page/admin/sessions.vue:80
+#: src/page/admin/sessions.vue:28
+msgid "Scope"
 msgstr ""
 
 #: src/component/navigation.vue:61
@@ -2540,11 +2587,12 @@ msgstr ""
 msgid "Services"
 msgstr ""
 
-#: src/model/session.js:60
+#: src/model/session.js:100
+#: src/options/auth.js:40
 msgid "Session"
 msgstr ""
 
-#: src/page/admin/sessions.vue:29
+#: src/page/admin/sessions.vue:25
 msgid "Session ID"
 msgstr ""
 
@@ -2568,8 +2616,8 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/page/settings/account.vue:117
-#: src/page/settings/account.vue:132
+#: src/page/settings/account.vue:119
+#: src/page/settings/account.vue:134
 msgid "Settings saved"
 msgstr ""
 
@@ -2643,7 +2691,7 @@ msgstr ""
 msgid "Size"
 msgstr ""
 
-#: src/options/options.js:305
+#: src/options/options.js:309
 msgid "Slow"
 msgstr ""
 
@@ -2716,7 +2764,7 @@ msgstr ""
 msgid "Storage"
 msgstr ""
 
-#: src/options/options.js:317
+#: src/options/options.js:321
 #: src/page/places.vue:150
 msgid "Streets"
 msgstr ""
@@ -2764,7 +2812,7 @@ msgstr ""
 msgid "Taken"
 msgstr ""
 
-#: src/options/options.js:452
+#: src/options/options.js:456
 msgid "Teal"
 msgstr ""
 
@@ -2837,7 +2885,7 @@ msgstr ""
 msgid "Title"
 msgstr ""
 
-#: src/page/settings/account.vue:593
+#: src/page/settings/account.vue:667
 msgid "Title / Position"
 msgstr ""
 
@@ -2867,7 +2915,7 @@ msgstr ""
 msgid "Too many files selected"
 msgstr ""
 
-#: src/options/options.js:332
+#: src/options/options.js:336
 #: src/page/places.vue:162
 msgid "Topographic"
 msgstr ""
@@ -2895,7 +2943,7 @@ msgstr ""
 msgid "Type"
 msgstr ""
 
-#: src/options/admin.js:12
+#: src/options/auth.js:13
 msgid "Unauthorized"
 msgstr ""
 
@@ -2910,13 +2958,13 @@ msgstr ""
 #: src/dialog/photo/edit/details.vue:23
 #: src/dialog/photo/edit/info.vue:30
 #: src/model/album.js:179
-#: src/model/photo.js:772
-#: src/model/photo.js:793
-#: src/model/photo.js:816
-#: src/model/photo.js:834
-#: src/model/photo.js:963
-#: src/model/photo.js:1026
-#: src/model/photo.js:1040
+#: src/model/photo.js:796
+#: src/model/photo.js:817
+#: src/model/photo.js:840
+#: src/model/photo.js:858
+#: src/model/photo.js:987
+#: src/model/photo.js:1046
+#: src/model/photo.js:1060
 #: src/model/user.js:151
 #: src/options/options.js:52
 #: src/options/options.js:66
@@ -2929,11 +2977,11 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
-#: src/page/settings/account.vue:38
-#: src/page/settings/account.vue:46
-#: src/component/navigation.vue:92
-#: src/page/settings/account.vue:35
-#: src/page/settings/account.vue:43
+#: src/page/settings/account.vue:40
+#: src/page/settings/account.vue:48
+#: src/component/navigation.vue:93
+#: src/page/settings/account.vue:37
+#: src/page/settings/account.vue:45
 msgid "Unregistered"
 msgstr ""
 
@@ -2966,7 +3014,7 @@ msgid "Updating moments"
 msgstr ""
 
 #: src/dialog/admin/users/edit.vue:160
-#: src/page/settings/account.vue:124
+#: src/page/settings/account.vue:126
 msgid "Updating picture…"
 msgstr ""
 
@@ -3043,7 +3091,7 @@ msgstr ""
 msgid "Uploading photos…"
 msgstr ""
 
-#: src/page/settings/account.vue:127
+#: src/page/settings/account.vue:129
 msgid "Uploading…"
 msgstr ""
 
@@ -3059,11 +3107,12 @@ msgstr ""
 msgid "Use Presets"
 msgstr ""
 
-#: src/options/admin.js:7
-#: src/options/admin.js:23
-#: src/page/admin/sessions.vue:56
+#: src/options/admin.js:10
+#: src/page/admin/sessions.vue:59
 #: src/page/admin/sessions.vue:2
+#: src/page/admin/sessions.vue:26
 #: src/model/user.js:230
+#: src/options/auth.js:7
 msgid "User"
 msgstr ""
 
@@ -3076,9 +3125,8 @@ msgid "User Interface"
 msgstr ""
 
 #: src/dialog/admin/users/add.vue:94
-#: src/page/admin/sessions.vue:48
+#: src/page/admin/sessions.vue:51
 #: src/page/admin/sessions.vue:2
-#: src/page/admin/sessions.vue:30
 #: src/page/admin/users.vue:34
 #: src/dialog/service/add.vue:103
 #: src/dialog/service/edit.vue:467
@@ -3093,11 +3141,11 @@ msgstr ""
 
 #: src/component/photo/cards.vue:320
 #: src/component/photo/cards.vue:510
-#: src/component/photo/list.vue:199
+#: src/component/photo/list.vue:198
 #: src/component/photo/mosaic.vue:241
-#: src/model/photo.js:879
-#: src/model/photo.js:887
-#: src/options/options.js:370
+#: src/model/photo.js:903
+#: src/model/photo.js:911
+#: src/options/options.js:374
 msgid "Vector"
 msgstr ""
 
@@ -3107,12 +3155,12 @@ msgstr ""
 
 #: src/component/photo/cards.vue:306
 #: src/component/photo/cards.vue:483
-#: src/component/photo/list.vue:206
+#: src/component/photo/list.vue:205
 #: src/component/photo/mosaic.vue:227
 #: src/model/file.js:220
-#: src/model/photo.js:903
-#: src/model/photo.js:919
-#: src/options/options.js:366
+#: src/model/photo.js:927
+#: src/model/photo.js:943
+#: src/options/options.js:370
 msgid "Video"
 msgstr ""
 
@@ -3136,14 +3184,14 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: src/options/admin.js:8
-#: src/options/admin.js:27
+#: src/options/admin.js:14
+#: src/options/auth.js:8
 msgid "Viewer"
 msgstr ""
 
-#: src/options/admin.js:11
-#: src/page/admin/sessions.vue:67
+#: src/page/admin/sessions.vue:70
 #: src/page/admin/sessions.vue:5
+#: src/options/auth.js:12
 msgid "Visitor"
 msgstr ""
 
@@ -3190,29 +3238,29 @@ msgstr ""
 msgid "WebDAV Upload"
 msgstr ""
 
-#: src/page/settings/account.vue:675
-#: src/page/settings/account.vue:821
-#: src/page/settings/account.vue:675
+#: src/page/settings/account.vue:749
+#: src/page/settings/account.vue:895
+#: src/page/settings/account.vue:749
 msgid "Website"
 msgstr ""
 
-#: src/options/options.js:456
+#: src/options/options.js:460
 msgid "White"
 msgstr ""
 
-#: src/page/settings/account.vue:93
+#: src/page/settings/account.vue:105
 msgid "Work Details"
 msgstr ""
 
-#: src/page/settings/account.vue:524
+#: src/page/settings/account.vue:598
 #: src/component/photo/toolbar.vue:359
 #: src/dialog/photo/edit/details.vue:168
 #: src/page/albums.vue:204
-#: src/page/settings/account.vue:524
+#: src/page/settings/account.vue:598
 msgid "Year"
 msgstr ""
 
-#: src/options/options.js:449
+#: src/options/options.js:453
 msgid "Yellow"
 msgstr ""
 
@@ -3229,11 +3277,11 @@ msgstr ""
 #: src/dialog/photo/edit/files.vue:144
 #: src/dialog/photo/edit/files.vue:152
 #: src/dialog/photo/edit/files.vue:205
-#: src/dialog/photo/edit/info.vue:331
-#: src/dialog/photo/edit/info.vue:352
-#: src/dialog/photo/edit/info.vue:373
-#: src/dialog/photo/edit/info.vue:394
-#: src/dialog/photo/edit/info.vue:414
+#: src/dialog/photo/edit/info.vue:354
+#: src/dialog/photo/edit/info.vue:375
+#: src/dialog/photo/edit/info.vue:396
+#: src/dialog/photo/edit/info.vue:417
+#: src/dialog/photo/edit/info.vue:437
 msgid "Yes"
 msgstr ""
 
