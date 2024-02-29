@@ -77,6 +77,7 @@ var GrantDefaults = Roles{
 	RoleAdmin:   GrantFullAccess,
 	RoleVisitor: GrantViewShared,
 	RoleClient:  GrantFullAccess,
+	RoleFamily:  GrantReadOnly,
 }
 
 // Plus creates a new grant by adding up all permissions.
