@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2018 - 2023 PhotoPrism UG. All rights reserved.
+Copyright (c) 2018 - 2024 PhotoPrism UG. All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
     it under Version 3 of the GNU Affero General Public License (the "AGPL"):
@@ -206,12 +206,12 @@ export class Photo extends RestModel {
       this.Portrait,
       this.Favorite,
       this.Private,
-      this.Files.length > 1
+      this.isStack()
     );
   }
 
   generateClasses = memoizeOne(
-    (isPlayable, isInClipboard, portrait, favorite, isPrivate, hasMultipleFiles) => {
+    (isPlayable, isInClipboard, portrait, favorite, isPrivate, isStack) => {
       let classes = ["is-photo", "uid-" + this.UID, "type-" + this.Type];
 
       if (isPlayable) classes.push("is-playable");
@@ -219,7 +219,7 @@ export class Photo extends RestModel {
       if (portrait) classes.push("is-portrait");
       if (favorite) classes.push("is-favorite");
       if (isPrivate) classes.push("is-private");
-      if (hasMultipleFiles) classes.push("is-stack");
+      if (isStack) classes.push("is-stack");
 
       return classes;
     }
@@ -405,6 +405,30 @@ export class Photo extends RestModel {
     }
 
     return files.some((f) => f.Video);
+  });
+
+  isStack() {
+    return this.generateIsStack(this.Type, this.Files);
+  }
+
+  generateIsStack = memoizeOne((type, files) => {
+    if (type !== MediaImage) {
+      return false;
+    } else if (!files) {
+      return false;
+    } else if (files.length < 2) {
+      return false;
+    }
+
+    let jpegs = 0;
+
+    this.Files.forEach((f) => {
+      if (f && f.FileType === FormatJpeg) {
+        jpegs++;
+      }
+    });
+
+    return jpegs > 1;
   });
 
   isSphere() {

@@ -12,6 +12,7 @@ import (
 	"github.com/photoprism/photoprism/internal/config"
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/pkg/fs"
+	"github.com/photoprism/photoprism/pkg/header"
 )
 
 func TestMediaFile_Ok(t *testing.T) {
@@ -567,7 +568,7 @@ func TestMediaFile_RelativePath(t *testing.T) {
 		assert.Equal(t, conf.ExamplesPath(), path)
 	})
 	t.Run("hidden root", func(t *testing.T) {
-		path := mediaFile.RelPath(filepath.Join(conf.ExamplesPath(), fs.HiddenPath))
+		path := mediaFile.RelPath(filepath.Join(conf.ExamplesPath(), fs.PPHiddenPathname))
 		assert.Equal(t, "", path)
 	})
 }
@@ -700,7 +701,7 @@ func TestMediaFile_MimeType(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, "application/json", mediaFile.MimeType())
+		assert.Equal(t, header.ContentTypeJson, mediaFile.MimeType())
 	})
 	t.Run("fox.profile0.8bpc.yuv420.avif", func(t *testing.T) {
 		mediaFile, err := NewMediaFile(conf.ExamplesPath() + "/fox.profile0.8bpc.yuv420.avif")
@@ -797,7 +798,7 @@ func TestMediaFile_Move(t *testing.T) {
 	origName := tmpPath + "/original.jpg"
 	destName := tmpPath + "/destination.jpg"
 
-	if err := os.MkdirAll(tmpPath, fs.ModeDir); err != nil {
+	if err := fs.MkdirAll(tmpPath); err != nil {
 		t.Fatal(err)
 	}
 
@@ -833,7 +834,7 @@ func TestMediaFile_Copy(t *testing.T) {
 
 	tmpPath := conf.CachePath() + "/_tmp/TestMediaFile_Copy"
 
-	if err := os.MkdirAll(tmpPath, fs.ModeDir); err != nil {
+	if err := fs.MkdirAll(tmpPath); err != nil {
 		t.Fatal(err)
 	}
 
@@ -2302,14 +2303,14 @@ func TestMediaFile_RenameSidecarFiles(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := os.MkdirAll(filepath.Join(conf.SidecarPath(), "foo"), fs.ModeDir); err != nil {
+		if err = fs.MkdirAll(filepath.Join(conf.SidecarPath(), "foo")); err != nil {
 			t.Fatal(err)
 		}
 
 		srcName := filepath.Join(conf.SidecarPath(), "foo/bar.jpg.json")
 		dstName := filepath.Join(conf.SidecarPath(), "2020/12/foobar.jpg.json")
 
-		if err := os.WriteFile(srcName, []byte("{}"), 0666); err != nil {
+		if err = os.WriteFile(srcName, []byte("{}"), 0666); err != nil {
 			t.Fatal(err)
 		}
 

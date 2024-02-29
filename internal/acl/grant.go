@@ -1,12 +1,51 @@
 package acl
 
-// Predefined grants to simplify configuration.
+// Standard grants provided to simplify configuration.
 var (
-	GrantFullAccess   = Grant{FullAccess: true, AccessAll: true, AccessLibrary: true, ActionCreate: true, ActionUpdate: true, ActionDelete: true, ActionDownload: true, ActionShare: true, ActionRate: true, ActionReact: true, ActionManage: true, ActionSubscribe: true}
-	GrantSearchShared = Grant{AccessShared: true, ActionSearch: true, ActionView: true, ActionDownload: true}
-	GrantSubscribeAll = Grant{AccessAll: true, ActionSubscribe: true}
-	GrantSubscribeOwn = Grant{AccessOwn: true, ActionSubscribe: true}
-
+	GrantFullAccess = Grant{
+		FullAccess:      true,
+		AccessAll:       true,
+		AccessOwn:       true,
+		AccessShared:    true,
+		AccessLibrary:   true,
+		ActionCreate:    true,
+		ActionUpdate:    true,
+		ActionDelete:    true,
+		ActionDownload:  true,
+		ActionShare:     true,
+		ActionRate:      true,
+		ActionReact:     true,
+		ActionManage:    true,
+		ActionSubscribe: true,
+	}
+	GrantSubscribeAll = Grant{
+		AccessAll:       true,
+		ActionSubscribe: true,
+	}
+	GrantSubscribeOwn = Grant{
+		AccessOwn:       true,
+		ActionSubscribe: true,
+	}
+	GrantViewAll = Grant{
+		AccessAll:  true,
+		ActionView: true,
+	}
+	GrantViewOwn = Grant{
+		AccessOwn:  true,
+		ActionView: true,
+	}
+	GrantViewShared = Grant{
+		AccessShared:   true,
+		ActionView:     true,
+		ActionDownload: true,
+	}
+	GrantSearchShared = Grant{
+		AccessShared:   true,
+		ActionSearch:   true,
+		ActionView:     true,
+		ActionDownload: true,
+	}
+	
 	// Custom, family role related permissions.
 	// In order to like and react to a photo, the following permissions are needed in addition to the read-only ones:
 	//   - manage: used determine whether the "like/favorite" button will be shown
@@ -16,6 +55,7 @@ var (
 	GrantChangePassword = Grant{ActionUpdate: true}
 	GrantReadOnly       = GrantSearchShared.Plus(Grant{AccessLibrary: true})
 	GrantReadOnlyReact  = GrantReadOnly.Plus(Grant{ActionReact: true, ActionUpdate: true})
+	GrantNone = Grant{}
 )
 
 // Grant represents permissions granted or denied.
@@ -30,6 +70,14 @@ func (grant Grant) Allow(perm Permission) bool {
 	}
 
 	return false
+}
+
+// GrantDefaults defines default grants for all supported roles.
+var GrantDefaults = Roles{
+	RoleAdmin:   GrantFullAccess,
+	RoleVisitor: GrantViewShared,
+	RoleClient:  GrantFullAccess,
+	RoleFamily:  GrantReadOnly,
 }
 
 // Plus creates a new grant by adding up all permissions.

@@ -78,7 +78,7 @@ func ZipCreate(router *gin.RouterGroup) {
 		// Configure file names.
 		dlName := DownloadName(c)
 		zipPath := path.Join(conf.TempPath(), "zip")
-		zipToken := rnd.GenerateToken(8)
+		zipToken := rnd.Base36(8)
 		zipBaseName := fmt.Sprintf("photoprism-download-%s-%s.zip", time.Now().Format("20060102-150405"), zipToken)
 		zipFileName := path.Join(zipPath, zipBaseName)
 
@@ -100,7 +100,7 @@ func ZipCreate(router *gin.RouterGroup) {
 		// Create zip writer.
 		zipWriter := zip.NewWriter(newZipFile)
 		defer func(w *zip.Writer) {
-			logError("zip", w.Close())
+			logErr("zip", w.Close())
 		}(zipWriter)
 
 		var aliases = make(map[string]int)
@@ -127,7 +127,7 @@ func ZipCreate(router *gin.RouterGroup) {
 				log.Infof("zip: added %s as %s", clean.Log(file.FileName), clean.Log(alias))
 			} else {
 				log.Warnf("zip: media file %s is missing", clean.Log(file.FileName))
-				logError("zip", file.Update("FileMissing", true))
+				logErr("zip", file.Update("FileMissing", true))
 			}
 		}
 
