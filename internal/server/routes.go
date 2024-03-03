@@ -35,6 +35,7 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 	api.CreateSession(APIv1)
 	api.GetSession(APIv1)
 	api.DeleteSession(APIv1)
+	api.CreateOauthToken(APIv1)
 
 	// Server Config.
 	api.GetConfigOptions(APIv1)
@@ -171,4 +172,5 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 	api.SendFeedback(APIv1)
 	api.Connect(APIv1)
 	api.WebSocket(APIv1)
+	api.GetMetrics(APIv1)
 }

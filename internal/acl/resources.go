@@ -3,83 +3,94 @@ package acl
 // Resources specifies granted permissions by Resource and Role.
 var Resources = ACL{
 	ResourceFiles: Roles{
-		RoleAdmin: GrantFullAccess,
-	},
-	ResourcePhotos: Roles{
-		RoleAdmin:   GrantFullAccess,
-		RoleFamily:  GrantReadOnlyReact,
-		RoleVisitor: Grant{AccessShared: true, ActionView: true, ActionDownload: true},
-	},
-	ResourceVideos: Roles{
-		RoleAdmin:   GrantFullAccess,
-		RoleFamily:  GrantReadOnly,
-		RoleVisitor: Grant{AccessShared: true, ActionView: true, ActionDownload: true},
-	},
-	ResourceAlbums: Roles{
-		RoleAdmin:   GrantFullAccess,
-		RoleFamily:  GrantReadOnly,
-		RoleVisitor: GrantSearchShared,
+		RoleAdmin:  GrantFullAccess,
+		RoleClient: GrantFullAccess,
 	},
 	ResourceFolders: Roles{
 		RoleAdmin:   GrantFullAccess,
+		RoleFamily:  GrantReadOnlyReact,
+		RoleFamily:  GrantReadOnly,
 		RoleFamily:  GrantReadOnly,
 		RoleVisitor: GrantSearchShared,
+		RoleClient:  GrantFullAccess,
 	},
-	ResourcePlaces: Roles{
+	ResourceShares: Roles{
+		RoleAdmin: GrantFullAccess,
+		RoleFamily:  GrantReadOnly,
+	},
+	ResourcePhotos: GrantDefaults,
+	ResourceVideos: GrantDefaults,
+	ResourceFavorites: Roles{
+		RoleAdmin:  GrantFullAccess,
+		RoleFamily:  GrantReadOnly,
+		RoleClient: GrantFullAccess,
+	},
+	ResourceAlbums: GrantDefaults,
+	ResourceMoments: Roles{
 		RoleAdmin:   GrantFullAccess,
 		RoleFamily:  GrantReadOnly,
-		RoleVisitor: Grant{AccessShared: true, ActionView: true, ActionDownload: true},
+		RoleVisitor: GrantSearchShared,
+		RoleClient:  GrantFullAccess,
 	},
 	ResourceCalendar: Roles{
 		RoleAdmin:   GrantFullAccess,
 		RoleFamily:  GrantReadOnly,
 		RoleVisitor: GrantSearchShared,
-	},
-	ResourceMoments: Roles{
-		RoleAdmin:   GrantFullAccess,
-		RoleFamily:  GrantReadOnly,
-		RoleVisitor: GrantSearchShared,
+		RoleClient:  GrantFullAccess,
 	},
 	ResourcePeople: Roles{
 		RoleAdmin:  GrantFullAccess,
 		RoleFamily: GrantReadOnly,
+		RoleClient: GrantFullAccess,
 	},
-	ResourceFavorites: Roles{
-		RoleAdmin:  GrantFullAccess,
+	ResourcePlaces: Roles{
+		RoleAdmin:   GrantFullAccess,
 		RoleFamily: GrantReadOnly,
+		RoleVisitor: GrantViewShared,
+		RoleClient:  GrantFullAccess,
 	},
 	ResourceLabels: Roles{
 		RoleAdmin:  GrantFullAccess,
 		RoleFamily: GrantReadOnly,
+		RoleClient: GrantFullAccess,
 	},
-	ResourceLogs: Roles{
-		RoleAdmin: GrantFullAccess,
+	ResourceConfig: Roles{
+		RoleAdmin:   GrantFullAccess,
+		RoleClient:  GrantViewOwn,
+		RoleDefault: GrantViewOwn,
 	},
 	ResourceSettings: Roles{
 		RoleAdmin:   GrantFullAccess,
 		RoleVisitor: Grant{AccessOwn: true, ActionView: true},
 	},
-	ResourceFeedback: Roles{
+	ResourceServices: Roles{
 		RoleAdmin: GrantFullAccess,
 	},
 	ResourcePassword: Roles{
 		RoleAdmin:  GrantFullAccess,
 		RoleFamily: GrantChangePassword,
 	},
-	ResourceShares: Roles{
-		RoleAdmin: GrantFullAccess,
-	},
-	ResourceServices: Roles{
-		RoleAdmin: GrantFullAccess,
-	},
 	ResourceUsers: Roles{
 		RoleAdmin: Grant{AccessAll: true, AccessOwn: true, ActionView: true, ActionCreate: true, ActionUpdate: true, ActionDelete: true, ActionSubscribe: true},
 	},
-	ResourceConfig: Roles{
+	ResourceLogs: Roles{
+		RoleAdmin:  GrantFullAccess,
+		RoleClient: GrantFullAccess,
+	},
+	ResourceWebDAV: Roles{
+		RoleAdmin:  GrantFullAccess,
+		RoleClient: GrantFullAccess,
+	},
+	ResourceMetrics: Roles{
+		RoleAdmin:  GrantFullAccess,
+		RoleClient: GrantViewAll,
+	},
+	ResourceFeedback: Roles{
 		RoleAdmin:  GrantFullAccess,
 		RoleFamily: GrantLoginOnly,
 	},
 	ResourceDefault: Roles{
-		RoleAdmin: GrantFullAccess,
+		RoleAdmin:  GrantFullAccess,
+		RoleClient: GrantNone,
 	},
 }
