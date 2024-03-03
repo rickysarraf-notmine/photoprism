@@ -113,7 +113,6 @@ require (
 	github.com/gin-contrib/expvar v0.0.1
 	github.com/h2non/filetype v1.1.3
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/sethgrid/pester v1.2.0
 	google.golang.org/protobuf v1.31.0 // indirect
 )
@@ -130,7 +129,6 @@ require (
 
 require (
 	github.com/emersion/go-webdav v0.4.0
-	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 )
