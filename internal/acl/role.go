@@ -40,7 +40,7 @@ func (r Role) NotEqual(s string) bool {
 
 // Valid checks if the role is valid.
 func (r Role) Valid(s string) bool {
-	return ValidRoles[s] != ""
+	return UserRoles[s] != ""
 }
 
 // Invalid checks if the role is invalid.

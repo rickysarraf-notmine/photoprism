@@ -45,6 +45,7 @@ var (
 		ActionView:     true,
 		ActionDownload: true,
 	}
+
 	// Custom, family role related permissions.
 	// In order to like and react to a photo, the following permissions are needed in addition to the read-only ones:
 	//   - manage: used determine whether the "like/favorite" button will be shown

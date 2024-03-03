@@ -630,7 +630,7 @@ func (m *User) SetRole(role string) *User {
 	case "", "0", "false", "nil", "null", "nan":
 		m.UserRole = acl.RoleUnknown.String()
 	default:
-		m.UserRole = acl.ValidRoles[role].String()
+		m.UserRole = acl.UserRoles[role].String()
 	}
 
 	return m
@@ -653,7 +653,7 @@ func (m *User) AclRole() acl.Role {
 	case m.UserName == "":
 		return acl.RoleVisitor
 	default:
-		return acl.ValidRoles[role]
+		return acl.UserRoles[role]
 	}
 }
 
@@ -862,7 +862,7 @@ func (m *User) Validate() (err error) {
 	}
 
 	// Validate user role.
-	if acl.ValidRoles[m.UserRole] == "" {
+	if acl.UserRoles[m.UserRole] == "" {
 		return fmt.Errorf("user role %s is invalid", clean.LogQuote(m.UserRole))
 	}
 

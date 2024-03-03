@@ -6,33 +6,42 @@ var Resources = ACL{
 		RoleAdmin:  GrantFullAccess,
 		RoleClient: GrantFullAccess,
 	},
-	ResourceFolders: Roles{
+	ResourcePhotos: Roles{
 		RoleAdmin:   GrantFullAccess,
 		RoleFamily:  GrantReadOnlyReact,
+		RoleClient:  GrantFullAccess,
+		RoleVisitor: Grant{AccessShared: true, ActionView: true, ActionDownload: true},
+	},
+	ResourceVideos: Roles{
+		RoleAdmin:   GrantFullAccess,
 		RoleFamily:  GrantReadOnly,
+		RoleClient:  GrantFullAccess,
+		RoleVisitor: Grant{AccessShared: true, ActionView: true, ActionDownload: true},
+	},
+	ResourceAlbums: Roles{
+		RoleAdmin:   GrantFullAccess,
+		RoleFamily:  GrantReadOnly,
+		RoleVisitor: GrantSearchShared,
+	},
+	ResourceFolders: Roles{
+		RoleAdmin:   GrantFullAccess,
 		RoleFamily:  GrantReadOnly,
 		RoleVisitor: GrantSearchShared,
 		RoleClient:  GrantFullAccess,
 	},
-	ResourceShares: Roles{
-		RoleAdmin: GrantFullAccess,
-		RoleFamily:  GrantReadOnly,
-	},
-	ResourcePhotos: GrantDefaults,
-	ResourceVideos: GrantDefaults,
-	ResourceFavorites: Roles{
-		RoleAdmin:  GrantFullAccess,
-		RoleFamily:  GrantReadOnly,
-		RoleClient: GrantFullAccess,
-	},
-	ResourceAlbums: GrantDefaults,
-	ResourceMoments: Roles{
+	ResourcePlaces: Roles{
 		RoleAdmin:   GrantFullAccess,
-		RoleFamily:  GrantReadOnly,
-		RoleVisitor: GrantSearchShared,
+		RoleFamily: GrantReadOnly,
+		RoleVisitor: GrantViewShared,
 		RoleClient:  GrantFullAccess,
 	},
 	ResourceCalendar: Roles{
+		RoleAdmin:   GrantFullAccess,
+		RoleFamily:  GrantReadOnly,
+		RoleVisitor: GrantSearchShared,
+		RoleClient:  GrantFullAccess,
+	},
+	ResourceMoments: Roles{
 		RoleAdmin:   GrantFullAccess,
 		RoleFamily:  GrantReadOnly,
 		RoleVisitor: GrantSearchShared,
@@ -43,25 +52,36 @@ var Resources = ACL{
 		RoleFamily: GrantReadOnly,
 		RoleClient: GrantFullAccess,
 	},
-	ResourcePlaces: Roles{
-		RoleAdmin:   GrantFullAccess,
-		RoleFamily: GrantReadOnly,
-		RoleVisitor: GrantViewShared,
-		RoleClient:  GrantFullAccess,
+	ResourceFavorites: Roles{
+		RoleAdmin:  GrantFullAccess,
+		RoleFamily:  GrantReadOnly,
+		RoleClient: GrantFullAccess,
 	},
 	ResourceLabels: Roles{
 		RoleAdmin:  GrantFullAccess,
 		RoleFamily: GrantReadOnly,
 		RoleClient: GrantFullAccess,
 	},
-	ResourceConfig: Roles{
-		RoleAdmin:   GrantFullAccess,
-		RoleClient:  GrantViewOwn,
-		RoleDefault: GrantViewOwn,
+	ResourceLogs: Roles{
+		RoleAdmin:  GrantFullAccess,
+		RoleClient: GrantFullAccess,
 	},
 	ResourceSettings: Roles{
 		RoleAdmin:   GrantFullAccess,
 		RoleVisitor: Grant{AccessOwn: true, ActionView: true},
+	},
+	ResourceFeedback: Roles{
+		RoleAdmin:  GrantFullAccess,
+		RoleFamily: GrantLoginOnly,
+	},
+	ResourceShares: Roles{
+		RoleAdmin: GrantFullAccess,
+		RoleFamily:  GrantReadOnly,
+	},
+	ResourceConfig: Roles{
+		RoleAdmin:   GrantFullAccess,
+		RoleClient:  GrantViewOwn,
+		RoleDefault: GrantViewOwn,
 	},
 	ResourceServices: Roles{
 		RoleAdmin: GrantFullAccess,
@@ -73,10 +93,6 @@ var Resources = ACL{
 	ResourceUsers: Roles{
 		RoleAdmin: Grant{AccessAll: true, AccessOwn: true, ActionView: true, ActionCreate: true, ActionUpdate: true, ActionDelete: true, ActionSubscribe: true},
 	},
-	ResourceLogs: Roles{
-		RoleAdmin:  GrantFullAccess,
-		RoleClient: GrantFullAccess,
-	},
 	ResourceWebDAV: Roles{
 		RoleAdmin:  GrantFullAccess,
 		RoleClient: GrantFullAccess,
@@ -84,10 +100,6 @@ var Resources = ACL{
 	ResourceMetrics: Roles{
 		RoleAdmin:  GrantFullAccess,
 		RoleClient: GrantViewAll,
-	},
-	ResourceFeedback: Roles{
-		RoleAdmin:  GrantFullAccess,
-		RoleFamily: GrantLoginOnly,
 	},
 	ResourceDefault: Roles{
 		RoleAdmin:  GrantFullAccess,
