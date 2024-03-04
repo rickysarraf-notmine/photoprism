@@ -23,7 +23,7 @@ var ClientsListCommand = cli.Command{
 // clientsListAction lists registered client applications
 func clientsListAction(ctx *cli.Context) error {
 	return CallWithDependencies(ctx, func(conf *config.Config) error {
-		cols := []string{"Client ID", "Client Name", "Authentication", "Scope", "User", "Enabled", "Access Token Expires", "Created At"}
+		cols := []string{"Client ID", "Name", "Authentication Method", "User", "Role", "Scope", "Enabled", "Access Token Lifetime", "Created At"}
 
 		// Fetch clients from database.
 		clients, err := query.Clients(ctx.Int("n"), 0, "", ctx.Args().First())
@@ -44,32 +44,27 @@ func clientsListAction(ctx *cli.Context) error {
 
 		// Display report.
 		for i, client := range clients {
-			var userName string
-			if client.UserUID == "" {
-				userName = report.NotAssigned
-			} else if client.UserName != "" {
-				userName = client.UserName
-			} else {
-				userName = client.UserUID
-			}
-
 			var authExpires string
+
 			if client.AuthExpires > 0 {
 				authExpires = client.Expires().String()
-			} else {
-				authExpires = report.Never
 			}
 
 			if client.AuthTokens > 0 {
-				authExpires = fmt.Sprintf("%s, max %d tokens", authExpires, client.AuthTokens)
+				if authExpires != "" {
+					authExpires = fmt.Sprintf("%s; up to %s", authExpires, english.Plural(int(client.Tokens()), "token", "tokens"))
+				} else {
+					authExpires = fmt.Sprintf("up to %d tokens", client.AuthTokens)
+				}
 			}
 
 			rows[i] = []string{
 				client.UID(),
-				client.ClientName,
-				client.AuthMethod,
-				client.AuthScope,
-				userName,
+				client.Name(),
+				client.AuthInfo(),
+				client.UserInfo(),
+				client.AclRole().String(),
+				client.Scope(),
 				report.Bool(client.AuthEnabled, report.Yes, report.No),
 				authExpires,
 				client.CreatedAt.Format("2006-01-02 15:04:05"),

@@ -2,8 +2,8 @@ package commands
 
 import (
 	"fmt"
-	"time"
 
+	"github.com/dustin/go-humanize/english"
 	"github.com/manifoldco/promptui"
 	"github.com/urfave/cli"
 
@@ -13,14 +13,17 @@ import (
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/list"
 	"github.com/photoprism/photoprism/pkg/report"
+	"github.com/photoprism/photoprism/pkg/rnd"
 )
 
 // ClientsAddCommand configures the command name, flags, and action.
 var ClientsAddCommand = cli.Command{
-	Name:   "add",
-	Usage:  "Registers a new client application",
-	Flags:  ClientAddFlags,
-	Action: clientsAddAction,
+	Name:        "add",
+	Usage:       "Registers a new client application",
+	Description: "If you specify a username as argument, the new client will belong to this user and inherit its privileges.",
+	ArgsUsage:   "[username]",
+	Flags:       ClientAddFlags,
+	Action:      clientsAddAction,
 }
 
 // clientsAddAction registers a new client application.
@@ -28,7 +31,7 @@ func clientsAddAction(ctx *cli.Context) error {
 	return CallWithDependencies(ctx, func(conf *config.Config) error {
 		conf.MigrateDb(false, nil)
 
-		frm := form.NewClientFromCli(ctx)
+		frm := form.AddClientFromCli(ctx)
 
 		interactive := true
 
@@ -39,7 +42,8 @@ func clientsAddAction(ctx *cli.Context) error {
 
 		if interactive && frm.ClientName == "" {
 			prompt := promptui.Prompt{
-				Label: "Client Name",
+				Label:   "Client Name",
+				Default: rnd.Name(),
 			}
 
 			res, err := prompt.Run()
@@ -49,11 +53,6 @@ func clientsAddAction(ctx *cli.Context) error {
 			}
 
 			frm.ClientName = clean.Name(res)
-		}
-
-		// Set a default client name if no specific name has been provided.
-		if frm.ClientName == "" {
-			frm.ClientName = time.Now().UTC().Format(time.DateTime)
 		}
 
 		if interactive && frm.AuthScope == "" {
@@ -78,40 +77,35 @@ func clientsAddAction(ctx *cli.Context) error {
 		client, addErr := entity.AddClient(frm)
 
 		if addErr != nil {
-			return fmt.Errorf("failed to add client: %s", addErr)
+			return addErr
 		} else {
 			log.Infof("successfully registered new client %s", clean.LogQuote(client.ClientName))
 
 			// Display client details.
-			cols := []string{"Client ID", "Client Name", "Authentication", "Scope", "User", "Enabled", "Access Token Expires", "Created At"}
+			cols := []string{"Client ID", "Name", "Authentication Method", "User", "Role", "Scope", "Enabled", "Access Token Lifetime", "Created At"}
 			rows := make([][]string, 1)
 
-			var userName string
-			if client.UserUID == "" {
-				userName = report.NotAssigned
-			} else if client.UserName != "" {
-				userName = client.UserName
-			} else {
-				userName = client.UserUID
-			}
-
 			var authExpires string
+
 			if client.AuthExpires > 0 {
 				authExpires = client.Expires().String()
-			} else {
-				authExpires = report.Never
 			}
 
 			if client.AuthTokens > 0 {
-				authExpires = fmt.Sprintf("%s, max %d tokens", authExpires, client.AuthTokens)
+				if authExpires != "" {
+					authExpires = fmt.Sprintf("%s; up to %s", authExpires, english.Plural(int(client.Tokens()), "token", "tokens"))
+				} else {
+					authExpires = fmt.Sprintf("up to %d tokens", client.AuthTokens)
+				}
 			}
 
 			rows[0] = []string{
 				client.UID(),
-				client.ClientName,
-				client.AuthMethod,
-				client.AuthScope,
-				userName,
+				client.Name(),
+				client.AuthInfo(),
+				client.UserInfo(),
+				client.AclRole().String(),
+				client.Scope(),
 				report.Bool(client.AuthEnabled, report.Yes, report.No),
 				authExpires,
 				client.CreatedAt.Format("2006-01-02 15:04:05"),
@@ -122,16 +116,27 @@ func clientsAddAction(ctx *cli.Context) error {
 			}
 		}
 
-		if secret, err := client.NewSecret(); err != nil {
-			// Failed to create client secret.
-			return fmt.Errorf("failed to create client secret: %s", err)
+		// Se a random secret or the secret specified in the command flags, if any.
+		var secret, message string
+		var err error
+
+		if secret = frm.Secret(); secret == "" {
+			secret, err = client.NewSecret()
+			message = fmt.Sprintf(ClientSecretInfo, "FOLLOWING RANDOMLY GENERATED")
 		} else {
-			// Show client authentication credentials.
-			fmt.Printf("\nTHE FOLLOWING RANDOMLY GENERATED CLIENT ID AND SECRET ARE REQUIRED FOR AUTHENTICATION:\n")
-			result := report.Credentials("Client ID", client.ClientUID, "Client Secret", secret)
-			fmt.Printf("\n%s", result)
-			fmt.Printf("\nPLEASE WRITE THE CREDENTIALS DOWN AND KEEP THEM IN A SAFE PLACE, AS THE SECRET CANNOT BE DISPLAYED AGAIN.\n\n")
+			err = client.SetSecret(secret)
+			message = fmt.Sprintf(ClientSecretInfo, "SPECIFIED")
 		}
+
+		// Check if the secret has been saved successfully or return an error otherwise.
+		if err != nil {
+			return fmt.Errorf("failed to set client secret: %s", err)
+		}
+
+		// Show client authentication credentials.
+		fmt.Printf(message)
+		result := report.Credentials("Client ID", client.ClientUID, "Client Secret", secret)
+		fmt.Printf("\n%s\n", result)
 
 		return nil
 	})

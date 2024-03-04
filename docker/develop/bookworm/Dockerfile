@@ -1,7 +1,7 @@
 #### Base Image: Debian 12 (Bookworm)
 FROM debian:bookworm-slim
 
-# Copyright © 2018 - 2023 PhotoPrism UG. All rights reserved.
+# Copyright © 2018 - 2024 PhotoPrism UG. All rights reserved.
 #
 # Questions? Email us at hello@photoprism.app or visit our website to learn
 # more about our team, products and services: https://www.photoprism.app/
@@ -54,7 +54,7 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
         libc6 ca-certificates sudo bash tzdata \
         gpg zip unzip wget curl rsync make nano vim-tiny \
         jq lsof lshw sqlite3 mariadb-client imagemagick libvips-dev \
-        exiftool darktable rawtherapee libheif-examples librsvg2-bin \
+        exiftool rawtherapee libheif-examples librsvg2-bin \
         ffmpeg libavcodec-extra x264 x265 libvpx7 libwebm1 \
         libmatroska7 libdvdread8 libebml5 libgav1-bin libatomic1 \
     && \
@@ -68,6 +68,7 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
     && \
     /scripts/install-nodejs.sh && \
     /scripts/install-tensorflow.sh && \
+    /scripts/install-darktable.sh && \
     /scripts/install-go.sh && \
     /scripts/install-go-tools.sh && \
     echo 'alias go=richgo ll="ls -alh"' >> /etc/skel/.bashrc && \

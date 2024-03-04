@@ -14,8 +14,8 @@ import (
 // ClientsRemoveCommand configures the command name, flags, and action.
 var ClientsRemoveCommand = cli.Command{
 	Name:      "rm",
-	Usage:     "Deletes a registered client application",
-	ArgsUsage: "[id]",
+	Usage:     "Deletes the specified client application",
+	ArgsUsage: "[client id]",
 	Flags: []cli.Flag{
 		cli.BoolFlag{
 			Name:  "force, f",
@@ -41,12 +41,12 @@ func clientsRemoveAction(ctx *cli.Context) error {
 		// Find client record.
 		var m *entity.Client
 
-		m = entity.FindClient(id)
+		m = entity.FindClientByUID(id)
 
 		if m == nil {
-			return fmt.Errorf("client %s not found", clean.LogQuote(id))
+			return fmt.Errorf("client %s not found", clean.Log(id))
 		} else if m.Deleted() {
-			return fmt.Errorf("client %s has already been deleted", clean.LogQuote(id))
+			return fmt.Errorf("client %s has already been deleted", clean.Log(id))
 		}
 
 		if !ctx.Bool("force") {

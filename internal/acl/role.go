@@ -16,8 +16,8 @@ func (r Role) String() string {
 
 // Pretty returns the type in an easy-to-read format.
 func (r Role) Pretty() string {
-	if r == RoleUnknown {
-		return "Unknown"
+	if r == RoleNone {
+		return "None"
 	}
 
 	return txt.UpperFirst(string(r))

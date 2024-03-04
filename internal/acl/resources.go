@@ -69,6 +69,7 @@ var Resources = ACL{
 	ResourceSettings: Roles{
 		RoleAdmin:   GrantFullAccess,
 		RoleVisitor: Grant{AccessOwn: true, ActionView: true},
+		RoleClient:  Grant{AccessOwn: true, ActionView: true, ActionUpdate: true},
 	},
 	ResourceFeedback: Roles{
 		RoleAdmin:  GrantFullAccess,
@@ -91,7 +92,12 @@ var Resources = ACL{
 		RoleFamily: GrantChangePassword,
 	},
 	ResourceUsers: Roles{
-		RoleAdmin: Grant{AccessAll: true, AccessOwn: true, ActionView: true, ActionCreate: true, ActionUpdate: true, ActionDelete: true, ActionSubscribe: true},
+		RoleAdmin:  Grant{AccessAll: true, AccessOwn: true, ActionView: true, ActionCreate: true, ActionUpdate: true, ActionDelete: true, ActionSubscribe: true},
+		RoleClient: Grant{AccessOwn: true, ActionView: true},
+	},
+	ResourceSessions: Roles{
+		RoleAdmin:   GrantFullAccess,
+		RoleDefault: Grant{AccessOwn: true, ActionView: true, ActionCreate: true, ActionUpdate: true, ActionDelete: true, ActionSubscribe: true},
 	},
 	ResourceWebDAV: Roles{
 		RoleAdmin:  GrantFullAccess,

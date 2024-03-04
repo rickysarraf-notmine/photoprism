@@ -32,7 +32,8 @@ services:
       - "traefik.http.services.photoprism.loadbalancer.server.port=2342"
       - "traefik.http.services.photoprism.loadbalancer.server.scheme=http"
       - "traefik.http.routers.photoprism.entrypoints=websecure"
-      - "traefik.http.routers.photoprism.rule=Host(`localssl.dev`, `app.localssl.dev`)"
+      - "traefik.http.routers.photoprism.rule=Host(`localssl.dev`) || HostRegexp(`{subdomain:[a-z0-9\\-]+}.localssl.dev`)"
+      - "traefik.http.routers.photoprism.priority=2"
       - "traefik.http.routers.photoprism.tls.domains[0].main=localssl.dev"
       - "traefik.http.routers.photoprism.tls.domains[0].sans=*.localssl.dev"
       - "traefik.http.routers.photoprism.tls=true"
@@ -189,6 +190,7 @@ services:
       - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
       - "traefik.http.routers.keycloak.entrypoints=websecure"
       - "traefik.http.routers.keycloak.rule=Host(`keycloak.localssl.dev`)"
+      - "traefik.http.routers.keycloak.priority=3"
       - "traefik.http.routers.keycloak.tls.domains[0].main=localssl.dev"
       - "traefik.http.routers.keycloak.tls.domains[0].sans=*.localssl.dev"
       - "traefik.http.routers.keycloak.tls=true"
@@ -206,6 +208,8 @@ services:
 
   ## Prometheus Test Server
   ## Docs: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#oauth2
+  ## Run the following command in a terminal to grant access with the preconfigured client credentials (adjust flags as needed):
+  ## ./photoprism client add --id=cs5cpu17n6gj2qo5 --secret=xcCbOrw6I0vcoXzhnOmXhjpVSyFq0l0e -s metrics -n Prometheus -e 60 -t 1
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -214,6 +218,7 @@ services:
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
       - "traefik.http.routers.prometheus.entrypoints=websecure"
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.localssl.dev`)"
+      - "traefik.http.routers.prometheus.priority=3"
       - "traefik.http.routers.prometheus.tls.domains[0].main=localssl.dev"
       - "traefik.http.routers.prometheus.tls.domains[0].sans=*.localssl.dev"
       - "traefik.http.routers.prometheus.tls=true"
@@ -232,6 +237,7 @@ services:
       - "traefik.http.services.ldap.loadbalancer.server.port=5555"
       - "traefik.http.routers.dummy-ldap.entrypoints=websecure"
       - "traefik.http.routers.dummy-ldap.rule=Host(`dummy-ldap.localssl.dev`)"
+      - "traefik.http.routers.dummy-ldap.priority=3"
       - "traefik.http.routers.dummy-ldap.tls.domains[0].main=localssl.dev"
       - "traefik.http.routers.dummy-ldap.tls.domains[0].sans=*.localssl.dev"
       - "traefik.http.routers.dummy-ldap.tls=true"
@@ -240,20 +246,21 @@ services:
 
   ## Dummy OpenID Connect Provider
   dummy-oidc:
-    image: photoprism/dummy-oidc:231015
+    image: photoprism/dummy-oidc:240131
     container_name: dummy-oidc
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.dummy-oidc.loadbalancer.server.port=9998"
       - "traefik.http.routers.dummy-oidc.entrypoints=websecure"
       - "traefik.http.routers.dummy-oidc.rule=Host(`dummy-oidc.localssl.dev`)"
+      - "traefik.http.routers.dummy-oidc.priority=3"
       - "traefik.http.routers.dummy-oidc.tls.domains[0].main=localssl.dev"
       - "traefik.http.routers.dummy-oidc.tls.domains[0].sans=*.localssl.dev"
       - "traefik.http.routers.dummy-oidc.tls=true"
 
   ## Dummy WebDAV Server
   dummy-webdav:
-    image: photoprism/dummy-webdav:231015
+    image: photoprism/dummy-webdav:240131
     container_name: dummy-webdav
     environment:
       WEBDAV_USERNAME: admin
@@ -263,6 +270,7 @@ services:
       - "traefik.http.services.dummy-webdav.loadbalancer.server.port=80"
       - "traefik.http.routers.dummy-webdav.entrypoints=websecure"
       - "traefik.http.routers.dummy-webdav.rule=Host(`dummy-webdav.localssl.dev`)"
+      - "traefik.http.routers.dummy-webdav.priority=3"
       - "traefik.http.routers.dummy-webdav.tls.domains[0].main=localssl.dev"
       - "traefik.http.routers.dummy-webdav.tls.domains[0].sans=*.localssl.dev"
       - "traefik.http.routers.dummy-webdav.tls=true"

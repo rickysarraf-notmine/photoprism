@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"errors"
 	"fmt"
 	"net/mail"
 	"path"
@@ -48,8 +47,9 @@ type User struct {
 	UUID          string        `gorm:"type:VARBINARY(64);column:user_uuid;index;" json:"UUID,omitempty" yaml:"UUID,omitempty"`
 	UserUID       string        `gorm:"type:VARBINARY(42);column:user_uid;unique_index;" json:"UID" yaml:"UID"`
 	AuthProvider  string        `gorm:"type:VARBINARY(128);default:'';" json:"AuthProvider" yaml:"AuthProvider,omitempty"`
+	AuthMethod    string        `gorm:"type:VARBINARY(128);default:'';" json:"AuthMethod" yaml:"AuthMethod,omitempty"`
 	AuthID        string        `gorm:"type:VARBINARY(255);index;default:'';" json:"AuthID" yaml:"AuthID,omitempty"`
-	UserName      string        `gorm:"size:255;index;" json:"Name" yaml:"Name,omitempty"`
+	UserName      string        `gorm:"size:200;index;" json:"Name" yaml:"Name,omitempty"`
 	DisplayName   string        `gorm:"size:200;" json:"DisplayName" yaml:"DisplayName,omitempty"`
 	UserEmail     string        `gorm:"size:255;index;" json:"Email" yaml:"Email,omitempty"`
 	BackupEmail   string        `gorm:"size:255;" json:"BackupEmail,omitempty" yaml:"BackupEmail,omitempty"`
@@ -593,7 +593,7 @@ func (m *User) UpdateUsername(login string) (err error) {
 	}
 
 	// Save to database.
-	return m.Updates(Values{
+	return m.Updates(Map{
 		"UserName":    m.UserName,
 		"DisplayName": m.DisplayName,
 	})
@@ -628,7 +628,7 @@ func (m *User) SetRole(role string) *User {
 
 	switch role {
 	case "", "0", "false", "nil", "null", "nan":
-		m.UserRole = acl.RoleUnknown.String()
+		m.UserRole = acl.RoleNone.String()
 	default:
 		m.UserRole = acl.UserRoles[role].String()
 	}
@@ -649,7 +649,7 @@ func (m *User) AclRole() acl.Role {
 	case m.SuperAdmin:
 		return acl.RoleAdmin
 	case role == "":
-		return acl.RoleUnknown
+		return acl.RoleNone
 	case m.UserName == "":
 		return acl.RoleVisitor
 	default:
@@ -755,7 +755,7 @@ func (m *User) IsUnknown() bool {
 		return true
 	}
 
-	return !rnd.IsUID(m.UserUID, UserUID) || m.ID == UnknownUser.ID || m.UserUID == UnknownUser.UserUID || m.HasRole(acl.RoleUnknown)
+	return !rnd.IsUID(m.UserUID, UserUID) || m.ID == UnknownUser.ID || m.UserUID == UnknownUser.UserUID || m.HasRole(acl.RoleNone)
 }
 
 // DeleteSessions deletes all active user sessions except those passed as argument.
@@ -774,6 +774,10 @@ func (m *User) DeleteSessions(omit []string) (deleted int) {
 		stmt = stmt.Where("user_uid = ? AND id NOT IN (?)", m.UserUID, omit)
 	}
 
+	// Exclude client access tokens.
+	stmt = stmt.Where("auth_provider NOT IN (?)", authn.ClientProviders)
+
+	// Fetch sessions from database.
 	sess := Sessions{}
 
 	if err := stmt.Find(&sess).Error; err != nil {
@@ -781,7 +785,7 @@ func (m *User) DeleteSessions(omit []string) (deleted int) {
 		return 0
 	}
 
-	// This will also remove the session from the cache.
+	// Delete sessions from cache and database.
 	for _, s := range sess {
 		if err := s.Delete(); err != nil {
 			event.AuditWarn([]string{"user %s", "failed to invalidate session %s", "%s"}, m.RefID, clean.Log(s.RefID), err)
@@ -790,7 +794,7 @@ func (m *User) DeleteSessions(omit []string) (deleted int) {
 		}
 	}
 
-	// Return number of deleted sessions for logs.
+	// Return number of deleted sessions.
 	return deleted
 }
 
@@ -851,17 +855,19 @@ func (m *User) WrongPassword(s string) bool {
 
 // Validate checks if username, email and role are valid and returns an error otherwise.
 func (m *User) Validate() (err error) {
-	// Empty name?
-	if m.Username() == "" {
-		return errors.New("username must not be empty")
+	// Validate username.
+	if userName, nameErr := authn.Username(m.UserName); nameErr != nil {
+		return fmt.Errorf("username is %s", nameErr.Error())
+	} else {
+		m.UserName = userName
 	}
 
-	// Name too short?
+	// Check if username also meets the length requirements.
 	if len(m.Username()) < UsernameLength {
 		return fmt.Errorf("username must have at least %d characters", UsernameLength)
 	}
 
-	// Validate user role.
+	// Check user role.
 	if acl.UserRoles[m.UserRole] == "" {
 		return fmt.Errorf("user role %s is invalid", clean.LogQuote(m.UserRole))
 	}
@@ -950,7 +956,7 @@ func (m *User) RegenerateTokens() error {
 
 	m.GenerateTokens(true)
 
-	return m.Updates(Values{"PreviewToken": m.PreviewToken, "DownloadToken": m.DownloadToken})
+	return m.Updates(Map{"PreviewToken": m.PreviewToken, "DownloadToken": m.DownloadToken})
 }
 
 // RefreshShares updates the list of shares.
@@ -1178,5 +1184,5 @@ func (m *User) SetAvatar(thumb, thumbSrc string) error {
 	m.Thumb = thumb
 	m.ThumbSrc = thumbSrc
 
-	return m.Updates(Values{"Thumb": m.Thumb, "ThumbSrc": m.ThumbSrc})
+	return m.Updates(Map{"Thumb": m.Thumb, "ThumbSrc": m.ThumbSrc})
 }

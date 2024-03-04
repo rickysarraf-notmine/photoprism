@@ -1,4 +1,4 @@
-# Copyright © 2018 - 2023 PhotoPrism UG. All rights reserved.
+# Copyright © 2018 - 2024 PhotoPrism UG. All rights reserved.
 #
 # Questions? Email us at hello@photoprism.app or visit our website to learn
 # more about our team, products and services: https://www.photoprism.app/
@@ -11,7 +11,7 @@ dep-list:
 install-npm:
 	sudo npm install --unsafe-perm=true --allow-root -g npm@latest npm-check-updates@latest
 install-testcafe:
-	sudo npm install --unsafe-perm=true --allow-root -g testcafe@3.4.0
+	sudo npm install --unsafe-perm=true --allow-root -g testcafe@3.5.0
 install:
 	npm install --no-update-notifier --no-audit
 update:

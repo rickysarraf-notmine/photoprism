@@ -7,8 +7,8 @@ const (
 	RoleVisitor Role = "visitor"
 	RoleFamily  Role = "family"
 	RoleClient  Role = "client"
-	RoleUnknown Role = ""
 	RoleNone    Role = ""
+	RoleUnknown Role = ""
 )
 
 // RoleStrings represents user role names mapped to roles.
@@ -18,15 +18,16 @@ type RoleStrings = map[string]Role
 var UserRoles = RoleStrings{
 	string(RoleAdmin):   RoleAdmin,
 	string(RoleVisitor): RoleVisitor,
+	string(RoleNone):    RoleNone,
 	string(RoleFamily):  RoleFamily,
 	string(RoleUnknown): RoleUnknown,
 }
 
 // ClientRoles maps valid API client roles.
 var ClientRoles = RoleStrings{
-       string(RoleAdmin):  RoleAdmin,
-       string(RoleClient): RoleClient,
-       string(RoleNone):   RoleNone,
+	string(RoleAdmin):  RoleAdmin,
+	string(RoleClient): RoleClient,
+	string(RoleNone):   RoleNone,
 }
 
 // Roles grants permissions to roles.
