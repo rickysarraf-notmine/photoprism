@@ -8,7 +8,7 @@ const (
 	RoleFamily  Role = "family"
 	RoleClient  Role = "client"
 	RoleNone    Role = ""
-	RoleUnknown Role = ""
+	// RoleUnknown Role = ""
 )
 
 // RoleStrings represents user role names mapped to roles.
@@ -20,7 +20,7 @@ var UserRoles = RoleStrings{
 	string(RoleVisitor): RoleVisitor,
 	string(RoleNone):    RoleNone,
 	string(RoleFamily):  RoleFamily,
-	string(RoleUnknown): RoleUnknown,
+	// string(RoleUnknown): RoleUnknown,
 }
 
 // ClientRoles maps valid API client roles.
