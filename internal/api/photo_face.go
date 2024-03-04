@@ -180,7 +180,7 @@ func CreatePhotoFace(router *gin.RouterGroup) {
 			log.Errorf("markers: %s (update photo title)", err)
 		} else {
 			// Notify clients.
-			PublishPhotoEvent(EntityUpdated, file.PhotoUID, c)
+			PublishPhotoEvent(StatusUpdated, file.PhotoUID, c)
 		}
 
 		event.Success("added photo face")
