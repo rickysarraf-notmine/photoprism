@@ -71,15 +71,22 @@ fi
 if [[ -z $TF_DRIVER ]]; then
   echo "Installing TensorFlow ${TF_VERSION} for ${DESTARCH^^} in \"$DESTDIR\"..."
   INSTALL_FILE="${DESTARCH}/libtensorflow-${DESTARCH}-${TF_VERSION}.tar.gz"
+  SRC_FILE="./scripts/dist/libtensorflow-${DESTARCH}-${TF_VERSION}.tar.gz"
 else
   echo "Installing TensorFlow ${TF_VERSION} for ${DESTARCH^^}-${TF_DRIVER^^} in \"$DESTDIR\"..."
   INSTALL_FILE="${DESTARCH}/libtensorflow-${DESTARCH}-${TF_DRIVER}-${TF_VERSION}.tar.gz"
+  SRC_FILE="./scripts/dist/libtensorflow-${DESTARCH}-${TF_DRIVER}-${TF_VERSION}.tar.gz"
 fi
+
+mkdir -p "$TMPDIR/$DESTARCH"
 
 if [ ! -f "$TMPDIR/$INSTALL_FILE" ]; then
   URL="https://dl.photoprism.app/tensorflow/${INSTALL_FILE}"
-  echo "Downloading ${DESTARCH} libs from \"$URL\". Please wait."
-  curl --create-dirs -fsSL -o "$TMPDIR/$INSTALL_FILE" "$URL"
+  #echo "Downloading ${DESTARCH} libs from \"$URL\". Please wait."
+  #curl --create-dirs -fsSL -o "$TMPDIR/$INSTALL_FILE" "$URL"
+  echo "Copying "${SRC_FILE}" libs from "$CWD". Please wait."
+  cp "${SRC_FILE}" "$TMPDIR/$INSTALL_FILE"
+  echo "Copied "${SRC_FILE}" libs from "$CWD". Please wait."
 fi
 
 echo "Extracting \"$TMPDIR/$INSTALL_FILE\" to \"$DESTDIR\"."
