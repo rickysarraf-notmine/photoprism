@@ -64,9 +64,9 @@ func (c *Counts) Refresh() {
 		Where("file_missing = 0 AND file_root = ?", entity.RootOriginals).
 		Take(c)
 
-        Db().Table("countries").
-                Select("(COUNT(*) - 1) AS countries").
-                Take(c)
+	Db().Table("countries").
+		Select("(COUNT(*) - 1) AS countries").
+		Take(c)
 
 	Db().Table("places").
 		Select("SUM(photo_count > 0) AS places").

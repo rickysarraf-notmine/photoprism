@@ -31,7 +31,7 @@ var Resources = ACL{
 	},
 	ResourcePlaces: Roles{
 		RoleAdmin:   GrantFullAccess,
-		RoleFamily: GrantReadOnly,
+		RoleFamily:  GrantReadOnly,
 		RoleVisitor: GrantViewShared,
 		RoleClient:  GrantFullAccess,
 	},
@@ -54,7 +54,7 @@ var Resources = ACL{
 	},
 	ResourceFavorites: Roles{
 		RoleAdmin:  GrantFullAccess,
-		RoleFamily:  GrantReadOnly,
+		RoleFamily: GrantReadOnly,
 		RoleClient: GrantFullAccess,
 	},
 	ResourceLabels: Roles{
@@ -76,8 +76,8 @@ var Resources = ACL{
 		RoleFamily: GrantLoginOnly,
 	},
 	ResourceShares: Roles{
-		RoleAdmin: GrantFullAccess,
-		RoleFamily:  GrantReadOnly,
+		RoleAdmin:  GrantFullAccess,
+		RoleFamily: GrantReadOnly,
 	},
 	ResourceConfig: Roles{
 		RoleAdmin:   GrantFullAccess,

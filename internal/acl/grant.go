@@ -55,7 +55,7 @@ var (
 	GrantChangePassword = Grant{ActionUpdate: true}
 	GrantReadOnly       = GrantSearchShared.Plus(Grant{AccessLibrary: true})
 	GrantReadOnlyReact  = GrantReadOnly.Plus(Grant{ActionReact: true, ActionUpdate: true})
-	
+
 	GrantNone = Grant{}
 )
 
@@ -79,7 +79,6 @@ var GrantDefaults = Roles{
 	RoleVisitor: GrantViewShared,
 	RoleClient:  GrantFullAccess,
 }
-
 
 // Plus creates a new grant by adding up all permissions.
 func (grant Grant) Plus(updated Grant) Grant {

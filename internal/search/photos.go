@@ -681,7 +681,7 @@ func searchPhotos(f form.SearchPhotos, sess *entity.Session, resultCols string) 
 		where, values := OrLike("photos.photo_description", f.Description)
 		s = s.Where(where, values...)
 	}
-	
+
 	// Filter by hash.
 	if txt.NotEmpty(f.Hash) {
 		s = s.Where("files.file_hash IN (?)", SplitOr(strings.ToLower(f.Hash)))

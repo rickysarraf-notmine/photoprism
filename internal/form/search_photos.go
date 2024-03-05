@@ -90,7 +90,7 @@ type SearchPhotos struct {
 	Order     string    `form:"order" serialize:"-"`                                                                                            // Sort order
 	Merged    bool      `form:"merged" serialize:"-"`                                                                                           // Merge FILES in response
 
-	Sphere bool `form:"sphere" notes:"Finds Photosphere Photos"`
+	Sphere      bool   `form:"sphere" notes:"Finds Photosphere Photos"`
 	Description string `form:"description" example:"description:\"Lake*\"" notes:"Description, OR search with |"`
 }
 
