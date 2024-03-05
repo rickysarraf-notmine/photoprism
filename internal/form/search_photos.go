@@ -91,6 +91,7 @@ type SearchPhotos struct {
 	Merged    bool      `form:"merged" serialize:"-"`                                                                                           // Merge FILES in response
 
 	Sphere bool `form:"sphere" notes:"Finds Photosphere Photos"`
+	Description string `form:"description" example:"description:\"Lake*\"" notes:"Description, OR search with |"`
 }
 
 func (f *SearchPhotos) GetQuery() string {

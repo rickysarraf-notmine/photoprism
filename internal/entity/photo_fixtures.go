@@ -1665,7 +1665,7 @@ var PhotoFixtures = PhotoMap{
 		TypeSrc:          "",
 		PhotoTitle:       "phototobebatchapproved2",
 		TitleSrc:         SrcName,
-		PhotoDescription: "",
+		PhotoDescription: "phototobebatchapproved2",
 		DescriptionSrc:   "",
 		PhotoPath:        "2000/12",
 		PhotoName:        "PhotoToBeBatchApproved2",

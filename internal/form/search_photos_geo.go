@@ -74,6 +74,9 @@ type SearchPhotosGeo struct {
 	Day       string    `form:"day"`   // Moments
 	Count     int       `form:"count" serialize:"-"`
 	Offset    int       `form:"offset" serialize:"-"`
+
+	// Additional, non-upstreamed filters.
+	Description string `form:"description"`
 }
 
 // GetQuery returns the query parameter as string.
